@@ -1,5 +1,6 @@
 use std::time::{SystemTime};
 extern crate sha2;
+use sha2::*; // TODO: bad practice
 
 fn main() {
     let mut blockchain = Blockchain::default();
@@ -45,8 +46,12 @@ impl Blockchain {
         if self.blocks.len() == 0 {
             // TODO: no previous hash when genesis block
         }
-        let block = Block{data: data, hash: String::from("cur hash"), prev_hash: String::from("prev hash"), time: SystemTime::now()};
-        self.blocks.append(&mut vec![block])// TODO: Doesn't work
+
+        let mut hash = Sha256::default();
+        hash.input(&data); 
+        let block = Block{data: data, hash: hash, prev_hash: String::from("prev hash"), time: SystemTime::now()};
+        // ^ FIXME: hash
+        self.blocks.append(&mut vec![block])
     }
 
     fn last(&self) -> Option<&Block> {
