@@ -1,6 +1,10 @@
 use std::time::{SystemTime};
-extern crate sha2;
-use sha2::*; // TODO: bad practice
+extern crate crypto;
+use crypto::digest::Digest;
+use crypto::sha2::Sha256;
+extern crate chrono;
+use chrono::offset::Utc;
+use chrono::DateTime;
 
 fn main() {
     let mut blockchain = Blockchain::default();
@@ -8,8 +12,8 @@ fn main() {
     blockchain.add(String::from("my data"));
 
     for i in blockchain.blocks.iter() {
-        // TODO: how to print the time
-        println!("data: {} | hash: {} | previous: {} | time: {}", i.data, i.hash, i.prev_hash, "idk");
+        let datetime: DateTime<Utc> = i.time.into();
+        println!("data: {} | hash: {} | previous: {} | time: {}", i.data, i.hash, i.prev_hash, datetime);
     }
 
      match blockchain.last() {
@@ -47,10 +51,9 @@ impl Blockchain {
             // TODO: no previous hash when genesis block
         }
 
-        let mut hash = Sha256::default();
-        hash.input(&data); 
-        let block = Block{data: data, hash: hash, prev_hash: String::from("prev hash"), time: SystemTime::now()};
-        // ^ FIXME: hash
+        let mut hash = Sha256::new();
+        hash.input_str(&data);
+        let block = Block{data: data, hash: hash.result_str(), prev_hash: String::from("prev hash"), time: SystemTime::now()};
         self.blocks.append(&mut vec![block])
     }
 
