@@ -1,27 +1,27 @@
-use std::time::{SystemTime};
+use std::time::SystemTime;
 extern crate crypto;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 extern crate chrono;
-use chrono::offset::Utc;
 use chrono::DateTime;
+use chrono::offset::Utc;
 
 fn main() {
     let mut blockchain = Blockchain::default();
-
     blockchain.add(String::from("my data"));
 
     for i in blockchain.blocks.iter() {
         let datetime: DateTime<Utc> = i.time.into();
-        println!("data: {} | hash: {} | previous: {} | time: {}", i.data, i.hash, i.prev_hash, datetime);
+        println!(
+            "data: {} | hash: {} | previous: {} | time: {}",
+            i.data, i.hash, i.prev_hash, datetime
+        );
     }
 
-     match blockchain.last() {
+    match blockchain.last() {
         None => println!("none"),
-        Some(last) => {
-            println!("{}", last.hash)
-        },
-     }
+        Some(last) => println!("{}", last.hash),
+    }
 }
 
 struct Block {
@@ -37,12 +37,9 @@ struct Blockchain {
 
 impl Default for Blockchain {
     fn default() -> Blockchain {
-        Blockchain {
-            blocks: Vec::new(),
-        }
+        Blockchain { blocks: Vec::new() }
     }
 }
-
 
 impl Blockchain {
     fn add(&mut self, data: String) {
@@ -53,7 +50,12 @@ impl Blockchain {
 
         let mut hash = Sha256::new();
         hash.input_str(&data);
-        let block = Block{data: data, hash: hash.result_str(), prev_hash: String::from("prev hash"), time: SystemTime::now()};
+        let block = Block {
+            data: data,
+            hash: hash.result_str(),
+            prev_hash: String::from("prev hash"),
+            time: SystemTime::now(),
+        };
         self.blocks.append(&mut vec![block])
     }
 
@@ -61,4 +63,3 @@ impl Blockchain {
         return self.blocks.last();
     }
 }
-
