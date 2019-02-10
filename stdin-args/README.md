@@ -5,7 +5,7 @@ A Go example to parse input from the standard input or from an argument.
 ## stdin (directly)
 
 ```text
-$ run main.go
+$ go run main.go
 I'm running the tool and now it waits for my input which is ended with a new line.
 > I'm running the tool and now it waits for my input which is ended with a new line.
 ```
