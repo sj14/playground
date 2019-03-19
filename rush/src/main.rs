@@ -26,7 +26,10 @@ fn main() {
             cmd.arg(a);
         }
 
-        let output = cmd.output().expect("Could not execute process");
+        let output = match cmd.output() {
+            Ok(v) => v,
+            Err(err) => continue, // TODO: how can I log the err and continue the loop?
+        };
 
         let s = str::from_utf8(&output.stdout).expect("Could not convert output to string");
         println!("output: {}", s.trim_right());
