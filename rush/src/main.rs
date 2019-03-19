@@ -20,13 +20,15 @@ fn main() {
             continue;
         }
 
-        let output = Command::new(args[0])
-        .arg(args[1]) // TODO: use all given args
-        .output()
-        .expect("Could not execute process");
+        let mut cmd = Command::new(args[0]);
+        // TODO: remove first element
+        for a in args {
+            cmd.arg(a);
+        }
+
+        let output = cmd.output().expect("Could not execute process");
 
         let s = str::from_utf8(&output.stdout).expect("Could not convert output to string");
-
         println!("output: {}", s.trim_right());
     }
 }
