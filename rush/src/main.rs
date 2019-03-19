@@ -26,6 +26,7 @@ fn main() {
             cmd.arg(a);
         }
 
+        // TODO: Does not wait until the command has finished
         let output = match cmd.output() {
             Ok(v) => v,
             Err(err) => continue, // TODO: how can I log the err and continue the loop?
