@@ -3,22 +3,31 @@ use std::process::Command;
 use std::str;
 
 fn main() {
+    let input = io::stdin();
+
     loop {
         print!("> ");
         io::stdout().flush().ok().expect("Could not flush stdout");
 
         let mut line = String::new();
-        let input = io::stdin();
         input
             .lock()
             .read_line(&mut line)
             .expect("Could not read stdin");
 
         let mut args = line.split_whitespace().collect::<Vec<&str>>();
-
         if args.len() < 1 {
             continue;
         }
+
+        match args[0] {
+            "cd" => {
+                println!("TODO");
+                continue;
+            }
+            "exit" => return,
+            _ => {}
+        };
 
         let mut cmd = Command::new(args[0]);
         args.remove(0);
