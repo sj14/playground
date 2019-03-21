@@ -1,3 +1,4 @@
+use std::env;
 use std::io::{self, BufRead, Write};
 use std::process::Command;
 use std::str;
@@ -22,7 +23,14 @@ fn main() {
 
         match args[0] {
             "cd" => {
-                println!("TODO");
+                if args.len() != 2 {
+                    eprintln!("cd needs exactly 1 argument");
+                    continue;
+                }
+                match env::set_current_dir(args[1]) {
+                    Ok(v) => v,
+                    Err(e) => eprintln!("{}", e),
+                };
                 continue;
             }
             "exit" => return,
@@ -42,6 +50,6 @@ fn main() {
         };
 
         let s = str::from_utf8(&output.stdout).expect("Could not convert output to string");
-        println!("output: {}", s.trim_right());
+        println!("{}", s.trim_right());
     }
 }
