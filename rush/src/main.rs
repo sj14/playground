@@ -24,7 +24,6 @@ fn main() {
         args.remove(0);
         cmd.args(args);
 
-        // TODO: Does not wait until the command has finished
         let output = match cmd.output() {
             Ok(v) => v,
             Err(err) => {
