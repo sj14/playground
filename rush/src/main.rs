@@ -29,7 +29,10 @@ fn main() {
         // TODO: Does not wait until the command has finished
         let output = match cmd.output() {
             Ok(v) => v,
-            Err(err) => continue, // TODO: how can I log the err and continue the loop?
+            Err(err) => {
+                eprintln!("{}", err);
+                continue;
+            }
         };
 
         let s = str::from_utf8(&output.stdout).expect("Could not convert output to string");
