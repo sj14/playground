@@ -18,9 +18,44 @@ type ResponseV2 struct {
 	ErrorCodes  []int     `json:"error-codes"`  // optional
 }
 
+type ResponseV3 struct {
+	Score  float64 `json:"score"`
+	Action string  `json:"action"`
+	ResponseV2
+}
+
+func VerifyV2(secret string, r *http.Request) (*ResponseV2, error) {
+	body, err := verify(secret, r)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp ResponseV2
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+// TODO: untested
+func VerifyV3(secret string, r *http.Request) (*ResponseV3, error) {
+	body, err := verify(secret, r)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp ResponseV3
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 var ErrNoRecaptcha = errors.New("missing recaptcha response in request")
 
-func Verify(secret string, r *http.Request) (*ResponseV2, error) {
+func verify(secret string, r *http.Request) ([]byte, error) {
 	response := r.FormValue("g-recaptcha-response")
 	if response == "" {
 		return nil, ErrNoRecaptcha
@@ -48,10 +83,5 @@ func Verify(secret string, r *http.Request) (*ResponseV2, error) {
 		return nil, err
 	}
 
-	var resp ResponseV2
-	if err := json.Unmarshal(body, &resp); err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
+	return body, nil
 }
