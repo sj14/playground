@@ -1,0 +1,11 @@
+# /etc/systemd/system/netatmo.timer
+
+[Unit]
+Description=netatmo csv influxdv import timer
+
+[Timer]
+OnCalendar=0:10
+Persistent=true
+
+[Install]
+WantedBy=basic.target

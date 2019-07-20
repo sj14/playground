@@ -25,18 +25,24 @@ def main():
                 files.append(os.path.join(r, file))
 
     for f in files:
+        influx_data = []
+
         print("importing " + f)
         if f.endswith("-INDOOR.csv"):
-            import_indoor(f)
+            influx_data.extend(import_indoor(f))
         elif f.endswith("-OUTDOOR.csv"):
-            import_outdoor(f)
+            influx_data.extend(import_outdoor(f))
         elif f.endswith("-RAIN.csv"):
-            import_rain(f)
-        # else:
-        #     # dont' delete any other files
-        #     continue
-        # # delete imported file
-        # os.remove(f)
+            influx_data.extend(import_rain(f))
+        else:
+            # dont' delete any other files
+            continue
+        
+        # import to influx db
+        client.write_points(influx_data)
+
+        # delete imported file
+        os.remove(f)
 
 
 def mk_float(s):
@@ -46,23 +52,9 @@ def mk_float(s):
 
 def import_indoor(filename):
     with open(filename, newline='') as csvfile:
-        # spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
-        spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+        csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
 
-
-        # row_index = 0
-        # for row in spamreader:
-        #     if row_index == 0 || rows_Index == 2:
-        #         continue
-            
-        #     if row_index == 1:
-                
-            
-        #     column_index = 0
-        #     for column in row:
-            # column_index++
-
-        for row in islice(spamreader, 3, None):
+        for row in islice(csvreader, 3, None):
             timestamp = int(row[0]) * 1000000000
                     
             influx_data = [
@@ -91,14 +83,6 @@ def import_indoor(filename):
                 "time": timestamp
                 },
                 {
-                "measurement": "Noise",
-                "tags": {
-                    "module": "Indoor",
-                    },
-                "fields": {"value": mk_float(row[5])},
-                "time": timestamp
-                },
-                {
                 "measurement": "Pressure",
                 "tags": {
                     "module": "Indoor",
@@ -108,17 +92,31 @@ def import_indoor(filename):
                 }
             ]
 
+            noise = mk_float(row[5])
+            if noise != 0:
+                influx_noise = {
+                    "measurement": "Noise",
+                    "tags": {
+                        "module": "Indoor",
+                        },
+                    "fields": {"value": noise},
+                    "time": timestamp
+                    }
+                
+                influx_data.append(influx_noise)
+
+
             # write particular sensor data into influxdb
             #print(influx_data)
-            client.write_points(influx_data)
+            return influx_data
+            #client.write_points(influx_data)
+
+
 
 def import_rain(filename):
     with open(filename, newline='') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
-        for row in islice(spamreader, 3, None):
-            #print(', '.join(row))
-            #print(row[0])
-            
+        csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+        for row in islice(csvreader, 3, None):
             timestamp = int(row[0]) * 1000000000
                     
             influx_data = [
@@ -134,16 +132,13 @@ def import_rain(filename):
 
             # write particular sensor data into influxdb
             #print(influx_data)
-            client.write_points(influx_data)
-
+            #client.write_points(influx_data)
+            return influx_data
 
 def import_outdoor(filename):
     with open(filename, newline='') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
-        for row in islice(spamreader, 3, None):
-            #print(', '.join(row))
-            #print(row[0])
-            
+        csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+        for row in islice(csvreader, 3, None):
             timestamp = int(row[0]) * 1000000000
                     
             influx_data = [
@@ -167,7 +162,8 @@ def import_outdoor(filename):
 
             # write particular sensor data into influxdb
             #print(influx_data)
-            client.write_points(influx_data)
+            #client.write_points(influx_data)
+            return influx_data
 
 if __name__== "__main__":
   main()

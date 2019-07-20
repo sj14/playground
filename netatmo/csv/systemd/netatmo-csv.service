@@ -1,0 +1,13 @@
+# /etc/systemd/system/netatmo.service
+
+[Unit]
+Description=insert csv data into influxdb
+
+[Service]
+WorkingDirectory=/home/simon/netatmo/csv
+User=simon
+Type=oneshot
+ExecStart=/home/simon/netatmo/csv/run.sh
+
+[Install]
+WantedBy=multi-user.target
