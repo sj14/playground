@@ -45,7 +45,7 @@ for module, moduleData in weather.lastData(exclude=3600).items() :
             value = float(value)
 
         # don't store when there is no rain etc.
-        if value == 0.0
+        if value == 0.0:
             continue
         
         influx_data = [{
