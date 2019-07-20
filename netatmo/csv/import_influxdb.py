@@ -25,6 +25,7 @@ def main():
                 files.append(os.path.join(r, file))
 
     for f in files:
+        print("importing " + f)
         if f.endswith("-INDOOR.csv"):
             import_indoor(f)
         elif f.endswith("-OUTDOOR.csv"):
@@ -108,14 +109,14 @@ def import_indoor(filename):
             ]
 
             # write particular sensor data into influxdb
-            print(influx_data)
-            print(client.write_points(influx_data))
+            #print(influx_data)
+            client.write_points(influx_data)
 
 def import_rain(filename):
     with open(filename, newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
         for row in islice(spamreader, 3, None):
-            print(', '.join(row))
+            #print(', '.join(row))
             #print(row[0])
             
             timestamp = int(row[0]) * 1000000000
@@ -132,15 +133,15 @@ def import_rain(filename):
             ]
 
             # write particular sensor data into influxdb
-            print(influx_data)
-            print(client.write_points(influx_data))
+            #print(influx_data)
+            client.write_points(influx_data)
 
 
 def import_outdoor(filename):
     with open(filename, newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=';', quotechar='|')
         for row in islice(spamreader, 3, None):
-            print(', '.join(row))
+            #print(', '.join(row))
             #print(row[0])
             
             timestamp = int(row[0]) * 1000000000
@@ -165,8 +166,8 @@ def import_outdoor(filename):
             ]
 
             # write particular sensor data into influxdb
-            print(influx_data)
-            print(client.write_points(influx_data))
+            #print(influx_data)
+            client.write_points(influx_data)
 
 if __name__== "__main__":
   main()
