@@ -90,7 +90,7 @@ getmeasurecsv() {
     PARAM="access_token=$ACCESS_TOKEN&device_id=$DEVICE_ID&type=$TYPE&module_id=$MODULE_ID&scale=max&format=$FORMAT&datebegin=$DATEBEGIN&timebegin=$TIMEBEGIN&dateend=$DATEEND&timeend=$TIMEEND&date_begin=$DATE_BEGIN&date_end=$DATE_END"
   
     # now download data as csv
-    curl -o "exports/$DATE-$MODULE_NAME.csv" -d $PARAM $API_GETMEASURECSV
+    curl --silent -o "exports/$DATE-$MODULE_NAME.csv" -d $PARAM $API_GETMEASURECSV
   
     # clean up
     rm $SESSION_COOKIE
@@ -119,4 +119,5 @@ urlencode() {
   
 #____________________________________________________________________________________________________________________________________
 
+echo "get $DATE $NAME"
 getmeasurecsv "$USER" "$PASS" "$DEVICE" "$MODULE" "$SENSORS" "$DATE 00:00:00" "$DATE 23:59:59" "csv" "$NAME"
