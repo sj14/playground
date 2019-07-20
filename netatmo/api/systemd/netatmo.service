@@ -1,0 +1,13 @@
+# /etc/systemd/system/netatmo.service
+
+[Unit]
+Description=get netatmo data from cloud api
+
+[Service]
+User=simon
+Type=oneshot
+ExecStart=/usr/bin/python3m /home/simon/netatmo.py
+#Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+# /etc/systemd/system/netatmo.timer
+
+[Unit]
+Description=netatmo timer
+
+[Timer]
+OnBootSec=10s
+OnUnitActiveSec=4m
+Persistent=true
+
+[Install]
+WantedBy=basic.target

@@ -21,11 +21,15 @@ user = weather.user
 
 print("Station owner : ", user.mail)
 print("Data units    : ", user.unit)
+print(weather)
 print()
+
 
 # For each available module in the returned data that should not be older than one hour (3600 s) from now
 for module, moduleData in weather.lastData(exclude=3600).items() :    
     when = 0
+
+    print(moduleData)
 
     # first, check the response for the date
     for sensor, value in moduleData.items() :
@@ -40,6 +44,10 @@ for module, moduleData in weather.lastData(exclude=3600).items() :
         if isinstance(value, int):
             value = float(value)
 
+        # don't store when there is no rain etc.
+        if value == 0.0
+            continue
+        
         influx_data = [{
         "measurement": sensor,
         "tags": {
@@ -50,7 +58,7 @@ for module, moduleData in weather.lastData(exclude=3600).items() :
         }]
         
         # write particular sensor data into influxdb
-        # print(influx_data)
+        print(influx_data)
         print(client.write_points(influx_data))
 
 # > INSERT Temperature,sensor=indoor  value=26.7 1465839830100400200
