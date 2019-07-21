@@ -7,7 +7,7 @@ Description=insert csv data into influxdb
 WorkingDirectory=/home/simon/netatmo/csv
 User=simon
 Type=oneshot
-ExecStart=/home/simon/netatmo/csv/run.sh
+ExecStart=/home/simon/netatmo/csv/run.sh email password 1
 
 [Install]
 WantedBy=multi-user.target
