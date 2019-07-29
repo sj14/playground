@@ -20,7 +20,7 @@
 # Alternative
 # ===========
 # 1. Modify the SONAR_HOST variable
-# 2. Add `sonar_analysis_status YOUR_PROJECT_KEY` at the bottom of this file
+# 2. Uncomment the last lines at the bottom of this file
 # 3. Execute this script `./sonar-status.sh`` 
 # 4. Check for the return code.
 
@@ -66,5 +66,11 @@ sonar_analysis_status() {
     fi
 }
 
-# Alternative (uncomment the following line)
-# sonar_analysis_status YOUR_PROJECT_KEY
+## Alternative:
+
+# if ! sonar_analysis_status YOUR_PROJECT_KEY
+# then
+#     exit 1
+# else
+#     exit 0
+# fi
