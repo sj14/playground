@@ -2,6 +2,8 @@ package io.gitlab.sj14.retry;
 
 public class Retry {
 
+   private static final int LIMIT_ATTEMPTS = 7;
+
    /**
     * based on https://stackoverflow.com/a/13240586
     *
@@ -10,9 +12,8 @@ public class Retry {
     * @throws Exception
     */
    public static void onException(int maxAttempts, RetryOperation retryOperation) throws Exception {
-      if (maxAttempts > 7) {
-         // TODO: make this configurable
-         maxAttempts = 7;
+      if (maxAttempts > LIMIT_ATTEMPTS) {
+         maxAttempts = LIMIT_ATTEMPTS;
       }
 
       for (int attempt = 0; ; attempt++) {
@@ -25,7 +26,8 @@ public class Retry {
                exponentialSleep(attempt+1);
                continue;
             }
-            // reached max. attempts
+            // reached max. attempts, don't retry, print stacktrace and throw the exception
+            e.printStackTrace();
             throw e;
          }
       }
@@ -34,16 +36,15 @@ public class Retry {
 
    /**
     * Suitable for tests as junit's assert functions throws errors and not exceptions. Throwable will catch both, errors and exceptions
-    * but shouldn't be used in non-testing code.
+    * but shouldn't be used in "normal" code of the service.
     *
     * @param maxAttempts
     * @param retryOperation
     * @throws Exception
     */
    public static void onThrowable(int maxAttempts, RetryOperation retryOperation) throws Throwable {
-      if (maxAttempts > 7) {
-         // TODO: make this configurable
-         maxAttempts = 7;
+      if (maxAttempts > LIMIT_ATTEMPTS) {
+         maxAttempts = LIMIT_ATTEMPTS;
       }
 
       for (int attempt = 0; ; attempt++) {
@@ -56,7 +57,8 @@ public class Retry {
                exponentialSleep(attempt+1);
                continue;
             }
-            // reached max. attempts
+            // reached max. attempts, don't retry, print stacktrace and throw the throwable
+            t.printStackTrace();
             throw t;
          }
       }
