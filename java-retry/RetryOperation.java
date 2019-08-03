@@ -3,7 +3,6 @@ package io.gitlab.sj14.retry;
 /**
  * based on https://stackoverflow.com/a/13240586
  */
-
 public interface RetryOperation {
 
    /**
