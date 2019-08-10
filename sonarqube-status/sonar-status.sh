@@ -2,8 +2,8 @@
 
 # Description
 # ===========
-# Get the SonarQube Quality Guard status of a specific project for the current git commit.
-# When the Quality Guard analysis is "OK", return 0, otherwise, return 1.
+# Get the SonarQube Quality Gate status of a specific project for the current git commit.
+# When the Quality Gate analysis is "OK", return 0, otherwise, return 1.
 # Well suitable for usage in a build pipeline.
 #
 # Requirements
@@ -21,7 +21,7 @@
 # ===========
 # 1. Modify the SONAR_HOST variable
 # 2. Uncomment the last lines at the bottom of this file
-# 3. Execute this script `./sonar-status.sh`` 
+# 3. Execute this script `./sonar-status.sh`
 # 4. Check for the return code.
 
 set -e
@@ -40,7 +40,7 @@ sonar_analysis_status() {
         # remove double quotes from analysis id (e.g. "AWv6wb07Y5FuS8wxa-xk" -> AWv6wb07Y5FuS8wxa-xk)
         analysis_id=$(echo "$analysis_id" | tr -d "\"\`'")
 
-        # get quality guard status of this anlysis
+        # get quality gate status of this anlysis
         analysis_status=$(curl -s $SONAR_HOST/api/qualitygates/project_status?analysisId="$analysis_id" | jq '.projectStatus.status')
 
         # break this loop when analysis was found,
