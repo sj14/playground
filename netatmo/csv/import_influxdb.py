@@ -12,7 +12,7 @@ from influxdb import InfluxDBClient
 
 
 # influxdb
-client = InfluxDBClient(host='ts-212', port=8086)
+client = InfluxDBClient(host='localhost', port=8086)
 client.create_database("netatmo")
 client.switch_database("netatmo")
 
@@ -53,11 +53,12 @@ def mk_float(s):
 def import_indoor(filename):
     with open(filename, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+        influx_data = []
 
         for row in islice(csvreader, 3, None):
             timestamp = int(row[0]) * 1000000000
                     
-            influx_data = [
+            influx_data.extend([
                 {
                 "measurement": "Temperature",
                 "tags": {
@@ -90,7 +91,7 @@ def import_indoor(filename):
                 "fields": {"value": mk_float(row[6])},
                 "time": timestamp
                 }
-            ]
+            ])
 
             noise = mk_float(row[5])
             if noise != 0:
@@ -106,20 +107,22 @@ def import_indoor(filename):
                 influx_data.append(influx_noise)
 
 
-            # write particular sensor data into influxdb
-            #print(influx_data)
-            return influx_data
-            #client.write_points(influx_data)
+        # write particular sensor data into influxdb
+        #print(influx_data)
+        return influx_data
+        #client.write_points(influx_data)
 
 
 
 def import_rain(filename):
     with open(filename, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+        influx_data = []
+
         for row in islice(csvreader, 3, None):
             timestamp = int(row[0]) * 1000000000
                     
-            influx_data = [
+            influx_data.extend([
                 {
                 "measurement": "Rain",
                 "tags": {
@@ -128,20 +131,22 @@ def import_rain(filename):
                 "fields": {"value": mk_float(row[2])},
                 "time": timestamp
                 }
-            ]
+            ])
 
-            # write particular sensor data into influxdb
-            #print(influx_data)
-            #client.write_points(influx_data)
-            return influx_data
+        # write particular sensor data into influxdb
+        #print(influx_data)
+        #client.write_points(influx_data)
+        return influx_data
 
 def import_outdoor(filename):
     with open(filename, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
+        influx_data = []
+
         for row in islice(csvreader, 3, None):
             timestamp = int(row[0]) * 1000000000
                     
-            influx_data = [
+            influx_data.extend([
                 {
                 "measurement": "Temperature",
                 "tags": {
@@ -158,12 +163,12 @@ def import_outdoor(filename):
                 "fields": {"value": mk_float(row[3])},
                 "time": timestamp
                 },
-            ]
+            ])
 
-            # write particular sensor data into influxdb
-            #print(influx_data)
-            #client.write_points(influx_data)
-            return influx_data
+        # write particular sensor data into influxdb
+        #print(influx_data)
+        #client.write_points(influx_data)
+        return influx_data
 
 if __name__== "__main__":
   main()
