@@ -45,8 +45,9 @@ for module, moduleData in weather.lastData(exclude=3600).items() :
             value = float(value)
 
         # don't store when there is no rain etc.
-        if value == 0.0:
-            continue
+        ## !! null values don't work well with grafana line graphs!!
+        # if value == 0.0:
+        #     continue
         
         influx_data = [{
         "measurement": sensor,
