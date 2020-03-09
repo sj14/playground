@@ -1,0 +1,29 @@
+version: '2.1'
+services:
+ pg_prometheus:
+   image: timescale/pg_prometheus:latest-pg11
+   command: -c synchronous_commit=OFF
+   container_name: pg_prometheus
+   healthcheck:
+     test: ["CMD-SHELL", "pg_isready -U postgres"]
+     interval: 1s
+     timeout: 5s  
+     retries: 10
+ prometheus_postgresql_adapter:
+   image: timescale/prometheus-postgresql-adapter:latest
+   ports:
+     - "9201:9201"
+   depends_on:
+     pg_prometheus:
+       condition: service_healthy
+   command: "-pg-host=pg_prometheus -pg-prometheus-log-samples -pg-password=<PASSWORD SET IN PG_PROMETHEUS STEP>"
+ node_exporter:
+   image: quay.io/prometheus/node-exporter
+   ports:
+     - "9100:9100"
+ prometheus:
+   image: prom/prometheus
+   ports:
+     - "9090:9090"
+   volumes:
+     - ${PWD}/prometheus.yml:/etc/prometheus/prometheus.yml
