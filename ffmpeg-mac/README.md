@@ -1,4 +1,4 @@
-# MacOS installer for static ffmpeg binary
+# MacOS installer for static FFmpeg binary
 
 ## Why?
 
