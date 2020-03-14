@@ -7,6 +7,27 @@ This script downloads the static binary and moves it to `/usr/local/bin/`, thats
 
 ## Usage
 
+Latest stable version:
+
 ```bash
-./install.sh [snapshot]
+./install.sh
 ```
+
+Latest snapshot:
+
+```bash
+./install.sh snapshot
+```
+
+### Without cloning the repository first
+
+stable: 
+```bash
+curl -s https://raw.githubusercontent.com/sj14/playground/master/ffmpeg-mac-installer/install.sh | bash -s
+```
+
+snapshot:
+```bash
+curl -s https://raw.githubusercontent.com/sj14/playground/master/ffmpeg-mac-installer/install.sh | bash -s snapshot
+```
+
