@@ -30,6 +30,6 @@ mv ffmpeg /usr/local/bin/
 
 printf "cleaning up... "
 rm ffmpeg.zip
-rm ffmpeg.zip.sig
+# rm ffmpeg.zip.sig
 
 printf "finished!\n"
