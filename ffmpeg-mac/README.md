@@ -23,12 +23,12 @@ Latest snapshot:
 
 stable: 
 ```bash
-curl -s https://raw.githubusercontent.com/sj14/playground/master/ffmpeg-mac-installer/install.sh | bash -s
+curl -s https://raw.githubusercontent.com/sj14/playground/master/ffmpeg-mac/install.sh | bash -s
 ```
 
 snapshot:
 ```bash
-curl -s https://raw.githubusercontent.com/sj14/playground/master/ffmpeg-mac-installer/install.sh | bash -s snapshot
+curl -s https://raw.githubusercontent.com/sj14/playground/master/ffmpeg-mac/install.sh | bash -s snapshot
 ```
 
 ## Updating
