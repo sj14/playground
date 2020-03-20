@@ -15,7 +15,7 @@ type ResponseV2 struct {
 	Success     bool      `json:"success"`
 	ChallengeTS time.Time `json:"challenge_ts"` // timestamp of the challenge load (ISO format yyyy-MM-dd'T'HH:mm:ssZZ)
 	Hostname    string    `json:"hostname"`     // the hostname of the site where the reCAPTCHA was solved
-	ErrorCodes  []int     `json:"error-codes"`  // optional
+	ErrorCodes  []string  `json:"error-codes"`  // optional
 }
 
 type ResponseV3 struct {
