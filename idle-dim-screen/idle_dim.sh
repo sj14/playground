@@ -25,12 +25,11 @@ do
         echo "not idling ($idleSec sec)"
         # we are not idle, check if screen is already on again
         brightnessLevel=$(brightness -l | awk 'END {print $NF}')
-        if [[ $(echo "$brightnessLevel < 0.1" | bc) == 1 ]]
-        then
+        if [[ $(echo "$brightnessLevel < 0.1" | bc) == 1 ]] ; then
             echo "setting brightness to $wakeBrightness"
             # screen is on but brightness level is below 10%, set it to 50%
             brightness $wakeBrightness
-            fi
+        fi
     fi
     sleep $checkInterval
 done
