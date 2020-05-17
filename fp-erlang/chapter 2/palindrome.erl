@@ -4,6 +4,7 @@
 -export([palindrome/1, palindrome_test/0]).
 
 palindrome([]) -> true;
+palindrome([_X|[]]) -> true;
 palindrome([X|Xs]) ->  
     case string:to_lower(X) == string:to_lower(lists:last(Xs)) of 
         true -> palindrome(lists:droplast(Xs)); 
@@ -12,6 +13,7 @@ palindrome([X|Xs]) ->
 
 palindrome_test() ->
     true = palindrome("otto"),
+    true = palindrome("otito"),
     true = palindrome("Otto"),
     false = palindrome("Madam I\'m Adam"), % sorry, my definition of palindrome is different ;)
     false = palindrome("hello"),
