@@ -4,7 +4,7 @@
 -export([palindrome/1, palindrome_test/0]).
 
 palindrome([]) -> true;
-palindrome([_X|[]]) -> true;
+palindrome([_X|[]]) -> true; % last element in the middle of the string (odd number of characters)
 palindrome([X|Xs]) ->  
     case string:to_lower(X) == string:to_lower(lists:last(Xs)) of 
         true -> palindrome(lists:droplast(Xs)); 
