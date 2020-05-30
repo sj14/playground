@@ -1,14 +1,15 @@
 -module(text).
--export([myfunc/2, remove_test/0, take_test/0]).
+-export([get_lines/2, remove_test/0, take_test/0]).
 
+% TODO: misunderstood the task, linelength should not based on the number of words but characters, as anyone else would assume...
 % TODO: fix output
 
 % input a string (list ) of chars
 % LINELEN -> max. number of word in a line
-myfunc([], _) -> [];
-myfunc(X, LINELEN) ->
+get_lines([], _) -> [];
+get_lines(X, LINELEN) ->
     Ws = string:split(X, " ", all),
-    LINES = myfunc(Ws, LINELEN, [])
+    LINES = get_lines(Ws, LINELEN, [])
     %output(LINES)
 .
 
@@ -17,16 +18,15 @@ myfunc(X, LINELEN) ->
 %     io:format("~s", [X]),
 %     output(Xs).
 
-myfunc([], _, R) -> R;
-myfunc(X, LINELEN, R) ->
+get_lines([], _, R) -> R;
+get_lines(X, LINELEN, R) ->
     L = [take(LINELEN, X)],
     RR = R ++ L,
     Y = remove(LINELEN, X),
-    myfunc(Y, LINELEN, RR).
+    get_lines(Y, LINELEN, RR).
 
 % copy-paste from chapter 2
 take(N, X) -> take(N, X, []).
-
 take(0, _X, R) -> R;
 take(_, [], R) -> R;
 take(N, [X | Xs], R) -> take(N - 1, Xs, R ++ [X]).
