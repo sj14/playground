@@ -27,59 +27,44 @@ add(W, N, R) ->
             {entry, W, O} = get(W, R),      % get current element for current line numbers (O)
             RR = drop(W, R),                % drop current element from result
             RR ++ [{entry, W, add_line(N, O)}];   % add current element to result with old line numbers an new line number
-        false -> R ++ [{entry, W, [{N}]}]     % add word as entry with line
+        false -> R ++ [{entry, W, [{N,N}]}]     % add word as entry with line
     end.
 
 add_test() ->
     T1 = add(my_word, 1, []),
-    {entry,my_word,[{1}]} = get(my_word, T1),
+    {entry,my_word,[{1,1}]} = get(my_word, T1),
 
-    T2 = add(my_word, 2, [{entry,my_word,[{1}]}]),
+    T2 = add(my_word, 2, [{entry,my_word,[{1,1}]}]),
     {entry,my_word,[{1,2}]} = get(my_word, T2),
 
-    T3 = add(my_word, 4, [{entry,not_my_word,[{6}]}, {entry,my_word,[{2}]}, {entry,abcd,[{3}]}]),
-    {entry,my_word,[{2,4}]} = get(my_word, T3),
+    T3 = add(my_word, 4, [{entry,not_my_word,[{6,6}]}, {entry,my_word,[{2,2}]}, {entry,abcd,[{3,3}]}]),
+    {entry,my_word,[{2,2},{4,4}]} = get(my_word, T3),
 
-    T4 = add(my_word, 4, [{entry,not_my_word,[{6}]}, {entry,my_word,[{2,3}]}, {entry,abcd,[{3}]}]),
+    T4 = add(my_word, 4, [{entry,not_my_word,[{6,6}]}, {entry,my_word,[{2,3}]}, {entry,abcd,[{3,3}]}]),
     {entry,my_word,[{2,4}]} = get(my_word, T4),
+
+    T5 = add(my_word, 11, [{entry,my_word,[{2,4}, {5,7}, {10,10}]}]),
+    {entry,my_word,[{2,4}, {5,7}, {10,11}]} = get(my_word, T5),
+
+    T6 = add(my_word, 12, [{entry,my_word,[{2,4}, {5,7}, {10,10}]}]),
+    {entry,my_word,[{2,4}, {5,7}, {10,10}, {12,12}]} = get(my_word, T6),
 
     pass.
 
 add_line(L, C) ->
-    case tuple_size(hd(C)) == 2 of
-        true ->
-            {_, last} = hd(C),
-            [erlang:append_element(last,L)];
-        false -> [erlang:append_element(hd(C),L)]
+    {FIRST, LAST} = lists:last(C),
+
+    case LAST == L of
+        true -> C; % same line number
+        false -> 
+            case LAST+1 == L of
+                true ->  % subsequent line number
+                    D = lists:droplast(C),
+                    D ++ [{FIRST,L}];
+                false -> % line number more than 1 line away after the previous line
+                    C ++ [{L,L}]
+            end
     end
-
-    % case hd(C) > 0 of % because idk how to do `hd(c) == {_}`
-    %     true -> 
-    %         % has only one line, no range so far
-    %         [erlang:append_element(hd(C),L)];
-    %     false ->
-    %         % should be a range now, e.g. {1,5}
-    %         {first, _} = C,
-    %         {first, L}
-    % end
-
-    % case is_list(c) of
-    %     true -> 
-
-    %         % we already have several lines
-    %         case C + 1 == L of
-    %             true -> 
-    %                 % new line follows last line
-    %                 {tl(C), L};
-    %             false -> 
-    %                 % new line more than 1 line after old line
-    %                 {C, L}
-    %         end;
-
-    %     false -> 
-    %         % only one line
-    %         [{C,L}]
-    % end
 .
 
 
