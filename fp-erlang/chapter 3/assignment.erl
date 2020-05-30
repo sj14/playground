@@ -5,7 +5,16 @@
 -export([run/0, member_test/0, test/0, get_test/0, drop_test/0, add_test/0]).
 
 run() ->
-    split(index:get_file_contents("gettysburg-address.txt"), 1, []).
+    R = split(index:get_file_contents("gettysburg-address.txt"), 1, []),
+    output(R).
+
+output([]) -> [];
+output([X|Xs]) -> 
+    {entry, WORD, LINES} = X,
+    io:format("~s",[WORD]),
+    io:format("~w~n", [LINES]),
+    output(Xs).
+
 
 split([],_N,R) -> R;
 split([L|Ls], N, R) -> 
@@ -24,9 +33,9 @@ run([W | Ws], N, R) ->
 add(W, N, R) ->
     case member(W, R) of 
         true ->
-            {entry, W, O} = get(W, R),      % get current element for current line numbers (O)
-            RR = drop(W, R),                % drop current element from result
-            RR ++ [{entry, W, add_line(N, O)}];   % add current element to result with old line numbers an new line number
+            {entry, W, O} = get(W, R),          % get current element for current line numbers (O)
+            RR = drop(W, R),                    % drop current element from result
+            RR ++ [{entry, W, add_line(N, O)}]; % add current element to result with old line numbers an new line number
         false -> R ++ [{entry, W, [{N,N}]}]     % add word as entry with line
     end.
 
