@@ -1,31 +1,31 @@
 -module(billing).
+
 -export([bill/1, select_test/0]).
 
-% TODO: 
-% - headline
-% - 2 digit precision
-
 bill([]) -> [];
-bill([B | Bs]) -> bill([B | Bs], 0).
-bill([], T) -> 
+bill([B | Bs]) ->
+    io:format("~s~n~n", ["             Erlang Stores"]),
+    bill([B | Bs], 0).
+
+bill([], T) ->
     io:format("~n"),
 
     TT = "Total",
-    io:format("~s",[TT]),
-    dots(30-length(TT)),
-    io:format("~f~n",[T/100]);
-bill([B | Bs], T) -> 
+    io:format("~s", [TT]),
+    dots(30 - length(TT)),
+    io:format("~.2f~n", [T / 100]);
+bill([B | Bs], T) ->
     {_, NAME, PRICE} = select(B),
     io:format("~s", [NAME]),
-    dots(30-length(NAME)),
-    io:format("~f~n", [PRICE/100]),
+    dots(30 - length(NAME)),
+    io:format("~.2f~n", [PRICE / 100]),
     TT = T + PRICE,
     bill(Bs, TT).
 
 dots(0) -> [];
-dots(N) -> 
+dots(N) ->
     io:format("."),
-    dots(N-1).
+    dots(N - 1).
 
 select(B) ->
     DB = [{4719, "Fish Fingers", 121},
@@ -36,12 +36,10 @@ select(B) ->
           {1234, "Dry Sherry, 1lt", 540}],
     get(B, DB).
 
-
-select_test() -> 
+select_test() ->
     {4719, "Fish Fingers", 121} = select(4719),
     {1234, "Dry Sherry, 1lt", 540} = select(1234),
     pass.
-
 
 get(B, [D | Ds]) ->
     {C, _, _} = D,
@@ -49,4 +47,3 @@ get(B, [D | Ds]) ->
         true -> D;
         _ -> get(B, Ds)
     end.
-
