@@ -2,7 +2,7 @@
 
 -module(assignment).
 
--export([member_test/0, test/0, get_test/0, drop_test/0, add_test/0]).
+-export([run/0, member_test/0, test/0, get_test/0, drop_test/0, add_test/0]).
 
 run() ->
     split(index:get_file_contents("gettysburg-address.txt"), 1, []).
@@ -17,7 +17,6 @@ split([L|Ls], N, R) ->
 % R -> List with Results
 run([],_N,R) -> R;
 run([W | Ws], N, R) -> 
-    % io:format("~s~n",[W]),
     RR = add(W,N,R),
     run(Ws,N,RR).
 
@@ -27,13 +26,19 @@ add(W, N, R) ->
         true ->
             {entry, W, O} = get(W, R),      % get current element for current line numbers (O)
             RR = drop(W, R),                % drop current element from result
-            RR ++ [{entry, W, O ++ [N]}];   % add current element to result with old line numbers an new line number
-        false -> R ++ [{entry, W, [N]}]     % add word as entry with line
+            RR ++ [{entry, W, [{O, N}]}];   % add current element to result with old line numbers an new line number
+        false -> R ++ [{entry, W, [{N}]}]     % add word as entry with line
     end.
 
 add_test() ->
-    R = add(my_word, 1, [{1}]),
-    {entry,my_word,[{1}]} = get(my_word, R),
+    T1 = add(my_word, 1, []),
+    {entry,my_word,[{1}]} = get(my_word, T1),
+
+    T2 = add(my_word, 2, [{entry,my_word,1}]),
+    {entry,my_word,[{1,2}]} = get(my_word, T2),
+
+    T3 = add(my_word, 2, [{entry,not_my_word,6}, {entry,my_word,4}, {entry,abcd,3}]),
+    {entry,my_word,[{4,2}]} = get(my_word, T3),
     pass.
 
 %check if it's the same line (continue) or add different line
