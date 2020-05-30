@@ -1,13 +1,17 @@
 % chapter 3.3
 
 -module(assignment).
-
 -export([run/0, member_test/0, test/0, get_test/0, drop_test/0, add_test/0]).
 
+% TODO: 
+%   - output format not exactly like in assignment description
+%   - remove commas and dots, etc.
+%   - consider all the stuff under "refining the solution"
 run() ->
     R = split(index:get_file_contents("gettysburg-address.txt"), 1, []),
     output(R).
 
+% output word and line number
 output([]) -> [];
 output([X|Xs]) -> 
     {entry, WORD, LINES} = X,
@@ -18,12 +22,11 @@ output([X|Xs]) ->
 
 split([],_N,R) -> R;
 split([L|Ls], N, R) -> 
-    W = string:split(L, " ", all),
-    RR = run(W, N, R),
+    W = string:split(L, " ", all), % split line into words on each space
+    RR = run(W, N, R), % Add words to index (W -> word; N -> line number; R -> result)
     split(Ls, N+1, RR).
 
-% L -> Line
-% R -> List with Results
+% W -> Word; R -> List with Results
 run([],_N,R) -> R;
 run([W | Ws], N, R) -> 
     RR = add(W,N,R),
@@ -75,7 +78,6 @@ add_line(L, C) ->
             end
     end
 .
-
 
 % drop word X from list of entries R.
 drop(_X, []) -> [];
@@ -131,4 +133,5 @@ test() ->
     member_test(),
     get_test(),
     drop_test(),
+    add_test(),
     pass.
