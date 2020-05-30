@@ -2,19 +2,30 @@
 -export([bill/1, select_test/0]).
 
 % TODO: 
-% - price/100
-% - formatting
+% - headline
+% - 2 digit precision
 
 bill([]) -> [];
 bill([B | Bs]) -> bill([B | Bs], 0).
 bill([], T) -> 
-    io:format("Total: ~B~n",[T]);
+    io:format("~n"),
+
+    TT = "Total",
+    io:format("~s",[TT]),
+    dots(30-length(TT)),
+    io:format("~f~n",[T/100]);
 bill([B | Bs], T) -> 
     {_, NAME, PRICE} = select(B),
-    io:format("~s ~B~n", [NAME, PRICE]),
+    io:format("~s", [NAME]),
+    dots(30-length(NAME)),
+    io:format("~f~n", [PRICE/100]),
     TT = T + PRICE,
     bill(Bs, TT).
 
+dots(0) -> [];
+dots(N) -> 
+    io:format("."),
+    dots(N-1).
 
 select(B) ->
     DB = [{4719, "Fish Fingers", 121},
