@@ -32,7 +32,10 @@ result(X, X) -> draw;
 result(X, Y) ->
     case lose(X) == Y of
         true -> win;
-        _ -> lose
+        _ -> case beat(X) == Y of 
+            true -> lose;
+            _ -> undefined
+        end 
     end.
 
 result_test() ->
