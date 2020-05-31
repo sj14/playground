@@ -24,10 +24,10 @@ compose_test() ->
 twice(F) -> fun (X) -> F(F(X)) end.
 
 twice_test() ->
-    T = twice(fun (X) -> X * 3 end),
+    T = twice(times(3)),
     18 = T(2),
 
-    T2 = twice(twice(fun (X) -> X * 3 end)),
+    T2 = twice(twice(times(3))),
     162 = T2(2),
     pass.
 
@@ -47,4 +47,8 @@ iterate(N, F) ->
 iterate_test() ->
     I = iterate(5),
     I(fun () -> io:format("called~n") end),
+
+    % I guess this below should work and the above is wrong.
+    % I2 = iterate(5),
+    % 15 = I2(times(3)),
     pass.
