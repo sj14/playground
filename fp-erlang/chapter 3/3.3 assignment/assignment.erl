@@ -40,7 +40,9 @@ split([L|Ls], N, R) ->
 
 % W -> Word; N -> Line Number; R -> List with Results
 add([],_N,R) -> R;
-add([W|Ws], N, R) ->
+add(Ws, N, R) ->
+    W = string:lowercase(hd(Ws)),
+
     case member(W, R) of 
         true ->
             % get current element for current line numbers (O)
@@ -52,7 +54,7 @@ add([W|Ws], N, R) ->
             % add word as entry with line
             RR = R ++ [{entry, W, [{N,N}]}]     
     end,
-    add(Ws,N,RR).
+    add(tl(Ws),N,RR).
 
 add_test() ->
     T1 = add([my_word], 1, []),
