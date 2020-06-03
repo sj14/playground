@@ -5,9 +5,11 @@
 
 run() ->
     R = process(index:get_file_contents("gettysburg-address.txt"), 1, []),
-    SORTED = lists:sort(R),
-    FILTERED = lists:filter(fun(X) -> {entry, W, _} = X, length(W) > 3 end, SORTED),
-    output(FILTERED).
+    % sort alphabetically
+    S = lists:sort(R),
+    % filter words with less than 4 characters
+    F = lists:filter(fun(X) -> {entry, W, _} = X, length(W) > 3 end, S),
+    output(F).
 
 
 % output word and line number
@@ -41,7 +43,7 @@ add(Ws, N, R) ->
             RR = drop(W, R) ++ [{entry, W, add_line(N, O)}]; 
         false -> 
             % add word as entry with line
-            RR = R ++ [{entry, W, [{N,N}]}]     
+            RR = R ++ [{entry, W, [{N,N}]}]
     end,
     add(tl(Ws),N,RR).
 
