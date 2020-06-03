@@ -24,8 +24,7 @@ run() ->
 output([]) -> [];
 output([X|Xs]) -> 
     {entry, WORD, LINES} = X,
-    io:format("~s",[WORD]),
-    io:format("~w~n", [LINES]),
+    io:format("~s~w~n",[WORD, LINES]),
     output(Xs).
 
 
