@@ -3,21 +3,11 @@
 -module(assignment).
 -export([run/0, member_test/0, test/0, get_test/0, drop_test/0, add_test/0]).
 
-% Exemplary output:
-%
-% ...
-% here,[{15,15},{17,17}]
-% but[{18,18}]
-% it[{18,18}]
-% can[{7,7},{13,14},{18,18}]
-% ...
-
-% TODO: 
-%   - remove commas and dots, etc.
-%   - consider all the stuff under "refining the solution"
 run() ->
-    R = split(index:get_file_contents("gettysburg-address.txt"), 1, []),
-    output(R).
+    R = process(index:get_file_contents("gettysburg-address.txt"), 1, []),
+    SORTED = lists:sort(R),
+    FILTERED = lists:filter(fun(X) -> {entry, W, _} = X, length(W) > 3 end, SORTED),
+    output(FILTERED).
 
 
 % output word and line number
@@ -28,14 +18,14 @@ output([X|Xs]) ->
     output(Xs).
 
 
-split([],_N,R) -> R;
-split([L|Ls], N, R) -> 
+process([],_N,R) -> R;
+process([L|Ls], N, R) -> 
     % split line into words on each space
     Ws = string:split(L, " ", all), 
 
     % Add words to index (Ws -> words; N -> line number; R -> result)
     RR = add(Ws, N, R),
-    split(Ls, N+1, RR).
+    process(Ls, N+1, RR).
 
 % W -> Word; N -> Line Number; R -> List with Results
 add([],_N,R) -> R;
