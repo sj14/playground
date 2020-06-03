@@ -45,8 +45,11 @@ iterate(N, F) ->
     iterate(N - 1, F).
 
 iterate_test() ->
-    I = iterate(5),
-    I(fun () -> io:format("called~n") end),
+    (iterate(5)) (fun () -> io:format("called~n") end),
+    % alternative: 
+    % I = iterate(5),
+    % I(fun () -> io:format("called~n") end),
+
 
     % I guess this below should work and the above is wrong.
     % I2 = iterate(5),
