@@ -1,9 +1,15 @@
 -module(first).
--export([double/1,treble/1,square/1,mult/2,area/3]).
+-export([double/1,treble/1,square/1,mult/2,mult_test/0,area/3]).
 
+-spec mult(number(), number()) -> number().
 mult(X,Y) ->
     X*Y.
 
+mult_test() -> 
+    10 = mult(2,5),
+    pass.
+ 
+-spec double(number()) -> number().
 double(X) ->
     mult(2,X).
 
