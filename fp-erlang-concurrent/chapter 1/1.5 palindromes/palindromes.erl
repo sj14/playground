@@ -19,20 +19,24 @@ palindrome_check(String) ->
     lists:reverse(Normalise) == Normalise.
 
 % c(palindromes).
-% spawn(palindromes, server, []).
-% <0.87.0> ! {check, self(), "otto"}.
-% <0.87.0> ! {check, self(), "frank"}.
+% R = fun() -> receive X -> X after 100 -> io:format("timeout~n") end end. 
+% Pid = spawn(palindromes, server, []).
+% Pid ! {check, self(), "otto"}.
+% R().
+% Pid ! {check, self(), "frank"}.
+% R().
+% Pid ! {self(), stop}.
+% R().
 server() -> 
     receive
         {Pid, stop} ->
             Pid ! "stopped";
         {check, Pid, String} ->
-            io:format("got message ~s~n", [String]),
             case palindrome_check(String) of
                  true -> 
-                    Pid ! {result, io:format("~s is a palindrome~n", [String])};
-                 false -> 
-                    Pid ! {result, io:format("~s is not a palindrome~n", [String])}
+                    Pid ! {result, String ++ " is a palindrome."};
+                 _ -> 
+                    Pid ! {result, String ++ " is not a palindrome."}
             end,
             server()
     end.
