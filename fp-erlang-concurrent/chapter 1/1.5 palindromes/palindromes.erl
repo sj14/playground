@@ -38,5 +38,7 @@ server() ->
                  _ -> 
                     Pid ! {result, String ++ " is not a palindrome."}
             end,
-            server()
+            server();
+        _ ->
+            io:format("unknown message~n", [])
     end.
