@@ -8,7 +8,7 @@ work(N) ->
     case N rem 5 == 0 of
         true ->
             io:format("exiting, rem 5 is 0~n"),
-            exit(whereis(echo), "rem 5 is 0");
+            exit(whereis(echo), kill);
         false -> ok
     end,
     Msg = {self(), N},
