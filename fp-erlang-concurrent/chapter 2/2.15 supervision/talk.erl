@@ -8,7 +8,8 @@ work(N) ->
     case N rem 5 == 0 of
         true ->
             io:format("exiting, rem 5 is 0~n"),
-            exit(whereis(echo), kill);
+            exit(whereis(echo), kill); %% kill shouldn't be able to trap, but it works?!
+            % exit(whereis(echo), "rem 5 is 0");
         false -> ok
     end,
     Msg = {self(), N},
