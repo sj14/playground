@@ -19,7 +19,7 @@
 #
 # Alternative
 # ===========
-# 1. Modify the SONAR_HOST variable
+# 1. Modify the SONAR_HOST and AUTH_TOKEN variable
 # 2. Uncomment the last lines at the bottom of this file
 # 3. Execute this script `./sonar-status.sh`
 # 4. Check for the return code.
