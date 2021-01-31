@@ -1,8 +1,8 @@
 #!/bin/bash
 
-USER=$1
-PASS=$2
-LAST_X_DAYS=$3
+# USER=$1
+# PASS=$2
+# LAST_X_DAYS=$3
 
 while [ $LAST_X_DAYS -ge 0 ]
     do

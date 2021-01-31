@@ -12,7 +12,7 @@ from influxdb import InfluxDBClient
 
 
 # influxdb
-client = InfluxDBClient(host='localhost', port=8086)
+client = InfluxDBClient(host=os.environ['INFLUX_HOST'], port=8086)
 client.create_database("netatmo")
 client.switch_database("netatmo")
 
