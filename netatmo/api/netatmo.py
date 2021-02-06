@@ -16,19 +16,19 @@ client = InfluxDBClient(host=os.environ['INFLUX_HOST'], port=8086)
 client.create_database("netatmo")
 client.switch_database("netatmo")
 
-authorization = lnetatmo.ClientAuth()
-weather = lnetatmo.WeatherStationData(authorization)
-user = weather.user
-
-print("Station owner : ", user.mail)
-print("Data units    : ", user.unit)
-print(weather)
-print()
-
 interval = int(os.environ['INTERVAL'])
 
-# For each available module in the returned data that should not be older than one hour (3600 s) from now
 while True:
+    authorization = lnetatmo.ClientAuth()
+    weather = lnetatmo.WeatherStationData(authorization)
+    user = weather.user
+
+    print("Station owner : ", user.mail)
+    print("Data units    : ", user.unit)
+    print(weather)
+    print()
+
+    # For each available module in the returned data that should not be older than one hour (3600 s) from now
     for module, moduleData in weather.lastData(exclude=3600).items() :    
         when = 0
 
