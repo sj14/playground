@@ -18,8 +18,9 @@ client.switch_database("netatmo")
 
 interval = int(os.environ['INTERVAL'])
 
+authorization = lnetatmo.ClientAuth()
+
 while True:
-    authorization = lnetatmo.ClientAuth()
     weather = lnetatmo.WeatherStationData(authorization)
     user = weather.user
 
