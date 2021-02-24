@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"log"
 	"math/rand"
 	"sort"
 	"time"
@@ -29,10 +30,11 @@ func GetDeck() []Card {
 		}
 	}
 
+	shuffle(deck)
 	return deck
 }
 
-func Shuffle(cards []Card) {
+func shuffle(cards []Card) {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(cards), func(i, j int) { cards[i], cards[j] = cards[j], cards[i] })
 }
@@ -105,8 +107,14 @@ func GetRank(cards []Card) (Rank, []Card) {
 	}
 
 	// four of a kind
+	if fourPlusKicker := xOfKind(cards, 4); len(fourPlusKicker) == 5 {
+		return RankFourOfKind, fourPlusKicker
+	}
 
 	// fullhouse
+	if fh := fullHouse(cards); len(fh) == 5 {
+		return RankFullHouse, fh
+	}
 
 	if isFlush {
 		return RankFlush, flushCards
@@ -117,12 +125,18 @@ func GetRank(cards []Card) (Rank, []Card) {
 	}
 
 	// three of a kind
+	if threePlusKicker := xOfKind(cards, 3); len(threePlusKicker) == 5 {
+		return RankThreeOfKind, threePlusKicker
+	}
 
 	// two pair
 
 	// pair
+	if pairPlusKicker := xOfKind(cards, 2); len(pairPlusKicker) == 5 {
+		return RankThreeOfKind, pairPlusKicker
+	}
 
-	return RankHighCard, cards[0:1]
+	return RankHighCard, cards[0:5] // best 5 cards
 }
 
 // ignore order
@@ -169,6 +183,25 @@ func sortValueLowToHigh(cards []Card) {
 	})
 }
 
+func remove(all, remove []Card) []Card {
+	var result []Card
+	for _, card := range all {
+		keep := true
+		for _, toRemove := range remove {
+			if card == toRemove {
+				keep = false
+				continue
+			}
+		}
+
+		if keep {
+			result = append(result, card)
+		}
+	}
+
+	return result
+}
+
 // func high(cards []Card) []Card {
 // 	sortValue(cards)
 // 	return cards[:5]
@@ -204,6 +237,60 @@ func flush(cards []Card) (bool, []Card) {
 	}
 
 	return false, nil
+}
+
+// returns the pair of x PLUS KICKER == 5 cards
+func xOfKind(cards []Card, x int) []Card {
+	firstPair, remaining := pairs(cards)
+	if len(firstPair) == x {
+		// x of a kind + kicker
+		return append(firstPair, remove(cards, firstPair)[0:5-x]...)
+	}
+
+	// TODO: not sure if this is needed anymoe:
+	if len(remaining) >= x {
+		secondPair, _ := pairs(remaining)
+		if len(secondPair) == x {
+			// x of a kind + kicker
+			return append(secondPair, firstPair[0:5-x]...)
+		}
+	}
+
+	return []Card{}
+}
+
+func twoPairs(cards []Card) []Card {
+	firstPair := xOfKind(cards, 2)
+	log.Printf("REMOVME: firstPair: %v\n", firstPair)
+	if len(firstPair) == 0 {
+		return nil
+	}
+
+	secondPair := xOfKind(remove(cards, firstPair[0:2]), 2)
+	log.Printf("REMOVME: secondPair: %v\n", secondPair)
+	if len(secondPair) == 0 {
+		return nil
+	}
+
+	twoPairs := append(firstPair[0:2], secondPair[0:2]...)
+	kicker := remove(cards, twoPairs)[0]
+	return append(twoPairs, kicker)
+}
+
+func fullHouse(cards []Card) []Card {
+	firstPair, remaining := pairs(cards)
+
+	if len(firstPair) == 2 || len(firstPair) == 3 {
+		secondPair, _ := pairs(remaining)
+		if len(firstPair) == 2 && len(secondPair) == 3 {
+			return append(firstPair, secondPair...)
+		}
+		if len(firstPair) == 3 && len(secondPair) == 2 {
+			return append(firstPair, secondPair...)
+		}
+	}
+
+	return []Card{}
 }
 
 // returns the pairs and the remaining cards which could hold another pairs!
