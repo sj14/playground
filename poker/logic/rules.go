@@ -130,6 +130,9 @@ func GetRank(cards []Card) (Rank, []Card) {
 	}
 
 	// two pair
+	if twoPairPlusKicker := twoPairs(cards); len(twoPairPlusKicker) == 5 {
+		return RankTwoPair, twoPairPlusKicker
+	}
 
 	// pair
 	if pairPlusKicker := xOfKind(cards, 2); len(pairPlusKicker) == 5 {
@@ -241,19 +244,10 @@ func flush(cards []Card) (bool, []Card) {
 
 // returns the pair of x PLUS KICKER == 5 cards
 func xOfKind(cards []Card, x int) []Card {
-	firstPair, remaining := pairs(cards)
+	firstPair := pairs(cards)
 	if len(firstPair) == x {
 		// x of a kind + kicker
 		return append(firstPair, remove(cards, firstPair)[0:5-x]...)
-	}
-
-	// TODO: not sure if this is needed anymoe:
-	if len(remaining) >= x {
-		secondPair, _ := pairs(remaining)
-		if len(secondPair) == x {
-			// x of a kind + kicker
-			return append(secondPair, firstPair[0:5-x]...)
-		}
 	}
 
 	return []Card{}
@@ -278,14 +272,11 @@ func twoPairs(cards []Card) []Card {
 }
 
 func fullHouse(cards []Card) []Card {
-	firstPair, remaining := pairs(cards)
+	firstPair := pairs(cards)
 
-	if len(firstPair) == 2 || len(firstPair) == 3 {
-		secondPair, _ := pairs(remaining)
-		if len(firstPair) == 2 && len(secondPair) == 3 {
-			return append(firstPair, secondPair...)
-		}
-		if len(firstPair) == 3 && len(secondPair) == 2 {
+	if len(firstPair) >= 2 {
+		secondPair := pairs(remove(cards, firstPair))
+		if (len(firstPair) == 2 && len(secondPair) == 3) || (len(firstPair) == 3 && len(secondPair) == 2) {
 			return append(firstPair, secondPair...)
 		}
 	}
@@ -294,7 +285,7 @@ func fullHouse(cards []Card) []Card {
 }
 
 // returns the pairs and the remaining cards which could hold another pairs!
-func pairs(cards []Card) ([]Card, []Card) {
+func pairs(cards []Card) []Card {
 	sortValueHighToLow(cards)
 	var pairs []Card
 	for i := range cards {
@@ -311,9 +302,8 @@ func pairs(cards []Card) ([]Card, []Card) {
 		// no pair with the current card
 
 		if len(pairs) >= 2 {
-			// we had a pair before, return it and the remaining cards start with this one
-			// (we could return nil remaining cards when i is the last remaining card...)
-			return pairs, cards[i:]
+			// we had a pair before
+			return pairs
 		}
 
 		// we didn't have a pair before. reset
@@ -323,10 +313,10 @@ func pairs(cards []Card) ([]Card, []Card) {
 
 	// loop finished, were the last cards a pair or not? (we don't have remaining cards)
 	if len(pairs) < 2 {
-		return []Card{}, nil
+		return []Card{}
 	}
 
-	return pairs, nil
+	return pairs
 }
 
 func getColor(color Color, cards []Card) []Card {

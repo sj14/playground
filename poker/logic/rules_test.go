@@ -71,9 +71,7 @@ func TestPairs(t *testing.T) {
 	tests := []struct {
 		name  string
 		cards []Card
-		// isPair      bool
-		pairs     []Card
-		remaining []Card
+		pairs []Card
 	}{
 		{
 			name:  "no pairs",
@@ -81,29 +79,24 @@ func TestPairs(t *testing.T) {
 			pairs: []Card{},
 		},
 		{
-			name:      "pairs",
-			cards:     []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}, {Color: ColorHearts, Value: 3}, {Color: ColorHearts, Value: 11}, {Color: ColorHearts, Value: 12}},
-			pairs:     []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}},
-			remaining: []Card{{Color: ColorHearts, Value: 3}},
+			name:  "pairs",
+			cards: []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}, {Color: ColorHearts, Value: 3}, {Color: ColorHearts, Value: 11}, {Color: ColorHearts, Value: 12}},
+			pairs: []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}},
 		},
 		{
-			name:      "pairs/remaining",
-			cards:     []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}, {Color: ColorHearts, Value: 3}, {Color: ColorHearts, Value: 5}, {Color: ColorHearts, Value: 7}},
-			pairs:     []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}},
-			remaining: []Card{{Color: ColorHearts, Value: 7}, {Color: ColorHearts, Value: 5}, {Color: ColorHearts, Value: 3}},
+			name:  "pairs/remaining",
+			cards: []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}, {Color: ColorHearts, Value: 3}, {Color: ColorHearts, Value: 5}, {Color: ColorHearts, Value: 7}},
+			pairs: []Card{{Color: ColorHearts, Value: 10}, {Color: ColorCubs, Value: 10}, {Color: ColorDiamonds, Value: 10}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotPairs, gotRemaining := pairs(tt.cards)
+			gotPairs := pairs(tt.cards)
 			// if got != tt.isPair {
 			// 	t.Errorf("straight() got = %v, want %v", got, tt.isPair)
 			// }
 			if !reflect.DeepEqual(gotPairs, tt.pairs) {
 				t.Errorf("pairs() got = %v, want %v", gotPairs, tt.pairs)
-			}
-			if !reflect.DeepEqual(gotRemaining, tt.remaining) {
-				t.Errorf("pairs() remaining got = %v, want %v", gotRemaining, tt.remaining)
 			}
 		})
 	}
