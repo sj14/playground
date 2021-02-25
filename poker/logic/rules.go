@@ -84,40 +84,49 @@ func NewRound(players []Player) Round {
 	return Round{Players: players}
 }
 
-func (r *Round) Raise(player *Player, amount uint64) error {
-	if player.Stack < amount {
-		return errors.New("stack to small")
-	}
-
+func (r *Round) Raise(p *Player, amount uint64) error {
 	if amount < r.AmountForCall {
 		return errors.New("raise is below amount for calling")
 	}
 
-	player.PaidInRound += amount
-	player.Stack -= amount
+	toPay := amount + r.AmountForCall - p.PaidInRound
 
-	r.Pot += amount
-	r.AmountForCall = player.PaidInRound
+	if p.Stack < toPay {
+		return errors.New("stack to small")
+	}
 
-	log.Printf("player %v raised by %v\n", player.Name, amount)
+	p.PaidInRound += toPay
+	p.Stack -= toPay
+
+	r.Pot += toPay
+	r.AmountForCall += amount
+
+	log.Printf("player %v raised by %v (had to pay %v) total: %v\n", p.Name, amount, toPay, r.AmountForCall)
 	return nil
 }
 
-func (r *Round) Call(player *Player) {
-	toPay := r.AmountForCall - player.PaidInRound
+func (r *Round) Call(p *Player) {
+	toPay := r.AmountForCall - p.PaidInRound
+	log.Printf("%v to pay in call: %v\n", p.Name, toPay)
 
-	if player.Stack < toPay {
+	if p.Stack < toPay {
 		// all-in
-		r.Pot += player.Stack
+		log.Printf("%v is all-in\n", p.Name)
 
-		player.PaidInRound += player.Stack
-		player.Stack = 0
+		r.Pot += p.Stack
+
+		p.PaidInRound += p.Stack
+		p.Stack = 0
 		return
 	}
 
-	player.Stack -= toPay
-	r.Pot += toPay
+	log.Printf("%v paid: %v\n", p.Name, p.PaidInRound)
 
+	p.Stack -= toPay
+	p.PaidInRound += toPay
+
+	log.Printf("%v paid: %v\n", p.Name, p.PaidInRound)
+	r.Pot += toPay
 }
 
 func (r *Round) Play() {
@@ -143,9 +152,17 @@ func (r *Round) Play() {
 
 	for _, p := range r.Players {
 		if p.PaidInRound < r.AmountForCall {
-			log.Printf("player %v needs to pay %v for call (already paid %v)\n", p.Name, r.AmountForCall, p.PaidInRound)
+			log.Printf("player %v needs to pay %v for calling %v (already paid %v)\n", p.Name, r.AmountForCall-p.PaidInRound, r.AmountForCall, p.PaidInRound)
+			r.Call(&p)
 		}
 	}
+
+	for _, p := range r.Players {
+		if p.PaidInRound < r.AmountForCall {
+			log.Printf("player %v needs to pay %v for calling %v (already paid %v)\n", p.Name, r.AmountForCall-p.PaidInRound, r.AmountForCall, p.PaidInRound)
+		}
+	}
+
 }
 
 // cards is up to all 7 cards!
