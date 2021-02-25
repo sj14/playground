@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"errors"
 	"log"
 	"math/rand"
 	"sort"
@@ -61,6 +62,91 @@ const (
 	WinnerB
 	WinnerBoth
 )
+
+type Player struct {
+	Name        string
+	Stack       uint64
+	PocketCards []Card
+	Active      bool
+	PaidInRound uint64
+}
+
+type Round struct {
+	Number         uint64
+	Players        []Player
+	Deck           []Card
+	CommunityCards []Card
+	Pot            uint64
+	AmountForCall  uint64
+}
+
+func NewRound(players []Player) Round {
+	return Round{Players: players}
+}
+
+func (r *Round) Raise(player *Player, amount uint64) error {
+	if player.Stack < amount {
+		return errors.New("stack to small")
+	}
+
+	if amount < r.AmountForCall {
+		return errors.New("raise is below amount for calling")
+	}
+
+	player.PaidInRound += amount
+	player.Stack -= amount
+
+	r.Pot += amount
+	r.AmountForCall = player.PaidInRound
+
+	log.Printf("player %v raised by %v\n", player.Name, amount)
+	return nil
+}
+
+func (r *Round) Call(player *Player) {
+	toPay := r.AmountForCall - player.PaidInRound
+
+	if player.Stack < toPay {
+		// all-in
+		r.Pot += player.Stack
+
+		player.PaidInRound += player.Stack
+		player.Stack = 0
+		return
+	}
+
+	player.Stack -= toPay
+	r.Pot += toPay
+
+}
+
+func (r *Round) Play() {
+	r.Deck = GetDeck()
+
+	// pre-flop
+	for i, p := range r.Players {
+		p.PocketCards, r.Deck = r.Deck[:2], r.Deck[2:]
+		log.Printf("cards player %v: %v\n", i, p.PocketCards)
+	}
+
+	if err := r.Raise(&r.Players[1], 5); err != nil {
+		log.Println(err)
+	}
+
+	if err := r.Raise(&r.Players[0], 10); err != nil {
+		log.Println(err)
+	}
+
+	if err := r.Raise(&r.Players[1], 15); err != nil {
+		log.Println(err)
+	}
+
+	for _, p := range r.Players {
+		if p.PaidInRound < r.AmountForCall {
+			log.Printf("player %v needs to pay %v for call (already paid %v)\n", p.Name, r.AmountForCall, p.PaidInRound)
+		}
+	}
+}
 
 // cards is up to all 7 cards!
 func Wins(cardsA, cardsB []Card) Winner {

@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+func TestGetDeck(t *testing.T) {
+	if l := len(GetDeck()); l != 52 {
+		t.Errorf("got = %v, want %v", l, 52)
+
+	}
+}
+
 func TestFlush(t *testing.T) {
 	tests := []struct {
 		name       string
