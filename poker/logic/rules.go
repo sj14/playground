@@ -101,7 +101,7 @@ func (r *Round) Raise(p *Player, amount uint64) error {
 	r.Pot += toPay
 	r.AmountForCall += amount
 
-	log.Printf("player %v raised by %v (had to pay %v) total: %v\n", p.Name, amount, toPay, r.AmountForCall)
+	log.Printf("%v raised by %v (had to pay %v) total: %v\n", p.Name, amount, toPay, r.AmountForCall)
 	return nil
 }
 
@@ -152,14 +152,14 @@ func (r *Round) Play() {
 
 	for _, p := range r.Players {
 		if p.PaidInRound < r.AmountForCall {
-			log.Printf("player %v needs to pay %v for calling %v (already paid %v)\n", p.Name, r.AmountForCall-p.PaidInRound, r.AmountForCall, p.PaidInRound)
+			log.Printf("%v needs to pay %v for calling %v (already paid %v)\n", p.Name, r.AmountForCall-p.PaidInRound, r.AmountForCall, p.PaidInRound)
 			r.Call(&p)
 		}
 	}
 
 	for _, p := range r.Players {
 		if p.PaidInRound < r.AmountForCall {
-			log.Printf("player %v needs to pay %v for calling %v (already paid %v)\n", p.Name, r.AmountForCall-p.PaidInRound, r.AmountForCall, p.PaidInRound)
+			log.Printf("%v needs to pay %v for calling %v (already paid %v)\n", p.Name, r.AmountForCall-p.PaidInRound, r.AmountForCall, p.PaidInRound)
 		}
 	}
 
