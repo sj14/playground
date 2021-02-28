@@ -50,6 +50,6 @@ fn main() {
         };
 
         let s = str::from_utf8(&output.stdout).expect("Could not convert output to string");
-        println!("{}", s.trim_right());
+        println!("{}", s.trim_end());
     }
 }
