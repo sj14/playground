@@ -58,7 +58,7 @@ sonar_analysis_status() {
     fi
 }
 
-if ! sonar_analysis_status "$PROJECT_KEY"
+if ! sonar_analysis_status
 then
     exit 1
 else
