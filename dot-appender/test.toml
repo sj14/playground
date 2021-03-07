@@ -1,0 +1,6 @@
+[testfile]
+target = "testfile"
+comment = "#"
+append = """
+my_key=42
+"""
