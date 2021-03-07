@@ -1,6 +1,14 @@
-[testfile]
+
+[[configs]]
 target = "testfile"
 comment = "#"
 append = """
 my_key=42
+"""
+
+[[configs]]
+target = "testfile2"
+comment = "#"
+append = """
+my_key=43
 """

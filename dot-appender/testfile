@@ -7,14 +7,15 @@ jkasöodf
 
 ajsfdlkjaösdfRust
 💖
-
-
 ajfdklasjödlkfasljködföj
 ajklsfdasdf
 ajklsdfjöklasfd
 
-nach dem appender
 
-DOT-APPENDER START
-my_config=123
-DOT-APPENDER END
+nach dem appender
+DER END
+
+# DOT-APPENDER START
+my_key=42
+
+# DOT-APPENDER END
