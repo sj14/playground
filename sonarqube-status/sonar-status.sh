@@ -27,13 +27,13 @@ GIT_COMMIT=$(git rev-parse HEAD)
 retry=0
 while [  $retry -lt 6 ]; do
     # get latest analysis id to corresponding git commit hash
-    analysis_id=$(curl -s -u $AUTH_TOKEN: $SONAR_HOST/api/project_analyses/search?project="$PROJECT_KEY" | jq '.analyses[] | select(.revision == "'"$GIT_COMMIT"'") | .key' | head -n 1)
+    analysis_id=$(curl -s -u "$AUTH_TOKEN": "$SONAR_HOST"/api/project_analyses/search?project="$PROJECT_KEY" | jq '.analyses[] | select(.revision == "'"$GIT_COMMIT"'") | .key' | head -n 1)
 
     # remove double quotes from analysis id (e.g. "AWv6wb07Y5FuS8wxa-xk" -> AWv6wb07Y5FuS8wxa-xk)
     analysis_id=$(echo "$analysis_id" | tr -d "\"\`'")
 
     # get quality gate status of this anlysis
-    analysis_status=$(curl -s -u $AUTH_TOKEN: $SONAR_HOST/api/qualitygates/project_status\?analysisId="$analysis_id" | jq '.projectStatus.status')
+    analysis_status=$(curl -s -u "$AUTH_TOKEN": "$SONAR_HOST"/api/qualitygates/project_status\?analysisId="$analysis_id" | jq '.projectStatus.status')
 
     # break this loop when analysis was found,
     # otherwise, try again (next loop iteration)
@@ -50,9 +50,7 @@ done
 
 # print and return status depending on result
 printf "%s \t %-35s \t $SONAR_HOST/dashboard?id=%s\n" "$analysis_status" "$PROJECT_KEY" "$PROJECT_KEY"
-if [ "$analysis_status" = \""OK\"" ]
+if [ "$analysis_status" != \""OK\"" ]
     then
-        exit 0
-    else
         exit 1
 fi
