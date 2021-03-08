@@ -1,5 +1,5 @@
 [package]
-name = "dot-appender"
+name = "confible"
 version = "0.1.0"
 authors = ["Simon Jürgensmeyer <simon.juergensmeyer@gmail.com>"]
 edition = "2018"

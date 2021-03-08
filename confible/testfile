@@ -14,9 +14,9 @@ ajklsdfjöklasfd
 
 nach dem appender
 
-# DOT-APPENDER START
+# CONFIBLE START
 my_key=42
 my_key=43
 my_key=44
 
-# DOT-APPENDER END
+# CONFIBLE END

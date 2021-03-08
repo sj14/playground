@@ -5,9 +5,8 @@ use std::io::Seek;
 use std::io::Write;
 
 fn main() {
-    let config_file = std::env::args().nth(2).expect("no path given");
+    let config_file = std::env::args().nth(2).expect("no config file given");
 
-    // TODO: read command line arguments (e.g. config filename or directory)
     read_target_file(config_file);
 }
 
@@ -23,8 +22,7 @@ struct Config {
     append: String,
 }
 
-
-fn read_target_file(config_file : String) {
+fn read_target_file(config_file: String) {
     let mut file = OpenOptions::new()
         .write(true)
         .read(true)
@@ -40,8 +38,8 @@ fn read_target_file(config_file : String) {
     for cfg in appender_configs.configs {
         println!("writing {}", cfg.target);
 
-        let boundary_start = "DOT-APPENDER START";
-        let boundary_stop = "DOT-APPENDER END";
+        let boundary_start = "CONFIBLE START";
+        let boundary_stop = "CONFIBLE END";
 
         let header = format!("\n{} {}\n", cfg.comment, boundary_start);
         let footer = format!("\n{} {}\n", cfg.comment, boundary_stop);
