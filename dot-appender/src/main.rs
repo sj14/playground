@@ -5,9 +5,10 @@ use std::io::Seek;
 use std::io::Write;
 
 fn main() {
+    let config_file = std::env::args().nth(2).expect("no path given");
+
     // TODO: read command line arguments (e.g. config filename or directory)
-    read_appender_file();
-    read_target_file();
+    read_target_file(config_file);
 }
 
 #[derive(Deserialize)]
@@ -22,13 +23,12 @@ struct Config {
     append: String,
 }
 
-fn read_appender_file() {}
 
-fn read_target_file() {
+fn read_target_file(config_file : String) {
     let mut file = OpenOptions::new()
         .write(true)
         .read(true)
-        .open("test.toml")
+        .open(config_file)
         .expect("failed open");
 
     let mut content = String::new();
