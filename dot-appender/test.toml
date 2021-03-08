@@ -4,11 +4,15 @@ target = "testfile"
 comment = "#"
 append = """
 my_key=42
+my_key=43
+my_key=44
 """
 
 [[configs]]
 target = "testfile2"
-comment = "#"
+comment = "§§§"
 append = """
-my_key=43
+my_key=421
+my_key=431
+my_key=441
 """

@@ -13,9 +13,10 @@ ajklsdfjöklasfd
 
 
 nach dem appender
-DER END
 
 # DOT-APPENDER START
 my_key=42
+my_key=43
+my_key=44
 
 # DOT-APPENDER END
