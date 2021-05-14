@@ -13,8 +13,12 @@ from influxdb import InfluxDBClient
 
 # influxdb
 client = InfluxDBClient(host=os.environ['INFLUX_HOST'], port=8086)
-client.create_database("netatmo")
-client.switch_database("netatmo")
+
+vmetrics=os.environ['INFLUX_VICTORIAMETRICS']
+if vmetrics != "":
+    # don't create and switch databse when using victoria metrics
+    client.create_database("netatmo")
+    client.switch_database("netatmo")
 
 interval = int(os.environ['INTERVAL'])
 
