@@ -12,7 +12,7 @@ from influxdb import InfluxDBClient
 
 
 # influxdb
-client = InfluxDBClient(host=os.environ['INFLUX_HOST'], host=os.environ['INFLUX_PORT'])
+client = InfluxDBClient(host=os.environ['INFLUX_HOST'], port=os.environ['INFLUX_PORT'])
 
 vmetrics=os.environ['INFLUX_VICTORIAMETRICS']
 if vmetrics == "":
