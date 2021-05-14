@@ -13,12 +13,8 @@ from influxdb import InfluxDBClient
 
 # influxdb
 client = InfluxDBClient(host=os.environ['INFLUX_HOST'], port=os.environ['INFLUX_PORT'])
-
-vmetrics=os.environ['INFLUX_VICTORIAMETRICS']
-if vmetrics == "":
-    # don't create and switch databse when using victoria metrics
-    client.create_database("netatmo")
-    client.switch_database("netatmo")
+client.create_database("netatmo")
+client.switch_database("netatmo")
 
 
 def main():
