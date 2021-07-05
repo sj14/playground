@@ -1,16 +1,8 @@
 .PHONY: build-api
 build-api:
-	docker build api -t ghcr.io/sj14/netatmo-api:latest
-
-.PHONY: push-api
-push-api:
-	docker push ghcr.io/sj14/netatmo-api:latest
+	docker buildx build --platform linux/amd64,linux/arm64 --push --tag ghcr.io/sj14/netatmo-api:latest api
 
 .PHONY: build-csv
 build-csv:
-	docker build csv -t ghcr.io/sj14/netatmo-csv:latest
-
-.PHONY: push-csv
-push-csv:
-	docker push ghcr.io/sj14/netatmo-csv:latest
+	docker buildx build --platform linux/amd64,linux/arm64 --push --tag ghcr.io/sj14/netatmo-csv:latest csv
 
