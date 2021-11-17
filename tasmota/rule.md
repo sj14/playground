@@ -12,6 +12,11 @@ Rule1
   ON Time#Initialized DO Backlog event checksunrise=%time%; event checksunset=%time% ENDON
   ON event#checksunset>%sunset% DO Power0 1; Power1 1 ENDON
   ON event#checksunrise<%sunrise% DO Power0 1; Power1 1 ENDON
+```
+
+use `poweronstate 0` or alternatively append the below to Rule1:
+
+```text
   ON event#checksunset<%sunset% DO Power0 0; Power1 0 ENDON
   ON event#checksunrise>%sunrise% DO Power0 0; Power1 0 ENDON
 ```
