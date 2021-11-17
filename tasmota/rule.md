@@ -1,3 +1,10 @@
+Set coordinates
+
+```text
+longitude 6.52
+latitude 51.58
+```
+
 Enable the light during the sunset and disable during sunlight
 
 ```text
