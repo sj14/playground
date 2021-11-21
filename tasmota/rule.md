@@ -7,20 +7,38 @@ latitude 51.58
 
 Enable the light during the sunset and disable during sunlight
 
-```text
+```
+poweronstate 0
+```
+
+```
 Rule1
-  ON Time#Initialized DO Backlog event checksunrise=%time%; event checksunset=%time% ENDON
-  ON event#checksunset>%sunset% DO Power0 1; Power1 1 ENDON
-  ON event#checksunrise<%sunrise% DO Power0 1; Power1 1 ENDON
+  ON Time#Initialized DO event chkSun ENDON
+  ON Time#Minute=%sunset% DO event chkSun ENDON
+  ON Time#Minute=%mem2% DO event chkSun ENDON
+  ON Time#Minute=%sunrise% DO event chkSun ENDON
+  ON Time#Minute=%mem1% DO event chkSun ENDON
 ```
 
-use `poweronstate 0` or alternatively append the below to Rule1:
-
-```text
-  ON event#checksunset<%sunset% DO Power0 0; Power1 0 ENDON
-  ON event#checksunrise>%sunrise% DO Power0 0; Power1 0 ENDON
+```
+Rule2
+  ON event#chkSun DO Backlog var1 0; event chkSunrise=%time%; event chkSunset=%time%; event chkmorn=%time%; event chknight=%time%; event setPower ENDON
+  ON event#chkSunrise<%sunrise% DO var1 1 ENDON
+  ON event#chkSunset>=%sunset% DO var1 1 ENDON
+  ON event#chkmorn<%mem1% DO var1 0 ENDON
+  ON event#chknight>=%mem2% DO var1 0 ENDON
+  ON event#setPower DO Power0 %var1% ENDON
+  ON event#setPower DO Power1 %var1% ENDON
 ```
 
-```text
-Rule1 ON
+```
+Backlog mem1 360; mem2 1350; Rule1 1; Rule2 1
+```
+
+```
+Rule1 On
+```
+
+```
+Rule2 On
 ```
