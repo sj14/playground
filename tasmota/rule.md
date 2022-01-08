@@ -11,6 +11,8 @@ Enable the light during the sunset and disable during sunlight
 poweronstate 0
 ```
 
+https://tasmota.github.io/docs/Rules/#turn-on-light-before-dawn-and-at-dusk
+
 ```
 Rule1
   ON Time#Initialized DO event chkSun ENDON
@@ -30,6 +32,8 @@ Rule2
   ON event#setPower DO Power0 %var1% ENDON
   ON event#setPower DO Power1 %var1% ENDON
 ```
+
+Set variables for Morning (06h00) and Night (22h30) times
 
 ```
 Backlog mem1 360; mem2 1350; Rule1 1; Rule2 1
