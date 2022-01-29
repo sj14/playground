@@ -4,7 +4,7 @@ import "io"
 
 var err error
 
-// Attempt for solving https://github.com/golang/go/issues/40385#issuecomment-663775687,
+// Read is an attempt for solving https://github.com/golang/go/issues/40385#issuecomment-663775687,
 // thus you can process the error before processing n.
 func Read(r io.Reader, p []byte) (int, error) {
 	if err != nil {
@@ -20,5 +20,14 @@ func Read(r io.Reader, p []byte) (int, error) {
 	}
 
 	// No bytes were read, return whatever Read() returned.
+	return n, err
+}
+
+// ReadStrict is like Read() but always returns an io.EOF error when no bytes were read.
+func ReadStrict(r io.Reader, p []byte) (int, error) {
+	n, err := Read(r, p)
+	if n <= 0 && err == nil {
+		return n, io.EOF
+	}
 	return n, err
 }
