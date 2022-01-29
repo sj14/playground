@@ -23,7 +23,7 @@ func Read(r io.Reader, p []byte) (int, error) {
 	return n, err
 }
 
-// ReadStrict is like Read() but always returns an io.EOF error when no bytes were read.
+// ReadStrict is like Read() but always returns an io.EOF error when no bytes were read and there would be no error otherwise.
 func ReadStrict(r io.Reader, p []byte) (int, error) {
 	n, err := Read(r, p)
 	if n <= 0 && err == nil {
