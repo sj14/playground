@@ -27,24 +27,24 @@ func TestReadUnordered(t *testing.T) {
 	reader0 := &testReader{errAfterCalls: 3, errType: io.EOF}
 	reader1 := &testReader{errAfterCalls: 1, errType: io.ErrClosedPipe}
 
-	_, err := (&xread.Reader{}).Read(reader0, nil)
+	_, err := xread.New(reader0, nil).Read()
 	require.NoError(t, err)
 
-	_, err = (&xread.Reader{}).Read(reader1, nil)
+	_, err = xread.New(reader1, nil).Read()
 	require.NoError(t, err)
 
-	_, err = (&xread.Reader{}).Read(reader0, nil)
+	_, err = xread.New(reader0, nil).Read()
 	require.NoError(t, err)
 
-	_, err = (&xread.Reader{}).Read(reader1, nil)
+	_, err = xread.New(reader1, nil).Read()
 	require.EqualError(t, io.ErrClosedPipe, err.Error())
 
-	_, err = (&xread.Reader{}).Read(reader0, nil)
+	_, err = xread.New(reader0, nil).Read()
 	require.NoError(t, err)
 
-	_, err = (&xread.Reader{}).Read(reader1, nil)
+	_, err = xread.New(reader1, nil).Read()
 	require.EqualError(t, io.ErrClosedPipe, err.Error())
 
-	_, err = (&xread.Reader{}).Read(reader0, nil)
+	_, err = xread.New(reader0, nil).Read()
 	require.EqualError(t, io.EOF, err.Error())
 }
