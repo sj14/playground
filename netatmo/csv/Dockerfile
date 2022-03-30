@@ -1,11 +1,13 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
+
+RUN apt update && apt install -y curl
+
+COPY requirements.txt .
+
+RUN pip3 install -r requirements.txt
 
 COPY import_influxdb.py .
 COPY getmeasurecsv.sh .
 COPY run.sh .
-COPY requirements.txt .
-
-RUN pip3 install -r requirements.txt
-RUN apt update && apt install -y curl
 
 CMD [ "bash", "run.sh" ]

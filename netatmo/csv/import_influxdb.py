@@ -3,19 +3,19 @@
 
 # python3 -m pip install influxdb
 
-import time
 import csv
-import sys
 import os
 from itertools import islice
-from influxdb import InfluxDBClient
+import psycopg2
+import datetime
 
-
-# influxdb
-client = InfluxDBClient(host=os.environ['INFLUX_HOST'], port=os.environ['INFLUX_PORT'])
-client.create_database("netatmo")
-client.switch_database("netatmo")
-
+# postgres
+postgresClient = psycopg2.connect(
+    host=os.environ["POSTGRES_HOST"],
+    port=os.environ["POSTGRES_PORT"],
+    database=os.environ["POSTGRES_DB"],
+    user=os.environ["POSTGRES_USER"],
+    password=os.environ["POSTGRES_PASSWORD"])
 
 def main():
     files = []
@@ -25,22 +25,18 @@ def main():
                 files.append(os.path.join(r, file))
 
     for f in files:
-        influx_data = []
 
         print("importing " + f)
         if f.endswith("-INDOOR.csv"):
-            influx_data.extend(import_indoor(f))
+            import_indoor(f)
         elif f.endswith("-OUTDOOR.csv"):
-            influx_data.extend(import_outdoor(f))
+            import_outdoor(f)
         elif f.endswith("-RAIN.csv"):
-            influx_data.extend(import_rain(f))
+            import_rain(f)
         else:
             # dont' delete any other files
             continue
         
-        # import to influx db
-        client.write_points(influx_data)
-
         # delete imported file
         os.remove(f)
 
@@ -53,122 +49,53 @@ def mk_float(s):
 def import_indoor(filename):
     with open(filename, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
-        influx_data = []
 
         for row in islice(csvreader, 3, None):
-            timestamp = int(row[0]) * 1000000000
-                    
-            influx_data.extend([
-                {
-                "measurement": "Temperature",
-                "tags": {
-                    "module": "Indoor",
-                    },
-                "fields": {"value": mk_float(row[2])},
-                "time": timestamp
-                },
-                {
-                "measurement": "Humidity",
-                "tags": {
-                    "module": "Indoor",
-                    },
-                "fields": {"value": mk_float(row[3])},
-                "time": timestamp
-                },
-                {
-                "measurement": "CO2",
-                "tags": {
-                    "module": "Indoor",
-                    },
-                "fields": {"value": mk_float(row[4])},
-                "time": timestamp
-                },
-                {
-                "measurement": "Pressure",
-                "tags": {
-                    "module": "Indoor",
-                    },
-                "fields": {"value": mk_float(row[6])},
-                "time": timestamp
-                }
-            ])
+            timestamp = int(row[0])
 
-            noise = mk_float(row[5])
-            if noise != 0:
-                influx_noise = {
-                    "measurement": "Noise",
-                    "tags": {
-                        "module": "Indoor",
-                        },
-                    "fields": {"value": noise},
-                    "time": timestamp
-                    }
-                
-                influx_data.append(influx_noise)
-
-
-        # write particular sensor data into influxdb
-        #print(influx_data)
-        return influx_data
-        #client.write_points(influx_data)
-
+            with postgresClient as conn:
+                with conn.cursor() as cur:
+                    try:
+                        cur.execute("INSERT INTO temperature (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "indoor", mk_float(row[2])))
+                        cur.execute("INSERT INTO humidity (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "indoor", mk_float(row[3])))
+                        cur.execute("INSERT INTO co2 (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "indoor", mk_float(row[4])))
+                        cur.execute("INSERT INTO pressure (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "indoor", mk_float(row[6])))
+                        noise = mk_float(row[5])
+                        if noise != 0:
+                            cur.execute("INSERT INTO noise (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "indoor", noise))
+                    except Exception as e:
+                        print("failed postgres: {0}".format(e))
 
 
 def import_rain(filename):
     with open(filename, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
-        influx_data = []
 
         for row in islice(csvreader, 3, None):
-            timestamp = int(row[0]) * 1000000000
-                    
-            influx_data.extend([
-                {
-                "measurement": "Rain",
-                "tags": {
-                    "module": "Rain",
-                    },
-                "fields": {"value": mk_float(row[2])},
-                "time": timestamp
-                }
-            ])
+            timestamp = int(row[0])
 
-        # write particular sensor data into influxdb
-        #print(influx_data)
-        #client.write_points(influx_data)
-        return influx_data
+            with postgresClient as conn:
+                with conn.cursor() as cur:
+                    try:
+                        cur.execute("INSERT INTO rain (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "rain", mk_float(row[2])))
+                    except Exception as e:
+                        print("failed postgres: {0}".format(e))
+
 
 def import_outdoor(filename):
     with open(filename, newline='') as csvfile:
         csvreader = csv.reader(csvfile, delimiter=';', quotechar='|')
-        influx_data = []
 
         for row in islice(csvreader, 3, None):
-            timestamp = int(row[0]) * 1000000000
-                    
-            influx_data.extend([
-                {
-                "measurement": "Temperature",
-                "tags": {
-                    "module": "Outdoor",
-                    },
-                "fields": {"value": mk_float(row[2])},
-                "time": timestamp
-                },
-                {
-                "measurement": "Humidity",
-                "tags": {
-                    "module": "Outdoor",
-                    },
-                "fields": {"value": mk_float(row[3])},
-                "time": timestamp
-                },
-            ])
+            timestamp = int(row[0])
 
-        # write particular sensor data into influxdb
-        #print(influx_data)
-        #client.write_points(influx_data)
-        return influx_data
+            with postgresClient as conn:
+                with conn.cursor() as cur:
+                    try:
+                        cur.execute("INSERT INTO temperature (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "outdoor", mk_float(row[2])))
+                        cur.execute("INSERT INTO humidity (time, module, value) VALUES('{0}', '{1}', '{2}');".format(datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S'), "outdoor", mk_float(row[3])))
+                    except Exception as e:
+                        print("failed postgres: {0}".format(e))
 
 if __name__== "__main__":
   main()

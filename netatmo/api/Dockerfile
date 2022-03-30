@@ -1,9 +1,10 @@
-FROM python:3.9-alpine
+FROM python:3.10-alpine
 
-COPY netatmo.py .
 COPY requirements.txt .
 
 RUN pip3 install -r requirements.txt
+
+COPY netatmo.py .
 
 ENV INFLUX_HOST="localhost"
 ENV INTERVAL="300"

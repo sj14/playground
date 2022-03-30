@@ -8,17 +8,32 @@
 
 import os
 import time
+import datetime
 import lnetatmo
-from influxdb import InfluxDBClient
+import psycopg2
 
-# influxdb
-client = InfluxDBClient(host=os.environ['INFLUX_HOST'], port=os.environ['INFLUX_PORT'])
-client.create_database("netatmo")
-client.switch_database("netatmo")
+
+# postgres
+postgresClient = psycopg2.connect(
+    host=os.environ["POSTGRES_HOST"],
+    port=os.environ["POSTGRES_PORT"],
+    database=os.environ["POSTGRES_DB"],
+    user=os.environ["POSTGRES_USER"],
+    password=os.environ["POSTGRES_PASSWORD"])
 
 interval = int(os.environ['INTERVAL'])
 
 authorization = lnetatmo.ClientAuth()
+
+firstRun = True
+
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
+
 
 while True:
     weather = lnetatmo.WeatherStationData(authorization)
@@ -30,7 +45,7 @@ while True:
     print()
 
     # For each available module in the returned data that should not be older than one hour (3600 s) from now
-    for module, moduleData in weather.lastData(exclude=3600).items() :    
+    for module, moduleData in weather.lastData(exclude=3600).items():    
         when = 0
 
         print(moduleData)
@@ -38,7 +53,7 @@ while True:
         # first, check the response for the date
         for sensor, value in moduleData.items() :
             if sensor == "When":
-                when = value * 1000000000 # need nanoseconds
+                when = value
 
         # List key/values pair of sensor information (eg Humidity, Temperature, etc...)
         for sensor, value in moduleData.items() :
@@ -53,39 +68,29 @@ while True:
             # if value == 0.0:
             #     continue
             
-            influx_data = [{
-            "measurement": sensor,
-            "tags": {
-                "module": module,
-                },
-            "fields": {"value": value},
-            "time": when
-            }]
-            
-            # write particular sensor data into influxdb
-            print(influx_data)
-            print(client.write_points(influx_data))
+            valueType = "REAL"
+            if not isfloat(value):
+                valueType = "VARCHAR(255)"
+
+            with postgresClient as conn:
+                with conn.cursor() as cur:
+                    try:
+                        if firstRun:
+                            cur.execute('''
+                            CREATE TABLE IF NOT EXISTS {0} (
+                                time TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+                                module VARCHAR(255) NOT NULL,
+                                value {1} NOT NULL,
+                                PRIMARY KEY (time, module)
+                            );
+                            '''.format(sensor.lower(), valueType))
+
+                        cur.execute("INSERT INTO {0} (time, module, value) VALUES('{1}', '{2}', '{3}');".format(sensor.lower(), datetime.datetime.utcfromtimestamp(int(when)).strftime('%Y-%m-%d %H:%M:%S'), module.lower(), value))
+                    except Exception as e:
+                        print("failed postgres: {0}".format(e))
+
+    firstRun = False
     time.sleep(interval)
-
-# > INSERT Temperature,sensor=indoor  value=26.7 1465839830100400200
-# > INSERT tempeTemperaturerature,sensor=outdoor value=20.0 1465839830100400200
-# > SELECT * FROM Temperature
-# name: Temperature
-# time                value sensor
-# ----                ------- ------
-# 1465839830100400200 26.7    indoor
-# 1465839830100400200 20      outdoor
-#
-
-# table-like,for query,for storing 
-# weather,location=us-midwest temperature=82 1465839830100400200
-#   |    -------------------- --------------  |
-#   |             |             |             |
-#   |             |             |             |
-# +-----------+--------+-+---------+-+---------+
-# |measurement|,tag_set| |field_set| |timestamp|
-# +-----------+--------+-+---------+-+---------+
-
 
 # OUTPUT SAMPLE :
 #

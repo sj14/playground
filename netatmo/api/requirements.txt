@@ -1,2 +1,2 @@
 lnetatmo
-influxdb
+psycopg2-binary

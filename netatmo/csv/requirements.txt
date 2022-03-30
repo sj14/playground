@@ -1,1 +1,1 @@
-influxdb
+psycopg2-binary
