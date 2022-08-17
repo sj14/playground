@@ -26,12 +26,12 @@ func TestParseFormat(t *testing.T) {
 		{
 			name:   "hour:minute:second long",
 			format: "hh:mm:ss",
-			want:   "10:15:45",
+			want:   "10:07:06",
 		},
 		{
 			name:   "second-minute short",
 			format: "s-m",
-			want:   "45-15",
+			want:   "6-7",
 		},
 	}
 
@@ -41,7 +41,16 @@ func TestParseFormat(t *testing.T) {
 			t.Parallel()
 
 			goFormat := ParseFormat(tt.format)
-			fixedDate := time.Date(2022, 8, 9, 10, 15, 45, 20, time.UTC)
+			fixedDate := time.Date(
+				2022, // year
+				8,    // month
+				9,    // day
+				10,   // hour
+				7,    // minute
+				6,    // second
+				20,   // nanosecond
+				time.UTC,
+			)
 
 			if got := fixedDate.Format(goFormat); got != tt.want {
 				t.Errorf("ParseFormat() got %q, want %q", got, tt.want)
