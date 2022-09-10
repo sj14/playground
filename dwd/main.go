@@ -6,6 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func main() {
@@ -15,6 +19,27 @@ func main() {
 	}
 
 	log.Printf("%+v\n", data)
+
+	dbInsert("TODO", data)
+}
+
+func dbInsert(dsn string, data Stations) {
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	// Migrate the schema
+	if err := db.AutoMigrate(&Stations{}); err != nil {
+		log.Fatalf("failed auto migration: %v\n", err)
+	}
+
+	tx := db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&data)
+
+	tx.Commit()
+	// tx.Error
 }
 
 type Stations map[string]Station
