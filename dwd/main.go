@@ -74,7 +74,7 @@ func request() (Stations, error) {
 	//   'https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=10865,G005' \
 	//   -H 'accept: application/json'
 
-	req, err := http.NewRequest("GET", "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=13670,H419", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds=13670,H419", nil)
 	if err != nil {
 		return Stations{}, fmt.Errorf("failed creating request: %v", err)
 	}
