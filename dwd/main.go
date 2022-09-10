@@ -46,50 +46,51 @@ type Stations map[string]Station
 
 type Station struct {
 	Forecast1 struct {
-		StationID                    string      `json:"stationId"`
-		Start                        int64       `json:"start"`
-		TimeStep                     int         `json:"timeStep"`
-		Temperature                  []int       `json:"temperature"`
-		TemperatureStd               []int       `json:"temperatureStd"`
-		WindSpeed                    interface{} `json:"windSpeed"`
-		WindDirection                interface{} `json:"windDirection"`
-		WindGust                     interface{} `json:"windGust"`
-		Icon                         []int       `json:"icon"`
-		PrecipitationTotal           []int       `json:"precipitationTotal"`
-		PrecipitationProbablity      interface{} `json:"precipitationProbablity"`
-		PrecipitationProbablityIndex interface{} `json:"precipitationProbablityIndex"`
+		StationID                    string `json:"stationId"`
+		Start                        int    `json:"start"`
+		TimeStep                     int    `json:"timeStep"`
+		Temperature                  []int  `json:"temperature"`
+		TemperatureStd               []int  `json:"temperatureStd"`
+		WindSpeed                    string `json:"windSpeed"`
+		WindDirection                string `json:"windDirection"`
+		WindGust                     string `json:"windGust"`
+		Icon                         []int  `json:"icon"`
+		PrecipitationTotal           []int  `json:"precipitationTotal"`
+		PrecipitationProbablity      string `json:"precipitationProbablity"`
+		PrecipitationProbablityIndex string `json:"precipitationProbablityIndex"`
 	} `json:"forecast1"`
 	Forecast2 struct {
-		StationID                    string        `json:"stationId"`
-		Start                        int64         `json:"start"`
-		TimeStep                     int           `json:"timeStep"`
-		Temperature                  []interface{} `json:"temperature"`
-		TemperatureStd               []interface{} `json:"temperatureStd"`
-		WindSpeed                    interface{}   `json:"windSpeed"`
-		WindDirection                interface{}   `json:"windDirection"`
-		WindGust                     interface{}   `json:"windGust"`
-		Icon                         []int         `json:"icon"`
-		PrecipitationTotal           []int         `json:"precipitationTotal"`
-		PrecipitationProbablity      interface{}   `json:"precipitationProbablity"`
-		PrecipitationProbablityIndex interface{}   `json:"precipitationProbablityIndex"`
+		StationID                    string `json:"stationId"`
+		Start                        int    `json:"start"`
+		TimeStep                     int    `json:"timeStep"`
+		Temperature                  []int  `json:"temperature"`
+		TemperatureStd               []int  `json:"temperatureStd"`
+		WindSpeed                    string `json:"windSpeed"`
+		WindDirection                string `json:"windDirection"`
+		WindGust                     string `json:"windGust"`
+		Icon                         []int  `json:"icon"`
+		PrecipitationTotal           []int  `json:"precipitationTotal"`
+		PrecipitationProbablity      string `json:"precipitationProbablity"`
+		PrecipitationProbablityIndex string `json:"precipitationProbablityIndex"`
 	} `json:"forecast2"`
-	ForecastStart interface{} `json:"forecastStart"`
+	ForecastStart string `json:"forecastStart"`
 	Days          []struct {
-		StationID      interface{} `json:"stationId"`
-		DayDate        string      `json:"dayDate"`
-		TemperatureMin int         `json:"temperatureMin"`
-		TemperatureMax int         `json:"temperatureMax"`
-		Icon           int         `json:"icon"`
-		Icon1          interface{} `json:"icon1"`
-		Icon2          interface{} `json:"icon2"`
-		Precipitation  int         `json:"precipitation"`
-		WindSpeed      int         `json:"windSpeed"`
-		WindGust       int         `json:"windGust"`
-		WindDirection  int         `json:"windDirection"`
-		Sunshine       int         `json:"sunshine"`
+		StationID      string `json:"stationId"`
+		DayDate        string `json:"dayDate"`
+		TemperatureMin int    `json:"temperatureMin"`
+		TemperatureMax int    `json:"temperatureMax"`
+		Icon           int    `json:"icon"`
+		Icon1          string `json:"icon1"`
+		Icon2          string `json:"icon2"`
+		Precipitation  int    `json:"precipitation"`
+		WindSpeed      int    `json:"windSpeed"`
+		WindGust       int    `json:"windGust"`
+		WindDirection  int    `json:"windDirection"`
+		Sunshine       int    `json:"sunshine"`
 	} `json:"days"`
-	Warnings           []interface{} `json:"warnings"`
-	ThreeHourSummaries interface{}   `json:"threeHourSummaries"`
+	Warnings []struct {
+	} `json:"warnings"`
+	ThreeHourSummaries string `json:"threeHourSummaries"`
 }
 
 func request() (Stations, error) {
