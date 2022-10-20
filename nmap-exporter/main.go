@@ -71,12 +71,6 @@ func main() {
 	}
 }
 
-type StoreDB struct {
-	Time   time.Time
-	HostIP []string
-	NumUp  int
-}
-
 type Nmaprun struct {
 	XMLName          xml.Name `xml:"nmaprun"`
 	Text             string   `xml:",chardata"`
