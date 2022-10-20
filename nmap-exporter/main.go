@@ -3,68 +3,78 @@ package main
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"sync"
+	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sj14/playground/nmap-exporter/postgres"
 )
 
 func main() {
-	cmd := exec.Command("/usr/local/bin/nmap", "-sn", "192.168.0.0/24", "-oX", "-", "--webxml")
-
-	// Set the correct output device.
-	cmd.Stderr = os.Stderr
-
-	out := &bytes.Buffer{}
-	cmd.Stdout = out
-
-	var exporter Exporter
-
-	// Execute the command and return the error.
-	if err := cmd.Run(); err != nil {
-		log.Println(err)
-		exporter.failures.Inc()
+	dbURL, ok := os.LookupEnv("DB_URL")
+	if !ok {
+		log.Fatalln("DB_URL not set")
 	}
 
-	var result Nmaprun
+	db := postgres.NewPostgresStore(dbURL)
+	defer db.CloseConn()
 
-	log.Println(out.String())
+	first := true
+	for {
+		if !first {
+			time.Sleep(5 * time.Minute)
+		}
 
-	dec := xml.NewDecoder(out)
-	// dec.Strict = false
-	if err := dec.Decode(&result); err != nil {
-		log.Println(err)
+		cmd := exec.Command("nmap", "-sn", "192.168.0.0/24", "-oX", "-", "--webxml")
+
+		// Set the correct output device.
+		cmd.Stderr = os.Stderr
+
+		out := &bytes.Buffer{}
+		cmd.Stdout = out
+
+		// Execute the command and return the error.
+		if err := cmd.Run(); err != nil {
+			log.Println(err)
+			time.Sleep(1 * time.Minute)
+			continue
+		}
+
+		var nmapResult Nmaprun
+
+		// log.Println(out.String())
+
+		dec := xml.NewDecoder(out)
+		// dec.Strict = false
+		if err := dec.Decode(&nmapResult); err != nil {
+			time.Sleep(1 * time.Minute)
+			continue
+		}
+
+		// log.Println()
+		// log.Printf("%+v\n", result)
+
+		now := time.Now()
+		for _, host := range nmapResult.Hosts {
+			fmt.Println(host.Address.Addr)
+			err := db.StoreHost(host.Address.Addr, now)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+
+		log.Printf("hosts: %v\n", len(nmapResult.Hosts))
+		log.Printf("took: %v\n", nmapResult.Runstats.Finished.Elapsed)
+		first = false
 	}
-
-	log.Println()
-	log.Printf("%+v\n", result)
-
-	for _, host := range result.Host {
-		log.Println(host.Address.Addr)
-	}
-	log.Println(result.Runstats.Finished.Elapsed)
 }
 
-type Exporter struct {
-	mutex    sync.RWMutex
-	up       prometheus.Gauge
-	runs     prometheus.Counter
-	failures prometheus.Counter
-}
-
-// Collect fetches the stats from configured HAProxy location and delivers them
-// as Prometheus metrics. It implements prometheus.Collector.
-func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
-	e.mutex.Lock() // To protect metrics from concurrent collects.
-	defer e.mutex.Unlock()
-
-	// up := e.scrape(ch)
-
-	// ch <- prometheus.MustNewConstMetric(haproxyUp, prometheus.GaugeValue, up)
-	// ch <- e.totalScrapes
-	// ch <- e.csvParseFailures
+type StoreDB struct {
+	Time   time.Time
+	HostIP []string
+	NumUp  int
 }
 
 type Nmaprun struct {
@@ -106,7 +116,7 @@ type Nmaprun struct {
 		} `xml:"address"`
 		Hostnames string `xml:"hostnames"`
 	} `xml:"hosthint"`
-	Host []struct {
+	Hosts []struct {
 		Text      string `xml:",chardata"`
 		Starttime string `xml:"starttime,attr"`
 		Endtime   string `xml:"endtime,attr"`
