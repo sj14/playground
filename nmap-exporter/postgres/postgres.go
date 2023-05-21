@@ -27,8 +27,8 @@ func NewPostgresStore(dbURL string) *PostgresStore {
 	return postgresHandler
 }
 
-func (s *PostgresStore) CloseConn() {
-	s.conn.Close()
+func (s *PostgresStore) CloseConn() error {
+	return s.conn.Close()
 }
 
 func (p *PostgresStore) init() {

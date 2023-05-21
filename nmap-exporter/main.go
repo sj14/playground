@@ -19,13 +19,18 @@ func main() {
 	}
 
 	db := postgres.NewPostgresStore(dbURL)
-	defer db.CloseConn()
-
-	first := true
-	for {
-		if !first {
-			time.Sleep(5 * time.Minute)
+	defer func() {
+		if err := db.CloseConn(); err != nil {
+			log.Printf("failed closing db connection: %v\n", err)
 		}
+	}()
+
+	lastRun := time.Time{}
+	for {
+		diff := time.Until(lastRun.Add(5 * time.Minute)) // wait 5 minutes since last run
+		time.Sleep(diff)
+		lastRun = time.Now()
+		log.Println("start")
 
 		cmd := exec.Command("nmap", "-sn", "192.168.0.0/24", "-oX", "-", "--webxml")
 
@@ -67,7 +72,6 @@ func main() {
 
 		log.Printf("hosts: %v\n", len(nmapResult.Hosts))
 		log.Printf("took: %v\n", nmapResult.Runstats.Finished.Elapsed)
-		first = false
 	}
 }
 
