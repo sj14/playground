@@ -10,9 +10,12 @@ import (
 	"time"
 
 	"github.com/sj14/playground/nmap-exporter/postgres"
+	"golang.org/x/exp/slices"
 )
 
 func main() {
+	time.Sleep(10 * time.Second) // pod networking needs a bit?
+
 	dbURL, ok := os.LookupEnv("DB_URL")
 	if !ok {
 		log.Fatalln("DB_URL not set")
@@ -25,12 +28,17 @@ func main() {
 		}
 	}()
 
-	lastRun := time.Time{}
+	var (
+		lastRun    time.Time
+		lastInsert time.Time
+		lastResult Nmaprun
+	)
+
 	for {
-		diff := time.Until(lastRun.Add(5 * time.Minute)) // wait 5 minutes since last run
+		diff := time.Until(lastRun.Add(1 * time.Minute)) // wait 1 minutes since last run
 		time.Sleep(diff)
 		lastRun = time.Now()
-		log.Println("start")
+		log.Println("start scanning")
 
 		cmd := exec.Command("nmap", "-sn", "192.168.0.0/24", "-oX", "-", "--webxml")
 
@@ -43,7 +51,6 @@ func main() {
 		// Execute the command and return the error.
 		if err := cmd.Run(); err != nil {
 			log.Println(err)
-			time.Sleep(1 * time.Minute)
 			continue
 		}
 
@@ -58,8 +65,16 @@ func main() {
 			continue
 		}
 
-		// log.Println()
-		// log.Printf("%+v\n", result)
+		log.Printf("hosts: %v\n", len(nmapResult.Hosts))
+		log.Printf("took: %v\n", nmapResult.Runstats.Finished.Elapsed)
+
+		// Skip writing to the database when nothing changed
+		// but write at least once an hour.
+		if sameAddresses(lastResult.Hosts, nmapResult.Hosts) && lastInsert.Add(1*time.Hour).After(time.Now()) {
+			lastResult = nmapResult
+			log.Printf("no change")
+			continue
+		}
 
 		now := time.Now()
 		for _, host := range nmapResult.Hosts {
@@ -69,10 +84,32 @@ func main() {
 				log.Println(err)
 			}
 		}
-
-		log.Printf("hosts: %v\n", len(nmapResult.Hosts))
-		log.Printf("took: %v\n", nmapResult.Runstats.Finished.Elapsed)
+		lastInsert = now
+		lastResult = nmapResult
 	}
+}
+
+func sameAddresses(a, b Hosts) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	var (
+		addressesA []string
+		addressesB []string
+	)
+	for _, hostsA := range a {
+		addressesA = append(addressesA, hostsA.Address.Addr)
+	}
+
+	for _, hostsB := range b {
+		addressesB = append(addressesB, hostsB.Address.Addr)
+	}
+
+	slices.Sort(addressesA)
+	slices.Sort(addressesB)
+
+	return slices.Compare(addressesA, addressesB) == 0
 }
 
 type Nmaprun struct {
@@ -114,59 +151,7 @@ type Nmaprun struct {
 		} `xml:"address"`
 		Hostnames string `xml:"hostnames"`
 	} `xml:"hosthint"`
-	Hosts []struct {
-		Text      string `xml:",chardata"`
-		Starttime string `xml:"starttime,attr"`
-		Endtime   string `xml:"endtime,attr"`
-		Status    struct {
-			Text      string `xml:",chardata"`
-			State     string `xml:"state,attr"`
-			Reason    string `xml:"reason,attr"`
-			ReasonTtl string `xml:"reason_ttl,attr"`
-		} `xml:"status"`
-		Address struct {
-			Text     string `xml:",chardata"`
-			Addr     string `xml:"addr,attr"`
-			Addrtype string `xml:"addrtype,attr"`
-		} `xml:"address"`
-		Hostnames string `xml:"hostnames"`
-		Ports     struct {
-			Text       string `xml:",chardata"`
-			Extraports struct {
-				Text         string `xml:",chardata"`
-				State        string `xml:"state,attr"`
-				Count        string `xml:"count,attr"`
-				Extrareasons struct {
-					Text   string `xml:",chardata"`
-					Reason string `xml:"reason,attr"`
-					Count  string `xml:"count,attr"`
-				} `xml:"extrareasons"`
-			} `xml:"extraports"`
-			Port []struct {
-				Text     string `xml:",chardata"`
-				Protocol string `xml:"protocol,attr"`
-				Portid   string `xml:"portid,attr"`
-				State    struct {
-					Text      string `xml:",chardata"`
-					State     string `xml:"state,attr"`
-					Reason    string `xml:"reason,attr"`
-					ReasonTtl string `xml:"reason_ttl,attr"`
-				} `xml:"state"`
-				Service struct {
-					Text   string `xml:",chardata"`
-					Name   string `xml:"name,attr"`
-					Method string `xml:"method,attr"`
-					Conf   string `xml:"conf,attr"`
-				} `xml:"service"`
-			} `xml:"port"`
-		} `xml:"ports"`
-		Times struct {
-			Text   string `xml:",chardata"`
-			Srtt   string `xml:"srtt,attr"`
-			Rttvar string `xml:"rttvar,attr"`
-			To     string `xml:"to,attr"`
-		} `xml:"times"`
-	} `xml:"host"`
+	Hosts    `xml:"host"`
 	Runstats struct {
 		Text     string `xml:",chardata"`
 		Finished struct {
@@ -184,4 +169,58 @@ type Nmaprun struct {
 			Total string `xml:"total,attr"`
 		} `xml:"hosts"`
 	} `xml:"runstats"`
+}
+
+type Hosts []struct {
+	Text      string `xml:",chardata"`
+	Starttime string `xml:"starttime,attr"`
+	Endtime   string `xml:"endtime,attr"`
+	Status    struct {
+		Text      string `xml:",chardata"`
+		State     string `xml:"state,attr"`
+		Reason    string `xml:"reason,attr"`
+		ReasonTtl string `xml:"reason_ttl,attr"`
+	} `xml:"status"`
+	Address struct {
+		Text     string `xml:",chardata"`
+		Addr     string `xml:"addr,attr"`
+		Addrtype string `xml:"addrtype,attr"`
+	} `xml:"address"`
+	Hostnames string `xml:"hostnames"`
+	Ports     struct {
+		Text       string `xml:",chardata"`
+		Extraports struct {
+			Text         string `xml:",chardata"`
+			State        string `xml:"state,attr"`
+			Count        string `xml:"count,attr"`
+			Extrareasons struct {
+				Text   string `xml:",chardata"`
+				Reason string `xml:"reason,attr"`
+				Count  string `xml:"count,attr"`
+			} `xml:"extrareasons"`
+		} `xml:"extraports"`
+		Port []struct {
+			Text     string `xml:",chardata"`
+			Protocol string `xml:"protocol,attr"`
+			Portid   string `xml:"portid,attr"`
+			State    struct {
+				Text      string `xml:",chardata"`
+				State     string `xml:"state,attr"`
+				Reason    string `xml:"reason,attr"`
+				ReasonTtl string `xml:"reason_ttl,attr"`
+			} `xml:"state"`
+			Service struct {
+				Text   string `xml:",chardata"`
+				Name   string `xml:"name,attr"`
+				Method string `xml:"method,attr"`
+				Conf   string `xml:"conf,attr"`
+			} `xml:"service"`
+		} `xml:"port"`
+	} `xml:"ports"`
+	Times struct {
+		Text   string `xml:",chardata"`
+		Srtt   string `xml:"srtt,attr"`
+		Rttvar string `xml:"rttvar,attr"`
+		To     string `xml:"to,attr"`
+	} `xml:"times"`
 }
