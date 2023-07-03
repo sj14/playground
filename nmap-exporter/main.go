@@ -29,13 +29,13 @@ func main() {
 	}()
 
 	var (
-		lastRun    time.Time
-		lastInsert time.Time
-		lastResult Nmaprun
+		lastRun time.Time
+		// lastInsert time.Time
+		// lastResult Nmaprun
 	)
 
 	for {
-		diff := time.Until(lastRun.Add(1 * time.Minute)) // wait 1 minutes since last run
+		diff := time.Until(lastRun.Add(5 * time.Minute)) // wait 5 minutes since last run
 		time.Sleep(diff)
 		lastRun = time.Now()
 		log.Println("start scanning")
@@ -70,11 +70,11 @@ func main() {
 
 		// Skip writing to the database when nothing changed
 		// but write at least once an hour.
-		if sameAddresses(lastResult.Hosts, nmapResult.Hosts) && lastInsert.Add(1*time.Hour).After(time.Now()) {
-			lastResult = nmapResult
-			log.Printf("no change")
-			continue
-		}
+		// if sameAddresses(lastResult.Hosts, nmapResult.Hosts) && lastInsert.Add(5*time.Minute).After(time.Now()) {
+		// 	lastResult = nmapResult
+		// 	log.Printf("no change")
+		// 	continue
+		// }
 
 		now := time.Now()
 		for _, host := range nmapResult.Hosts {
@@ -84,8 +84,8 @@ func main() {
 				log.Println(err)
 			}
 		}
-		lastInsert = now
-		lastResult = nmapResult
+		// lastInsert = now
+		// lastResult = nmapResult
 	}
 }
 
