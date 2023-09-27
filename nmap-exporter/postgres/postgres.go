@@ -36,6 +36,7 @@ func (p *PostgresStore) init() {
 
 	sqlStmt := `
 	CREATE TABLE IF NOT EXISTS hosts (ip TEXT NOT NULL, time TIMESTAMP NOT NULL );
+	CREATE INDEX IF NOT EXISTS idx_hosts_time ON hosts ("time") STORING (ip);
 	`
 
 	if _, err := p.conn.Exec(sqlStmt); err != nil {
