@@ -32,11 +32,19 @@ func (s *PostgresStore) CloseConn() error {
 }
 
 func (p *PostgresStore) init() {
-	// DROP TABLE IF EXISTS users, repos, reviewers, timers;
+	// CREATE TABLE public.names (
+	// 	date TIMESTAMP(6) NOT NULL DEFAULT now():::TIMESTAMP,
+	// 	name VARCHAR(255) NOT NULL,
+	// 	ip STRING NOT NULL,
+	// 	vip BOOL NOT NULL DEFAULT false,
+	// 	ignore BOOL NOT NULL DEFAULT false,
+	// 	CONSTRAINT names_pkey PRIMARY KEY (rowid ASC)
+	//   )
 
 	sqlStmt := `
 	CREATE TABLE IF NOT EXISTS hosts (ip TEXT NOT NULL, time TIMESTAMP NOT NULL );
 	CREATE INDEX IF NOT EXISTS idx_hosts_time ON hosts ("time") STORING (ip);
+	CREATE INDEX IF NOT EXISTS idx_names_ip ON network.public.names (ip) STORING (name, vip);
 	`
 
 	if _, err := p.conn.Exec(sqlStmt); err != nil {
