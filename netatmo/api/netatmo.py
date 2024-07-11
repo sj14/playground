@@ -83,7 +83,6 @@ while True:
                                 value {1} NOT NULL,
                                 PRIMARY KEY (time, module)
                             );
-                            CREATE INDEX IF NOT EXISTS idx_{0}_module ON {0} (module) STORING (value);
                             '''.format(sensor.lower(), valueType))
 
                         cur.execute("INSERT INTO {0} (time, module, value) VALUES('{1}', '{2}', '{3}');".format(sensor.lower(), datetime.datetime.fromtimestamp(int(when), datetime.UTC).strftime('%Y-%m-%d %H:%M:%S'), module.lower(), value))
