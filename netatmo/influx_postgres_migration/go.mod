@@ -1,6 +1,6 @@
 module migrate
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/jackc/pgx/v4 v4.18.2
@@ -18,6 +18,6 @@ require (
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/lib/pq v1.10.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 )
