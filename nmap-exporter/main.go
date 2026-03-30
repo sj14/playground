@@ -40,7 +40,16 @@ func main() {
 		lastRun = time.Now()
 		log.Println("start scanning")
 
-		cmd := exec.Command("nmap", "-sn", "192.168.0.0/24", "-oX", "-", "--webxml")
+		cmd := exec.Command(
+			"nmap",
+			"--host-timeout",
+			"10s",
+			"-sn",
+			"192.168.0.0/24",
+			"-oX",
+			"-",
+			"--webxml",
+		)
 
 		// Set the correct output device.
 		cmd.Stderr = os.Stderr
