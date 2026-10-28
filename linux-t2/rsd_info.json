@@ -1,0 +1,274 @@
+{
+  "MessageType": "Handshake",
+  "MessagingProtocolVersion": 7,
+  "Properties": {
+    "AppleInternal": false,
+    "BoardId": 58,
+    "BoardRevision": 3,
+    "BootSessionUUID": "<redacted>",
+    "BridgeVersion": "23.16.16068.0.0,0",
+    "BuildVersion": "23P6068",
+    "CPUArchitecture": "arm64",
+    "CertificateProductionStatus": true,
+    "CertificateSecurityMode": true,
+    "ChipID": 32786,
+    "DeviceClass": "Bridge",
+    "DeviceColor": "black",
+    "DeviceEnclosureColor": "black",
+    "DeviceSupportsLockdown": false,
+    "EffectiveProductionStatusAp": true,
+    "EffectiveProductionStatusSEP": true,
+    "EffectiveSecurityModeAp": true,
+    "EffectiveSecurityModeSEP": true,
+    "HWModel": "J152fAP",
+    "HWModelDescriptionForUserVisibility": "J152fAP",
+    "HardwarePlatform": "t8012",
+    "HasSEP": true,
+    "HumanReadableProductVersionString": "10.6",
+    "Image4CryptoHashMethod": "sha2-384",
+    "Image4Supported": true,
+    "IsUIBuild": true,
+    "IsVirtualDevice": false,
+    "MobileDeviceMinimumVersion": "1827.100.14",
+    "ModelNumber": "MVVJ2",
+    "OSInstallEnvironment": false,
+    "OSVersion": "10.6",
+    "ProductName": "Bridge OS",
+    "ProductType": "iBridge2,14",
+    "ProductTypeDescForUserVisibility": "iBridge2,14",
+    "RegionCode": "D",
+    "RegionInfo": "D/A",
+    "RemoteXPCVersionFlags": 72057594037927942,
+    "SecurityDomain": 1,
+    "SensitivePropertiesVisible": true,
+    "SerialNumber": "<redacted>",
+    "SigningFuse": true,
+    "SupplementalBuildVersion": "23P6068",
+    "ThinningProductType": "iBridge2,14",
+    "UniqueChipID": "<redacted>",
+    "UniqueDeviceID": "<redacted>"
+  },
+  "Services": {
+    "com.apple.CoreKDL.remoteXPC": {
+      "Entitlement": "com.apple.private.CoreKDL.allow",
+      "Port": "49176",
+      "Properties": {
+        "EncryptSocketData": false
+      }
+    },
+    "com.apple.RestoreRemoteServices.restoreserviced": {
+      "Entitlement": "com.apple.private.RestoreRemoteServices.restoreservice.remote",
+      "Port": "49160",
+      "Properties": {
+        "EncryptSocketData": false,
+        "ServiceVersion": 2,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.TrustedAccessoryController": {
+      "Entitlement": "com.apple.private.trac.bridge.allow",
+      "Port": "49163",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.aveservice": {
+      "Entitlement": "com.apple.aveservice.access-allowed",
+      "Port": "49172",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.bridgeOSUpdated": {
+      "Entitlement": "bridgeOSUpdated-access-allowed",
+      "Port": "49166",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.corecaptured.remoteservice": {
+      "Entitlement": "com.apple.corecaptured.remoteservice-access",
+      "Port": "49170",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.corespeech.xpc.remote.control": {
+      "Entitlement": "com.apple.private.corespeech.xpc.remote",
+      "Port": "49161",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.corespeech.xpc.remote.record": {
+      "Entitlement": "com.apple.private.corespeech.xpc.remote",
+      "Port": "49167",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.eos.BiometricKit": {
+      "Entitlement": "com.apple.private.bmk.remote.allow",
+      "Port": "49158",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": false
+      }
+    },
+    "com.apple.eos.LASecureIO": {
+      "Entitlement": "com.apple.private.lasecureio.remote",
+      "Port": "49155",
+      "Properties": {
+        "EncryptSocketData": false
+      }
+    },
+    "com.apple.icloud.findmydeviced.bridge": {
+      "Entitlement": "com.apple.private.icloud.FindMyDeviceBridge.access",
+      "Port": "49173",
+      "Properties": {
+        "EncryptSocketData": false,
+        "ServiceVersion": 1,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.instruments.dtservicehub": {
+      "Entitlement": "com.apple.private.dt.instruments.dtservicehub.client",
+      "Port": "49159",
+      "Properties": {
+        "EncryptSocketData": false,
+        "Features": [
+          "com.apple.dt.profile"
+        ],
+        "version": 1
+      }
+    },
+    "com.apple.internal.xpc.remote.kext_audit": {
+      "Entitlement": "com.apple.private.multiverse.kext_audit",
+      "Port": "49164",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.lskdd": {
+      "Entitlement": "com.apple.private.lskdbosd.access",
+      "Port": "49153",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": 1
+      }
+    },
+    "com.apple.mobileactivationd.bridge": {
+      "Entitlement": "com.apple.mobileactivationd.bridge",
+      "Port": "49152",
+      "Properties": {
+        "EncryptSocketData": false,
+        "ServiceVersion": 1,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.multiverse.remote.bridgetime": {
+      "Entitlement": "com.apple.private.multiverse.bridgetime",
+      "Port": "49162",
+      "Properties": {
+        "EncryptSocketData": false
+      }
+    },
+    "com.apple.nfcd.relay.control": {
+      "Entitlement": "com.apple.private.stockholm.remoteservice",
+      "Port": "49169",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesBridgeXPC": false
+      }
+    },
+    "com.apple.nfcd.relay.uart": {
+      "Entitlement": "com.apple.private.stockholm.remoteservice",
+      "Port": "49154",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesBridgeXPC": false
+      }
+    },
+    "com.apple.osanalytics.logTransfer": {
+      "Entitlement": "com.apple.ReportCrash.antenna-access",
+      "Port": "49157",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.powerchime.remote": {
+      "Entitlement": "com.apple.private.powerchime.remote",
+      "Port": "49165",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.private.avvc.xpc.remote": {
+      "Entitlement": "com.apple.private.avvc.xpc.remote",
+      "Port": "49171",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.recoverylogd.bridge": {
+      "Entitlement": "com.apple.recoverylogd.bridge",
+      "Port": "49156",
+      "Properties": {
+        "EncryptSocketData": false,
+        "ServiceVersion": 1,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.sysdiagnose.remote": {
+      "Entitlement": "com.apple.private.sysdiagnose.remote",
+      "Port": "49174",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.sysdiagnose.remote.trusted": {
+      "Entitlement": "com.apple.private.sysdiagnose.remote.trusted",
+      "Port": "49178",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.videoprocessingd.encode.remote": {
+      "Entitlement": "com.apple.private.videoprocessing.remote",
+      "Port": "49175",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.xpc.remote.mobile_obliteration": {
+      "Entitlement": "com.apple.private.remote.mobile_obliteration",
+      "Port": "49177",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    },
+    "com.apple.xpc.remote.multiboot": {
+      "Entitlement": "com.apple.private.storagekitd.statuschange",
+      "Port": "49168",
+      "Properties": {
+        "EncryptSocketData": false,
+        "UsesRemoteXPC": true
+      }
+    }
+  },
+  "UUID": "<redacted>"
+}
