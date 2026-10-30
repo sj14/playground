@@ -3,14 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"time"
 
 	"github.com/sj14/playground/nmap-exporter/postgres"
-	"golang.org/x/exp/slices"
 )
 
 func main() {
@@ -18,218 +16,96 @@ func main() {
 
 	dbURL, ok := os.LookupEnv("DB_URL")
 	if !ok {
-		log.Fatalln("DB_URL not set")
+		slog.Error("DB_URL not set")
+		os.Exit(1)
 	}
 
-	db := postgres.NewPostgresStore(dbURL)
+	subnet := envOrDefault("SCAN_SUBNET", "192.168.0.0/24")
+
+	interval, err := time.ParseDuration(envOrDefault("SCAN_INTERVAL", "5m"))
+	if err != nil {
+		slog.Error("invalid SCAN_INTERVAL", "error", err)
+		os.Exit(1)
+	}
+
+	db, err := postgres.NewPostgresStore(dbURL)
+	if err != nil {
+		slog.Error("failed setting up db", "error", err)
+		os.Exit(1)
+	}
 	defer func() {
 		if err := db.CloseConn(); err != nil {
-			log.Printf("failed closing db connection: %v\n", err)
+			slog.Error("failed closing db connection", "error", err)
 		}
 	}()
 
-	var (
-		lastRun time.Time
-		// lastInsert time.Time
-		// lastResult Nmaprun
-	)
-
+	var lastRun time.Time
 	for {
-		diff := time.Until(lastRun.Add(5 * time.Minute)) // wait 5 minutes since last run
-		time.Sleep(diff)
+		time.Sleep(time.Until(lastRun.Add(interval)))
 		lastRun = time.Now()
-		log.Println("start scanning")
 
-		cmd := exec.Command(
-			"nmap",
-			"--host-timeout",
-			"10s",
-			"-sn",
-			"192.168.0.0/24",
-			"-oX",
-			"-",
-			"--webxml",
-		)
-
-		// Set the correct output device.
-		cmd.Stderr = os.Stderr
-
-		out := &bytes.Buffer{}
-		cmd.Stdout = out
-
-		// Execute the command and return the error.
-		if err := cmd.Run(); err != nil {
-			log.Println(err)
-			continue
+		if err := scan(db, subnet); err != nil {
+			slog.Error("scan failed", "error", err)
 		}
-
-		var nmapResult Nmaprun
-
-		// log.Println(out.String())
-
-		dec := xml.NewDecoder(out)
-		// dec.Strict = false
-		if err := dec.Decode(&nmapResult); err != nil {
-			time.Sleep(1 * time.Minute)
-			continue
-		}
-
-		log.Printf("hosts: %v\n", len(nmapResult.Hosts))
-		log.Printf("took: %v\n", nmapResult.Runstats.Finished.Elapsed)
-
-		// Skip writing to the database when nothing changed
-		// but write at least once an hour.
-		// if sameAddresses(lastResult.Hosts, nmapResult.Hosts) && lastInsert.Add(5*time.Minute).After(time.Now()) {
-		// 	lastResult = nmapResult
-		// 	log.Printf("no change")
-		// 	continue
-		// }
-
-		now := time.Now()
-		for _, host := range nmapResult.Hosts {
-			fmt.Println(host.Address.Addr)
-			err := db.StoreHost(host.Address.Addr, now)
-			if err != nil {
-				log.Println(err)
-			}
-		}
-		// lastInsert = now
-		// lastResult = nmapResult
 	}
 }
 
-func sameAddresses(a, b Hosts) bool {
-	if len(a) != len(b) {
-		return false
+func envOrDefault(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
 	}
+	return fallback
+}
 
-	var (
-		addressesA []string
-		addressesB []string
+func scan(db *postgres.PostgresStore, subnet string) error {
+	slog.Info("start scanning", "subnet", subnet)
+
+	cmd := exec.Command(
+		"nmap",
+		"--host-timeout",
+		"10s",
+		"-sn",
+		subnet,
+		"-oX",
+		"-",
+		"--webxml",
 	)
-	for _, hostsA := range a {
-		addressesA = append(addressesA, hostsA.Address.Addr)
+	cmd.Stderr = os.Stderr
+
+	out := &bytes.Buffer{}
+	cmd.Stdout = out
+
+	if err := cmd.Run(); err != nil {
+		return err
 	}
 
-	for _, hostsB := range b {
-		addressesB = append(addressesB, hostsB.Address.Addr)
+	var result Nmaprun
+	if err := xml.NewDecoder(out).Decode(&result); err != nil {
+		return err
 	}
 
-	slices.Sort(addressesA)
-	slices.Sort(addressesB)
+	slog.Info("scan finished", "hosts", len(result.Hosts), "took", result.Runstats.Finished.Elapsed)
 
-	return slices.Compare(addressesA, addressesB) == 0
+	now := time.Now()
+	for _, host := range result.Hosts {
+		slog.Info("host up", "ip", host.Address.Addr)
+		if err := db.StoreHost(host.Address.Addr, now); err != nil {
+			slog.Error("failed storing host", "ip", host.Address.Addr, "error", err)
+		}
+	}
+	return nil
 }
 
+// Nmaprun contains the parts of the nmap XML output we use.
 type Nmaprun struct {
-	XMLName          xml.Name `xml:"nmaprun"`
-	Text             string   `xml:",chardata"`
-	Scanner          string   `xml:"scanner,attr"`
-	Args             string   `xml:"args,attr"`
-	Start            string   `xml:"start,attr"`
-	Startstr         string   `xml:"startstr,attr"`
-	Version          string   `xml:"version,attr"`
-	Xmloutputversion string   `xml:"xmloutputversion,attr"`
-	Scaninfo         struct {
-		Text        string `xml:",chardata"`
-		Type        string `xml:"type,attr"`
-		Protocol    string `xml:"protocol,attr"`
-		Numservices string `xml:"numservices,attr"`
-		Services    string `xml:"services,attr"`
-	} `xml:"scaninfo"`
-	Verbose struct {
-		Text  string `xml:",chardata"`
-		Level string `xml:"level,attr"`
-	} `xml:"verbose"`
-	Debugging struct {
-		Text  string `xml:",chardata"`
-		Level string `xml:"level,attr"`
-	} `xml:"debugging"`
-	Hosthint []struct {
-		Text   string `xml:",chardata"`
-		Status struct {
-			Text      string `xml:",chardata"`
-			State     string `xml:"state,attr"`
-			Reason    string `xml:"reason,attr"`
-			ReasonTtl string `xml:"reason_ttl,attr"`
-		} `xml:"status"`
+	Hosts []struct {
 		Address struct {
-			Text     string `xml:",chardata"`
-			Addr     string `xml:"addr,attr"`
-			Addrtype string `xml:"addrtype,attr"`
+			Addr string `xml:"addr,attr"`
 		} `xml:"address"`
-		Hostnames string `xml:"hostnames"`
-	} `xml:"hosthint"`
-	Hosts    `xml:"host"`
+	} `xml:"host"`
 	Runstats struct {
-		Text     string `xml:",chardata"`
 		Finished struct {
-			Text    string `xml:",chardata"`
-			Time    string `xml:"time,attr"`
-			Timestr string `xml:"timestr,attr"`
-			Summary string `xml:"summary,attr"`
 			Elapsed string `xml:"elapsed,attr"`
-			Exit    string `xml:"exit,attr"`
 		} `xml:"finished"`
-		Hosts struct {
-			Text  string `xml:",chardata"`
-			Up    string `xml:"up,attr"`
-			Down  string `xml:"down,attr"`
-			Total string `xml:"total,attr"`
-		} `xml:"hosts"`
 	} `xml:"runstats"`
-}
-
-type Hosts []struct {
-	Text      string `xml:",chardata"`
-	Starttime string `xml:"starttime,attr"`
-	Endtime   string `xml:"endtime,attr"`
-	Status    struct {
-		Text      string `xml:",chardata"`
-		State     string `xml:"state,attr"`
-		Reason    string `xml:"reason,attr"`
-		ReasonTtl string `xml:"reason_ttl,attr"`
-	} `xml:"status"`
-	Address struct {
-		Text     string `xml:",chardata"`
-		Addr     string `xml:"addr,attr"`
-		Addrtype string `xml:"addrtype,attr"`
-	} `xml:"address"`
-	Hostnames string `xml:"hostnames"`
-	Ports     struct {
-		Text       string `xml:",chardata"`
-		Extraports struct {
-			Text         string `xml:",chardata"`
-			State        string `xml:"state,attr"`
-			Count        string `xml:"count,attr"`
-			Extrareasons struct {
-				Text   string `xml:",chardata"`
-				Reason string `xml:"reason,attr"`
-				Count  string `xml:"count,attr"`
-			} `xml:"extrareasons"`
-		} `xml:"extraports"`
-		Port []struct {
-			Text     string `xml:",chardata"`
-			Protocol string `xml:"protocol,attr"`
-			Portid   string `xml:"portid,attr"`
-			State    struct {
-				Text      string `xml:",chardata"`
-				State     string `xml:"state,attr"`
-				Reason    string `xml:"reason,attr"`
-				ReasonTtl string `xml:"reason_ttl,attr"`
-			} `xml:"state"`
-			Service struct {
-				Text   string `xml:",chardata"`
-				Name   string `xml:"name,attr"`
-				Method string `xml:"method,attr"`
-				Conf   string `xml:"conf,attr"`
-			} `xml:"service"`
-		} `xml:"port"`
-	} `xml:"ports"`
-	Times struct {
-		Text   string `xml:",chardata"`
-		Srtt   string `xml:"srtt,attr"`
-		Rttvar string `xml:"rttvar,attr"`
-		To     string `xml:"to,attr"`
-	} `xml:"times"`
 }

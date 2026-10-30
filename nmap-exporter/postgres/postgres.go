@@ -1,11 +1,9 @@
 package postgres
 
 import (
-	"log"
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	_ "github.com/lib/pq" // postgres driver
 )
 
@@ -13,25 +11,28 @@ type PostgresStore struct {
 	conn *sqlx.DB
 }
 
-func NewPostgresStore(dbURL string) *PostgresStore {
+func NewPostgresStore(dbURL string) (*PostgresStore, error) {
 	conn, err := sqlx.Connect("postgres", dbURL)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	postgresHandler := &PostgresStore{conn}
 	if _, err := conn.Exec("SET TIME ZONE 'UTC';"); err != nil {
-		log.Println(err)
+		return nil, err
 	}
-	postgresHandler.init()
-	return postgresHandler
+
+	store := &PostgresStore{conn}
+	if err := store.init(); err != nil {
+		return nil, err
+	}
+	return store, nil
 }
 
 func (s *PostgresStore) CloseConn() error {
 	return s.conn.Close()
 }
 
-func (p *PostgresStore) init() {
+func (s *PostgresStore) init() error {
 	// CREATE TABLE public.names (
 	// 	date TIMESTAMP(6) NOT NULL DEFAULT now():::TIMESTAMP,
 	// 	name VARCHAR(255) NOT NULL,
@@ -47,19 +48,8 @@ func (p *PostgresStore) init() {
 	CREATE INDEX IF NOT EXISTS idx_names_ip ON network.public.names (ip) STORING (name, vip);
 	`
 
-	if _, err := p.conn.Exec(sqlStmt); err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func IsNotFound(err error) bool {
-	if err, ok := err.(*pq.Error); ok {
-		// Here err is of type *pq.Error, you may inspect all its fields, e.g.:
-		if err.Code == "02000" {
-			return true
-		}
-	}
-	return false
+	_, err := s.conn.Exec(sqlStmt)
+	return err
 }
 
 func (s *PostgresStore) StoreHost(ip string, t time.Time) error {
