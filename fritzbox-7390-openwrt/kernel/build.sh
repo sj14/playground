@@ -23,9 +23,15 @@ echo "$KERNEL_SHA256  $TARBALL" | sha256sum -c -
 if [ ! -d "$TREE" ]; then
     mkdir "$TREE"
     tar -xf "$TARBALL" -C "$TREE" --strip-components=1
-    patch -d "$TREE" -p1 < "$SOURCE_DIR/patches/0001-mips-add-fusiv-platform.patch"
 fi
 
+for patch_file in "$SOURCE_DIR"/patches/*.patch; do
+    stamp=$TREE/.applied-$(basename "$patch_file")
+    if [ ! -f "$stamp" ]; then
+        patch -d "$TREE" -p1 < "$patch_file"
+        touch "$stamp"
+    fi
+done
 cp -r "$SOURCE_DIR/linux/." "$TREE/"
 
 # The first userspace program.

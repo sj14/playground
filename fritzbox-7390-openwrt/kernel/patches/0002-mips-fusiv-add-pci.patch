@@ -1,0 +1,23 @@
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -458,7 +458,10 @@
+ 	select CEVT_R4K
+ 	select CSRC_R4K
+ 	select DMA_NONCOHERENT
++	select HAVE_PCI
+ 	select IRQ_MIPS_CPU
++	select PCI_DRIVERS_LEGACY
++	select SWAP_IO_SPACE
+ 	select SYS_HAS_CPU_MIPS32_R2
+ 	select SYS_HAS_EARLY_PRINTK
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+--- a/arch/mips/pci/Makefile
++++ b/arch/mips/pci/Makefile
+@@ -19,6 +19,7 @@
+ 					ops-bcm63xx.o
+ obj-$(CONFIG_MIPS_ALCHEMY)	+= pci-alchemy.o
+ obj-$(CONFIG_PCI_AR2315)	+= pci-ar2315.o
++obj-$(CONFIG_FUSIV)		+= pci-fusiv.o
+ obj-$(CONFIG_SOC_AR71XX)	+= pci-ar71xx.o
+ obj-$(CONFIG_PCI_AR724X)	+= pci-ar724x.o
+ obj-$(CONFIG_PCI_XTALK_BRIDGE)	+= pci-xtalk-bridge.o

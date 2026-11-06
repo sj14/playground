@@ -20,6 +20,7 @@
 #include <linux/spinlock.h>
 
 #include "bringup.h"
+#include "fusiv.h"
 
 #define IPC_PRIO(irq)		(0x100 + ((irq) / 4) * 4)
 #define IPC_PRIO_SHIFT(irq)	(((irq) % 4) * 8)
@@ -138,4 +139,9 @@ void __init arch_init_irq(void)
 {
 	bringup_set_stage(STAGE_IRQ_INIT);
 	irqchip_init();
+}
+
+unsigned int fusiv_ipc_map_irq(unsigned int source)
+{
+	return irq_create_mapping(ipc_domain, source);
 }
