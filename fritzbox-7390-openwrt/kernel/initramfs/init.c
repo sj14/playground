@@ -7,6 +7,7 @@
 #include <poll.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/reboot.h>
 #include <sys/utsname.h>
@@ -51,11 +52,40 @@ static long long uptime_seconds(void) {
     return now.tv_sec;
 }
 
+// Reports in the AVM reboot status that /init really ran, because this text
+// survives the reset. The firmware then shows "watchdog".
+static void report_init_ran(void) {
+    enum { MAILBOX_PAGE = 0x00fff000, MAILBOX_OFFSET = 0xe00, PAGE_SIZE_BYTES = 4096 };
+    static const char status[] =
+        "(c) AVM 2013, Reboot Status is: Software-NMI-Watchdog"
+        "(c) AVM 2013, Reboot Status is: Software-NMI-Watchdog"
+        "(c) AVM 2013, Reboot Status is: Software-NMI-Watchdog";
+
+    int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (fd < 0) {
+        log_line("cannot open /dev/mem\n");
+        return;
+    }
+
+    char *page = mmap(NULL, PAGE_SIZE_BYTES, PROT_READ | PROT_WRITE, MAP_SHARED, fd, MAILBOX_PAGE);
+    if (page == MAP_FAILED) {
+        log_line("cannot map the status mailbox\n");
+    } else {
+        volatile char *mailbox = page + MAILBOX_OFFSET;
+        for (size_t i = 0; i < sizeof(status); i++) {
+            mailbox[i] = status[i];
+        }
+        munmap(page, PAGE_SIZE_BYTES);
+    }
+    close(fd);
+}
+
 int main(void) {
     char line[128];
     struct utsname name;
 
     kmsg_fd = open("/dev/kmsg", O_WRONLY);
+    report_init_ran();
 
     uname(&name);
     snprintf(line, sizeof(line), "Hello from userspace on %s %s\n", name.sysname, name.release);

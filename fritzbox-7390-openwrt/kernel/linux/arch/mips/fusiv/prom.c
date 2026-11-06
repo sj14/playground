@@ -113,11 +113,13 @@ static void __init init_memory(void)
 		memblock_add(BME_START + BME_SIZE, memsize - BME_START - BME_SIZE);
 
 	memblock_reserve(FUSIV_MAILBOX_PHYS, FUSIV_MAILBOX_SIZE);
+	memblock_reserve(FUSIV_RAMLOG_PHYS, FUSIV_RAMLOG_SIZE);
 }
 
 static void fusiv_restart(char *command)
 {
 	bringup_set_stage(STAGE_RESTART);
+	bringup_mark_ram();
 	__raw_writel(1, (void __iomem *)SYSCONF_REBOOT_CTRL);
 
 	while (true)

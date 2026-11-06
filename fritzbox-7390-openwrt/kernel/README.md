@@ -50,8 +50,9 @@ These are assumptions that only the hardware can confirm:
 
 The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 
-- **RAM log:** All kernel messages also go to 256 KB of the DSL coprocessor's memory at `0x06240000`. Under the AVM firmware, that part held only 23 non-zero words of 65536, while the end of the area is full of data. `../tools/fusiv-ramlog.c` reads them in the AVM firmware. A software reset keeps the AVM reboot status in RAM, so the log should survive too, but this is unconfirmed for this address.
-- **Reboot status:** The kernel also writes known texts to AVM's reboot status mailbox at `0x00fffe00`, which has survived resets on this box. Freetz then shows the progress in `/proc/sys/urlader/reboot_status`: `software` means `prom_init` was never reached, `poweron` means it was, and `nmi` means timer interrupts work. After unplugging the box, the value says nothing.
+- **RAM log:** All kernel messages also go to 256 KB of RAM at `0x00fb0000`, just below the reboot status mailbox. `../tools/fusiv-ramlog.c` reads them in the AVM firmware, if the firmware has not overwritten them. An earlier location in the DSL coprocessor's memory (`0x06240000`) did not work, because the log was gone when the firmware tried to read it.
+- **Reboot status:** The kernel and `/init` write known texts to AVM's reboot status mailbox at `0x00fffe00`, which has survived resets on this box. Freetz then shows the progress in `/proc/sys/urlader/reboot_status`: `software` means `prom_init` was never reached, `poweron` means it was, and `watchdog` means `/init` ran. After unplugging the box, the value says nothing.
+- **Memory marks:** Right before a restart the kernel marks the RAM every 64 KB. `fusiv-ramlog scan` shows which marks survive under Freetz.
 - **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work.
 - **Watchdog:** It runs from the start, so a hang should restart the box. Whether it really resets the chip is unconfirmed. If the box hangs, unplug it, which also loses the log.
 - **Automatic end:** `/init` restarts the box after 30 s, and the kernel does so after 90 s at the latest.

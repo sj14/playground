@@ -6,6 +6,9 @@
 #define FUSIV_MAILBOX_PHYS	0x00fffe00
 #define FUSIV_MAILBOX_SIZE	512
 
+#define FUSIV_RAMLOG_PHYS	0x00fb0000
+#define FUSIV_RAMLOG_SIZE	0x40000
+
 /* How far the boot got. The value is stored in the RAM log header. */
 enum bringup_stage {
 	STAGE_PROM_INIT = 1,
@@ -19,5 +22,6 @@ enum bringup_stage {
 void bringup_init(void);
 void bringup_set_stage(enum bringup_stage stage);
 void bringup_log_char(char c);
+void bringup_mark_ram(void);
 
 #endif

@@ -23,23 +23,26 @@
 #include <linux/string.h>
 #include <linux/timer.h>
 
+#include <asm/sections.h>
+
 #include "bringup.h"
 
 /*
- * An area of the memory AVM reserves for the DSL coprocessor. Linux does not
- * use this memory. Under the AVM firmware most of the coprocessor's memory is
- * full of data, but this part held only 23 non-zero words of 65536. Those
- * writes may still damage single spots of the log.
+ * Just below the reboot status mailbox, which survives resets. The memory that
+ * AVM reserves for the DSL coprocessor does not work, because the log was gone
+ * from there when the AVM firmware tried to read it.
  */
-#define RAMLOG_PHYS		0x06240000
-#define RAMLOG_SIZE		SZ_256K
-#define RAMLOG_BASE		CKSEG1ADDR(RAMLOG_PHYS)
+#define RAMLOG_BASE		CKSEG1ADDR(FUSIV_RAMLOG_PHYS)
 #define RAMLOG_MAGIC		0x46534c47	/* "FSLG" */
 #define RAMLOG_MAGIC_OFFSET	0x0
 #define RAMLOG_LENGTH_OFFSET	0x4
 #define RAMLOG_STAGE_OFFSET	0x8
 #define RAMLOG_DATA_OFFSET	0x10
-#define RAMLOG_CAPACITY		(RAMLOG_SIZE - RAMLOG_DATA_OFFSET)
+#define RAMLOG_CAPACITY		(FUSIV_RAMLOG_SIZE - RAMLOG_DATA_OFFSET)
+
+#define MARK_MAGIC		0x46534d4b	/* "FSMK" */
+#define MARK_SPACING		SZ_64K
+#define MARK_RAM_END		SZ_128M
 
 /*
  * The AVM firmware reads this text after a reset and reports it in
@@ -48,12 +51,11 @@
  *
  *   software  the kernel never reached prom_init
  *   poweron   prom_init was reached
- *   nmi       timer interrupts work
+ *   watchdog  /init ran, it writes the matching text itself
  */
 #define STATUS_TEXT(status)	"(c) AVM 2013, Reboot Status is: " status
 #define STATUS_REPEATED(status)	STATUS_TEXT(status) STATUS_TEXT(status) STATUS_TEXT(status)
 #define STATUS_POWERON		STATUS_REPEATED("Power-On-Reboot")
-#define STATUS_TIMER		STATUS_REPEATED("Software-NMI-Watchdog")
 
 #define WDT_CTRL		CKSEG1ADDR(0x19000008)
 #define WDT_CTRL_DISABLE	BIT(0)
@@ -138,6 +140,29 @@ void bringup_set_stage(enum bringup_stage stage)
 	}
 }
 
+/*
+ * Leaves a mark every 64 KB, so that tools/fusiv-ramlog.c can show which memory
+ * survives the reset and the start of the AVM firmware. The kernel image stays
+ * untouched, because this code is still running from it.
+ */
+void bringup_mark_ram(void)
+{
+	unsigned long first = ALIGN(CPHYSADDR(_end), MARK_SPACING);
+	unsigned long address;
+
+	for (address = first; address < MARK_RAM_END; address += MARK_SPACING) {
+		void __iomem *mark = (void __iomem *)CKSEG1ADDR(address);
+
+		if (address >= FUSIV_RAMLOG_PHYS &&
+		    address < FUSIV_RAMLOG_PHYS + FUSIV_RAMLOG_SIZE)
+			continue;
+
+		__raw_writel(MARK_MAGIC, mark);
+		__raw_writel(address, mark + 4);
+		__raw_writel(~address, mark + 8);
+	}
+}
+
 static void wdt_start(void)
 {
 	void __iomem *ctrl = (void __iomem *)WDT_CTRL;
@@ -162,7 +187,6 @@ static void wdt_timer_tick(struct timer_list *timer)
 
 	if (!first_tick_seen) {
 		first_tick_seen = true;
-		mailbox_write(STATUS_TIMER);
 		bringup_set_stage(STAGE_TIMER_RUNNING);
 		pr_info("bringup: timer interrupts work\n");
 	}
