@@ -9,6 +9,8 @@
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/kernel.h>
+#include <linux/export.h>
+#include <linux/of.h>
 #include <linux/pci.h>
 #include <linux/spinlock.h>
 
@@ -77,6 +79,13 @@ static void pci_reg_write(unsigned int offset, u32 value)
 {
 	__raw_writel(value, (void __iomem *)(PCI_REGS + offset));
 }
+
+/* See the ath9k patches for why this read is needed. */
+void fusiv_pci_settle(void)
+{
+	pci_reg_read(PCI_CONTROL);
+}
+EXPORT_SYMBOL_GPL(fusiv_pci_settle);
 
 static int config_transfer(unsigned int cmd, struct pci_bus *bus,
 			   unsigned int devfn, int where, u32 *value)
@@ -235,6 +244,9 @@ static int __init fusiv_pci_init(void)
 
 	mdelay(20);
 
+	/* Connects the Wi-Fi nodes of the device tree to the PCI devices. */
+	fusiv_pci_controller.of_node = of_find_compatible_node(NULL, NULL, "ikanos,vx180-pci");
+
 	register_pci_controller(&fusiv_pci_controller);
 
 	return 0;
@@ -253,3 +265,79 @@ int pcibios_plat_dev_init(struct pci_dev *dev)
 {
 	return 0;
 }
+
+/*
+ * Without an EEPROM the Wi-Fi chips report the placeholder ID 0xff1d. The start
+ * of their calibration data holds register writes that set the real ID. This
+ * happens during the first bus scan, because configuring the second chip after
+ * ath9k has taken over the first one left it reading ID 0.
+ */
+#define NOR_FLASH_BASE		0x1f000000
+#define WIFI_CAL_5GHZ		0x985
+#define WIFI_CAL_2GHZ		0x198a
+#define WIFI_CAL_MAGIC_LE	0xa55a
+#define WIFI_CAL_FIRST_ENTRY	6
+#define WIFI_CAL_ENTRY_SIZE	6
+#define WIFI_CAL_LAST_ENTRY	0x200
+#define WIFI_CAL_END_MARK	0xffff
+#define WIFI_MEM_SIZE		0x10000
+#define WIFI_WRITE_DELAY_US	100
+
+static u16 __init wifi_cal_read16(const u8 *cal, unsigned int offset)
+{
+	return cal[offset] | (cal[offset + 1] << 8);
+}
+
+static void __init fusiv_wifi_set_id(struct pci_dev *dev)
+{
+	unsigned int slot = PCI_SLOT(dev->devfn);
+	unsigned long flash = CKSEG1ADDR(NOR_FLASH_BASE);
+	const u8 *cal;
+	u32 mem_base = PCI_MEM_BASE + (slot - 1) * WIFI_MEM_SIZE;
+	void __iomem *mem = (void __iomem *)CKSEG1ADDR(mem_base);
+	unsigned int offset;
+	u32 id;
+	u32 class;
+	u16 command;
+
+	if (slot == 1)
+		cal = (const u8 *)(flash + WIFI_CAL_5GHZ);
+	else if (slot == 2)
+		cal = (const u8 *)(flash + WIFI_CAL_2GHZ);
+	else
+		return;
+
+	if (wifi_cal_read16(cal, 0) != WIFI_CAL_MAGIC_LE) {
+		pci_err(dev, "invalid calibration data\n");
+		return;
+	}
+
+	pci_write_config_dword(dev, PCI_BASE_ADDRESS_0, mem_base);
+	pci_read_config_word(dev, PCI_COMMAND, &command);
+	pci_write_config_word(dev, PCI_COMMAND,
+			      command | PCI_COMMAND_MEMORY | PCI_COMMAND_MASTER);
+
+	for (offset = WIFI_CAL_FIRST_ENTRY; offset < WIFI_CAL_LAST_ENTRY;
+	     offset += WIFI_CAL_ENTRY_SIZE) {
+		u16 reg = wifi_cal_read16(cal, offset);
+		u32 value;
+
+		if (reg == WIFI_CAL_END_MARK)
+			break;
+
+		value = wifi_cal_read16(cal, offset + 2) |
+			(wifi_cal_read16(cal, offset + 4) << 16);
+		__raw_writel(value, mem + reg);
+		udelay(WIFI_WRITE_DELAY_US);
+	}
+
+	pci_write_config_word(dev, PCI_COMMAND, command);
+	pci_write_config_dword(dev, PCI_BASE_ADDRESS_0, 0);
+
+	pci_read_config_dword(dev, PCI_VENDOR_ID, &id);
+	pci_read_config_dword(dev, PCI_CLASS_REVISION, &class);
+	dev->device = id >> 16;
+	dev->class = class >> 8;
+	pci_info(dev, "configured Wi-Fi chip, ID is now %04x:%04x\n", dev->vendor, dev->device);
+}
+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_ATHEROS, 0xff1d, fusiv_wifi_set_id);

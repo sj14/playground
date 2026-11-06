@@ -99,6 +99,8 @@ int main(void) {
     log_file("/proc/interrupts");
     log_file("/proc/iomem");
     log_file("/proc/bus/pci/devices");
+    log_file("/proc/mtd");
+    log_file("/proc/net/dev");
 
     long long start = uptime_seconds();
     struct pollfd input = {.fd = STDIN_FILENO, .events = POLLIN};

@@ -1,13 +1,12 @@
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -458,7 +458,10 @@
+@@ -458,7 +458,9 @@
  	select CEVT_R4K
  	select CSRC_R4K
  	select DMA_NONCOHERENT
 +	select HAVE_PCI
  	select IRQ_MIPS_CPU
 +	select PCI_DRIVERS_LEGACY
-+	select SWAP_IO_SPACE
  	select SYS_HAS_CPU_MIPS32_R2
  	select SYS_HAS_EARLY_PRINTK
  	select SYS_SUPPORTS_32BIT_KERNEL

@@ -49,6 +49,14 @@ LIST
 make -C "$TREE" "${MAKE_ARGS[@]}" fusiv_defconfig
 make -C "$TREE" "${MAKE_ARGS[@]}" vmlinux.bin
 
+# The kernel must end below the RAM log (FUSIV_RAMLOG_PHYS).
+KERNEL_END=$(awk '$3 == "_end" { print $1 }' "$TREE/System.map")
+if [ "$((0x$KERNEL_END))" -ge "$((0x80c00000))" ]; then
+    echo "The kernel ends at 0x$KERNEL_END, which overlaps the RAM log." >&2
+    exit 1
+fi
+echo "The kernel ends at 0x$KERNEL_END"
+
 ENTRY=0x$(awk '$3 == "kernel_entry" { print $1 }' "$TREE/System.map")
 python3 "$SOURCE_DIR/tools/make-eva-image.py" build \
     "$TREE/arch/mips/boot/vmlinux.bin" "$LOAD_ADDRESS" "$ENTRY" "$BUILD_DIR/fritzbox-7390.eva"

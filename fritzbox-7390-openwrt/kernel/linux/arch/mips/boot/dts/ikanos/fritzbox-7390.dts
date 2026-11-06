@@ -46,5 +46,62 @@
 			interrupt-parent = <&ipc>;
 			interrupts = <29>;
 		};
+
+		/*
+		 * Mapped as ROM, so that Linux never sends a command to the chip.
+		 * The urlader partition also holds secrets in its environment, so its
+		 * content must stay out of logs. Only the calibration cells are used.
+		 */
+		flash@1f000000 {
+			compatible = "mtd-rom";
+			reg = <0x1f000000 0x1000000>;
+			bank-width = <2>;
+
+			partitions {
+				compatible = "fixed-partitions";
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				partition@0 {
+					compatible = "nvmem-cells";
+					label = "urlader";
+					reg = <0x0 0x20000>;
+					read-only;
+					#address-cells = <1>;
+					#size-cells = <1>;
+
+					calibration_5ghz: calibration@985 {
+						reg = <0x985 0x1000>;
+					};
+
+					calibration_2ghz: calibration@198a {
+						reg = <0x198a 0x1000>;
+					};
+				};
+			};
+		};
+
+		pci: pci@19170000 {
+			compatible = "ikanos,vx180-pci";
+			device_type = "pci";
+			reg = <0x19170000 0x100>;
+			#address-cells = <3>;
+			#size-cells = <2>;
+			#interrupt-cells = <1>;
+			bus-range = <0x00 0x00>;
+			ranges = <0x02000000 0 0x1a000000 0x1a000000 0 0x01000000>;
+
+			wifi@1,0 {
+				reg = <0x0800 0 0 0 0>;
+				nvmem-cells = <&calibration_5ghz>;
+				nvmem-cell-names = "calibration";
+			};
+
+			wifi@2,0 {
+				reg = <0x1000 0 0 0 0>;
+				nvmem-cells = <&calibration_2ghz>;
+				nvmem-cell-names = "calibration";
+			};
+		};
 	};
 };

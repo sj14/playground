@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** Milestone 1 is reached without a serial cable. The kernel boots from RAM on a real box to `/init` and restarts cleanly (`../hardware/first-boot-6.18.log`). There is no flash, network, PCI or Wi-Fi support yet.
+**Status:** The kernel boots from RAM on a real box to `/init` and restarts cleanly, without a serial cable. PCI, read-only flash and `ath9k` work: both Wi-Fi chips register as `phy0` and `phy1` (`../hardware/first-wifi-driver-6.18.log`). No Wi-Fi network has been opened yet. Network and USB are still missing.
 
 ## Layout
 
