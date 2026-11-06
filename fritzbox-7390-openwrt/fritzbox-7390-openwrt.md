@@ -90,7 +90,7 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 3. **USB Ethernet as uplink:** this makes the box usable as an access point.
 4. **Optional, LAN ports:** reverse engineering as a separate project.
 
-The groundwork for milestone 1 (Fusiv platform for a current kernel, porting UART and IRQ, building an image) can be prepared without hardware. It can only be tested once the console is connected.
+The groundwork for milestone 1 is in `kernel/`. It targets Linux 6.18, compiles and builds an EVA image, but can only be tested once the console is connected.
 
 ### Testing without flashing
 
@@ -160,7 +160,7 @@ In theory, the kernel can write its log to a reserved RAM area, which you read t
 - [x] Find where the Wi-Fi calibration data is stored
 - [ ] Determine the matching USB driver variant for the Vx180
 - [x] Back up clock and GPIO registers (`hardware/registers-hw156.txt`, read with `tools/fusiv-regdump.c`)
-- [ ] Set up the groundwork for the current kernel
+- [x] Set up the groundwork for the current kernel (`kernel/`, compiles, untested on hardware)
 
 ## Limitations of this check
 

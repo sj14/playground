@@ -1,0 +1,45 @@
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -452,6 +452,22 @@
+ 	select CPU_SUPPORTS_CPUFREQ
+ 	select MIPS_EXTERNAL_TIMER
+ 
++config FUSIV
++	bool "Ikanos Fusiv Vx180 based platforms"
++	select BUILTIN_DTB
++	select CEVT_R4K
++	select CSRC_R4K
++	select DMA_NONCOHERENT
++	select IRQ_MIPS_CPU
++	select SYS_HAS_CPU_MIPS32_R2
++	select SYS_HAS_EARLY_PRINTK
++	select SYS_SUPPORTS_32BIT_KERNEL
++	select SYS_SUPPORTS_BIG_ENDIAN
++	select USE_OF
++	help
++	  Support for boards based on the Ikanos Fusiv Vx180, such as the
++	  AVM FRITZ!Box 7390.
++
+ config LANTIQ
+ 	bool "Lantiq based platforms"
+ 	select DMA_NONCOHERENT
+--- a/arch/mips/Kbuild.platforms
++++ b/arch/mips/Kbuild.platforms
+@@ -14,6 +14,7 @@
+ platform-$(CONFIG_ECONET)		+= econet/
+ platform-$(CONFIG_MIPS_GENERIC)		+= generic/
+ platform-$(CONFIG_MACH_JAZZ)		+= jazz/
++platform-$(CONFIG_FUSIV)		+= fusiv/
+ platform-$(CONFIG_LANTIQ)		+= lantiq/
+ platform-$(CONFIG_MACH_LOONGSON2EF)	+= loongson2ef/
+ platform-$(CONFIG_MACH_LOONGSON32)	+= loongson32/
+--- a/arch/mips/boot/dts/Makefile
++++ b/arch/mips/boot/dts/Makefile
+@@ -5,6 +5,7 @@
+ subdir-$(CONFIG_EYEQ)			+= mobileye
+ subdir-$(CONFIG_FIT_IMAGE_FDT_MARDUK)   += img
+ subdir-$(CONFIG_FIT_IMAGE_FDT_BOSTON)	+= img
++subdir-$(CONFIG_FUSIV)			+= ikanos
+ subdir-$(CONFIG_MACH_INGENIC)		+= ingenic
+ subdir-$(CONFIG_LANTIQ)			+= lantiq
+ subdir-$(CONFIG_MACH_LOONGSON64)	+= loongson

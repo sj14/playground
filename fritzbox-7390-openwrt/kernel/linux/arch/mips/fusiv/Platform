@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: GPL-2.0
+# The AVM bootloader EVA loads the kernel at this address.
+load-$(CONFIG_FUSIV)	= 0xffffffff80010000
