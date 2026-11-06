@@ -68,7 +68,20 @@ This is based on AVM's newest GPL package (06.86). The box runs 06.88.
 ### Wi-Fi
 
 - The radio chips sit directly on the SoC's PCI bus. This speaks against the second Wi-Fi CPU suggested in the forum.
-- The ID `ff1d` matches the owl loader, which loads the calibration data from flash. Where this data is stored on the box is still open.
+- The ID `ff1d` matches the owl loader, which loads the calibration data from flash. The location is now known, see below.
+
+Calibration data, found read-only in the `urlader` partition (`mtd2`):
+
+| Flash offset | Header | PCI device | Radio |
+|---|---|---|---|
+| `0x980` | version 2, type `WLAN`, length `0x1001` | `0000:00:01.0` (`wifi0`) | 5 GHz, `opCapFlags=0x01` |
+| `0x1985` | version 2, type `WLAN2`, length `0x1001` | `0000:00:02.0` (`wifi1`) | 2.4 GHz, `opCapFlags=0x02` |
+
+- Each header is followed by one padding byte, then 4096 bytes of byte-swapped data starting at `0x985` and `0x198a`. Both sizes fit the owl loader limit, and it handles the swapped form.
+- Both blocks pass: magic `0xa55a`, a register list of 12 entries with an end marker, EEPROM version `0xe010`, 2x2 masks, and an XOR checksum of `0xffff` over the declared length `0xcb8`.
+- The MAC addresses in the blocks match the `macwlan` and `macwlan2` environment values and the running interfaces.
+- The register list sets the PCI ID to `168c:0029`, which `ath9k` supports. Whether `ath9k` then finds its EEPROM data this way on this box is untested.
+- The partition also holds secrets such as `wlan_key` and `tr069_passphrase` in its environment, so a dump of it must not be published.
 
 ## Milestones
 
@@ -144,8 +157,9 @@ In theory, the kernel can write its log to a reserved RAM area, which you read t
 - [ ] Open the box and photograph the row of pads
 - [ ] Measure the UART pins and connect the console
 - [ ] Test the EVA RAM boot on the 7390
-- [ ] Find where the Wi-Fi calibration data is stored
+- [x] Find where the Wi-Fi calibration data is stored
 - [ ] Determine the matching USB driver variant for the Vx180
+- [x] Back up clock and GPIO registers (`hardware/registers-hw156.txt`, read with `tools/fusiv-regdump.c`)
 - [ ] Set up the groundwork for the current kernel
 
 ## Limitations of this check
