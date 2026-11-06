@@ -17,20 +17,20 @@
 
 #include <asm/bootinfo.h>
 #include <asm/fw/fw.h>
+#include <asm/irq.h>
 #include <asm/prom.h>
 #include <asm/reboot.h>
 #include <asm/setup.h>
 #include <asm/time.h>
 
-#define SYSCONF_BASE		CKSEG1ADDR(0x19000000)
-#define SYSCONF_REBOOT_CTRL	(SYSCONF_BASE + 0x00)
-#define SYSCONF_WDT_CTRL	(SYSCONF_BASE + 0x08)
-#define WDT_CTRL_DISABLE	BIT(0)
-#define WDT_CTRL_RELOAD_MAX	(0xfffc << 16)
+#include "bringup.h"
+
+#define SYSCONF_REBOOT_CTRL	CKSEG1ADDR(0x19000000)
 
 /* UART2 is the console. Its registers are bytes spaced 4 bytes apart. */
 #define UART2_BASE		CKSEG1ADDR(0x190a0000)
 #define UART2_REG(reg)		(UART2_BASE + ((reg) << 2))
+#define UART_READY_POLLS	10000
 
 /* The DSL coprocessor's memory, not usable by Linux on this board. */
 #define BME_START		0x06000000
@@ -44,12 +44,28 @@ const char *get_system_type(void)
 	return "Ikanos Fusiv Vx180";
 }
 
+/*
+ * A UART that never gets ready must not stop the boot, because without a
+ * console that hang would be invisible. Give up on it after the first timeout.
+ */
 void prom_putchar(char c)
 {
-	while (!(__raw_readb((void __iomem *)UART2_REG(UART_LSR)) & UART_LSR_THRE))
-		;
+	static bool uart_failed;
+	int polls;
 
-	__raw_writeb(c, (void __iomem *)UART2_REG(UART_TX));
+	bringup_log_char(c);
+
+	if (uart_failed)
+		return;
+
+	for (polls = 0; polls < UART_READY_POLLS; polls++) {
+		if (__raw_readb((void __iomem *)UART2_REG(UART_LSR)) & UART_LSR_THRE) {
+			__raw_writeb(c, (void __iomem *)UART2_REG(UART_TX));
+			return;
+		}
+	}
+
+	uart_failed = true;
 }
 
 /* EVA passes the environment as an array of name and value pointers. */
@@ -99,6 +115,7 @@ static void __init init_memory(void)
 
 static void fusiv_restart(char *command)
 {
+	bringup_set_stage(STAGE_RESTART);
 	__raw_writel(1, (void __iomem *)SYSCONF_REBOOT_CTRL);
 
 	while (true)
@@ -107,9 +124,7 @@ static void fusiv_restart(char *command)
 
 void __init prom_init(void)
 {
-	/* The same write AVM's driver uses to stop the watchdog. */
-	__raw_writel(WDT_CTRL_DISABLE | WDT_CTRL_RELOAD_MAX,
-		     (void __iomem *)SYSCONF_WDT_CTRL);
+	bringup_init();
 
 	init_cmdline();
 	init_memory();
@@ -121,6 +136,7 @@ void __init prom_free_prom_memory(void)
 
 void __init plat_mem_setup(void)
 {
+	bringup_set_stage(STAGE_MEM_SETUP);
 	_machine_restart = fusiv_restart;
 
 	__dt_setup_arch(get_fdt());
@@ -133,6 +149,8 @@ void __init device_tree_init(void)
 
 void __init plat_time_init(void)
 {
+	bringup_set_stage(STAGE_TIME_INIT);
+
 	/* The CP0 counter runs at half the CPU clock. */
 	mips_hpt_frequency = CPU_FREQUENCY_HZ / 2;
 

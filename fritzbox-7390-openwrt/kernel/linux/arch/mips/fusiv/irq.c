@@ -19,6 +19,8 @@
 #include <linux/of_irq.h>
 #include <linux/spinlock.h>
 
+#include "bringup.h"
+
 #define IPC_PRIO(irq)		(0x100 + ((irq) / 4) * 4)
 #define IPC_PRIO_SHIFT(irq)	(((irq) % 4) * 8)
 #define IPC_PRIO_MASK		0xff
@@ -134,5 +136,6 @@ IRQCHIP_DECLARE(fusiv_ipc, "ikanos,vx180-ipc", ipc_of_init);
 
 void __init arch_init_irq(void)
 {
+	bringup_set_stage(STAGE_IRQ_INIT);
 	irqchip_init();
 }

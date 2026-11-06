@@ -34,6 +34,7 @@ zig cc -target mips-linux-musleabi -mcpu=mips32r2 -static -Os -s \
 cat > "$TREE/initramfs.list" <<LIST
 dir /dev 755 0 0
 nod /dev/console 600 0 0 c 5 1
+nod /dev/kmsg 600 0 0 c 1 11
 dir /proc 755 0 0
 file /init $BUILD_DIR/init 755 0 0
 LIST
