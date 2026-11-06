@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** It compiles and the image passes all format checks, but it has never run on the hardware.
+**Status:** Milestone 1 is reached without a serial cable. The kernel boots from RAM on a real box to `/init` and restarts cleanly (`../hardware/first-boot-6.18.log`). There is no flash, network, PCI or Wi-Fi support yet.
 
 ## Layout
 
@@ -33,24 +33,14 @@ The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross c
 - The image tool accepts the kernel partition (`mtd1`) of a real box, including CRC and checksum. That image decompresses to the size in its header.
 - The kernel and the image build without warnings. The device tree and `/init` are in the kernel.
 - `init` runs under `qemu-mips`, with host `/proc` content, including the restart attempt at the end.
-- `tools/eva-ramboot.py` has not loaded anything yet. `fusiv-ramlog` has not run yet.
+- On the hardware: `tools/eva-ramboot.py` loaded the image over Wi-Fi from a machine in the same network, and `fusiv-ramlog` read the log under Freetz. The log shows the timer (about 250 interrupts per second) and UART interrupts through the interrupt controller. `memsize` was back to `0x08000000` after each test.
+- Not tested: Anything on the physical serial line, since no cable was connected. Whether the hardware watchdog resets the box, since no run hung.
 
-## What can go wrong first
-
-These are assumptions that only the hardware can confirm:
-
-1. **EVA RAM boot:** `eva_ramboot.py` was written for other models and is untested on the 7390.
-2. **LZMA end marker:** Python's encoder writes an end marker into the stream. Whether EVA's decoder accepts that is unknown. Check this first if nothing appears on the console.
-3. **Early console speed:** The early console keeps the speed set by EVA, possibly 38400 baud (`modetty0`). The kernel switches to 115200 baud once the serial driver loads.
-4. **Timer route:** The interrupt code routes the CP0 timer to CPU line 7 as AVM's kernel does. A hang at `calibrate_delay` or similar points here.
-5. **Watchdog:** `prom_init` starts the watchdog with the writes AVM's driver uses. On a running box its counter drops by about 10170 per second, so the 0xfffc reload lasts about 6.4 s. A timer serves it every 100 ms. What happens when it expires is unconfirmed.
-6. **Memory:** Linux avoids the 8 MB at `0x06000000` that AVM's kernel reserves for the DSL coprocessor.
-
-## Testing without a console (not done yet)
+## Testing without a console
 
 The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 
-- **RAM log:** All kernel messages also go to 256 KB of RAM at `0x00fb0000`, just below the reboot status mailbox. `../tools/fusiv-ramlog.c` reads them in the AVM firmware, if the firmware has not overwritten them. An earlier location in the DSL coprocessor's memory (`0x06240000`) did not work, because the log was gone when the firmware tried to read it.
+- **RAM log:** All kernel messages also go to 256 KB of RAM at `0x00c00000`. `../tools/fusiv-ramlog.c` reads them in the AVM firmware. The location comes from `fusiv-ramlog scan`. Two earlier locations did not work, because the firmware overwrote the log there.
 - **Reboot status:** The kernel and `/init` write known texts to AVM's reboot status mailbox at `0x00fffe00`, which has survived resets on this box. Freetz then shows the progress in `/proc/sys/urlader/reboot_status`: `software` means `prom_init` was never reached, `poweron` means it was, and `watchdog` means `/init` ran. After unplugging the box, the value says nothing.
 - **Memory marks:** Right before a restart the kernel marks the RAM every 64 KB. `fusiv-ramlog scan` shows which marks survive under Freetz.
 - **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work.

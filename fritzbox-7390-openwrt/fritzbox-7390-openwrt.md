@@ -1,6 +1,6 @@
 # OpenWrt on the FRITZ!Box 7390 (hobby project)
 
-As of 2026-11-06. Nothing has been built yet and nothing on the box has been changed. This is the state of the feasibility check.
+As of 2026-11-06. A current kernel boots from RAM on the box. The installed firmware is unchanged.
 
 ## Summary
 
@@ -8,7 +8,7 @@ As of 2026-11-06. Nothing has been built yet and nothing on the box has been cha
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt, because the Ethernet driver and its firmware are proprietary.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step for you:** open the box, photograph the pads, measure the pins (see [Serial console](#serial-console)).
+- **Next step:** milestone 2, flash and Wi-Fi. A serial console is helpful but not required.
 
 ## The box
 
@@ -85,16 +85,16 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 
 ## Milestones
 
-1. **Kernel to a shell:** a current kernel boots from RAM and shows up on the console. This only needs the UART connection.
+1. **Kernel to userspace (reached):** Linux 6.18 boots from RAM and runs `/init`, without a serial cable. The log is in `hardware/first-boot-6.18.log`. A real shell is still missing.
 2. **Flash and Wi-Fi:** NAND/NOR read-only, plus PCI and `ath9k`, so that Wi-Fi visibly transmits.
 3. **USB Ethernet as uplink:** this makes the box usable as an access point.
 4. **Optional, LAN ports:** reverse engineering as a separate project.
 
-The groundwork for milestone 1 is in `kernel/`. It targets Linux 6.18, compiles and builds an EVA image, but can only be tested once the console is connected.
+The kernel work is in `kernel/`, including how to test it without a console.
 
 ### Testing without flashing
 
-OpenWrt loads an image into RAM through EVA via FTP (`eva_ramboot.py`, originally for the 7412). If this works on the 7390, the box boots back into Freetz after a failed attempt. This has not been tested on the 7390 yet.
+An image can be loaded into RAM through EVA via FTP, the same way as OpenWrt's `eva_ramboot.py`. This works on the 7390, even over Wi-Fi from a machine in the same network, and the box returns to Freetz after the test.
 
 The box is unavailable as an access point during tests, so a second, used 7390 as a test device would be helpful.
 
@@ -156,7 +156,7 @@ In theory, the kernel can write its log to a reserved RAM area, which you read t
 - [ ] Multimeter available?
 - [ ] Open the box and photograph the row of pads
 - [ ] Measure the UART pins and connect the console
-- [ ] Test the EVA RAM boot on the 7390
+- [x] Test the EVA RAM boot on the 7390
 - [x] Find where the Wi-Fi calibration data is stored
 - [ ] Determine the matching USB driver variant for the Vx180
 - [x] Back up clock and GPIO registers (`hardware/registers-hw156.txt`, read with `tools/fusiv-regdump.c`)

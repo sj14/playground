@@ -6,7 +6,7 @@
 #define FUSIV_MAILBOX_PHYS	0x00fffe00
 #define FUSIV_MAILBOX_SIZE	512
 
-#define FUSIV_RAMLOG_PHYS	0x00fb0000
+#define FUSIV_RAMLOG_PHYS	0x00c00000
 #define FUSIV_RAMLOG_SIZE	0x40000
 
 /* How far the boot got. The value is stored in the RAM log header. */

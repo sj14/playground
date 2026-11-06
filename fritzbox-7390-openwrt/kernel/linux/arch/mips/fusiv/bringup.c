@@ -28,9 +28,9 @@
 #include "bringup.h"
 
 /*
- * Just below the reboot status mailbox, which survives resets. The memory that
- * AVM reserves for the DSL coprocessor does not work, because the log was gone
- * from there when the AVM firmware tried to read it.
+ * In a part of the RAM where marks survived the start of the AVM firmware (see
+ * bringup_mark_ram). The DSL coprocessor memory and the area directly below the
+ * reboot status mailbox did not work: the firmware overwrote the log there.
  */
 #define RAMLOG_BASE		CKSEG1ADDR(FUSIV_RAMLOG_PHYS)
 #define RAMLOG_MAGIC		0x46534c47	/* "FSLG" */
