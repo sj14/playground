@@ -43,14 +43,15 @@ These are assumptions that only the hardware can confirm:
 2. **LZMA end marker:** Python's encoder writes an end marker into the stream. Whether EVA's decoder accepts that is unknown. Check this first if nothing appears on the console.
 3. **Early console speed:** The early console keeps the speed set by EVA, possibly 38400 baud (`modetty0`). The kernel switches to 115200 baud once the serial driver loads.
 4. **Timer route:** The interrupt code routes the CP0 timer to CPU line 7 as AVM's kernel does. A hang at `calibrate_delay` or similar points here.
-5. **Watchdog:** `prom_init` starts the watchdog with the writes AVM's driver uses. Its timeout is unknown, so a timer serves it every 100 ms. A timeout shorter than the early boot would restart the box too soon.
+5. **Watchdog:** `prom_init` starts the watchdog with the writes AVM's driver uses. On a running box its counter drops by about 10170 per second, so the 0xfffc reload lasts about 6.4 s. A timer serves it every 100 ms. What happens when it expires is unconfirmed.
 6. **Memory:** Linux avoids the 8 MB at `0x06000000` that AVM's kernel reserves for the DSL coprocessor.
 
 ## Testing without a console (not done yet)
 
 The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 
-- **RAM log:** All kernel messages also go to the last 256 KB of the DSL coprocessor's memory (below `0x06800000`). `../tools/fusiv-ramlog.c` reads them in the AVM firmware. A software reset keeps the AVM reboot status in RAM, so the log should survive too, but this is unconfirmed for this address.
+- **RAM log:** All kernel messages also go to 256 KB of the DSL coprocessor's memory at `0x06240000`. Under the AVM firmware, that part held only 23 non-zero words of 65536, while the end of the area is full of data. `../tools/fusiv-ramlog.c` reads them in the AVM firmware. A software reset keeps the AVM reboot status in RAM, so the log should survive too, but this is unconfirmed for this address.
+- **Reboot status:** The kernel also writes known texts to AVM's reboot status mailbox at `0x00fffe00`, which has survived resets on this box. Freetz then shows the progress in `/proc/sys/urlader/reboot_status`: `software` means `prom_init` was never reached, `poweron` means it was, and `nmi` means timer interrupts work. After unplugging the box, the value says nothing.
 - **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work.
 - **Watchdog:** It runs from the start, so a hang should restart the box. Whether it really resets the chip is unconfirmed. If the box hangs, unplug it, which also loses the log.
 - **Automatic end:** `/init` restarts the box after 30 s, and the kernel does so after 90 s at the latest.

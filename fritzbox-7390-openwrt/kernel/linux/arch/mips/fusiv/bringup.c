@@ -26,12 +26,14 @@
 #include "bringup.h"
 
 /*
- * The end of the memory AVM reserves for the DSL coprocessor. Linux does not
- * use it, neither this kernel nor the AVM kernel that later reads the log.
+ * An area of the memory AVM reserves for the DSL coprocessor. Linux does not
+ * use this memory. Under the AVM firmware most of the coprocessor's memory is
+ * full of data, but this part held only 23 non-zero words of 65536. Those
+ * writes may still damage single spots of the log.
  */
-#define RAMLOG_END		0x06800000
+#define RAMLOG_PHYS		0x06240000
 #define RAMLOG_SIZE		SZ_256K
-#define RAMLOG_BASE		CKSEG1ADDR(RAMLOG_END - RAMLOG_SIZE)
+#define RAMLOG_BASE		CKSEG1ADDR(RAMLOG_PHYS)
 #define RAMLOG_MAGIC		0x46534c47	/* "FSLG" */
 #define RAMLOG_MAGIC_OFFSET	0x0
 #define RAMLOG_LENGTH_OFFSET	0x4
@@ -39,12 +41,26 @@
 #define RAMLOG_DATA_OFFSET	0x10
 #define RAMLOG_CAPACITY		(RAMLOG_SIZE - RAMLOG_DATA_OFFSET)
 
+/*
+ * The AVM firmware reads this text after a reset and reports it in
+ * /proc/sys/urlader/reboot_status. It has survived resets on this box, so it
+ * shows the progress of a test run even if the RAM log is lost:
+ *
+ *   software  the kernel never reached prom_init
+ *   poweron   prom_init was reached
+ *   nmi       timer interrupts work
+ */
+#define STATUS_TEXT(status)	"(c) AVM 2013, Reboot Status is: " status
+#define STATUS_REPEATED(status)	STATUS_TEXT(status) STATUS_TEXT(status) STATUS_TEXT(status)
+#define STATUS_POWERON		STATUS_REPEATED("Power-On-Reboot")
+#define STATUS_TIMER		STATUS_REPEATED("Software-NMI-Watchdog")
+
 #define WDT_CTRL		CKSEG1ADDR(0x19000008)
 #define WDT_CTRL_DISABLE	BIT(0)
 #define WDT_CTRL_SERVICE	(0xa << 8)
 #define WDT_CTRL_RELOAD_MAX	(0xfffc << 16)
 
-/* The timeout of the watchdog is unknown, so serve it often. */
+/* The counter runs at about 10170 Hz, so 0xfffc lasts about 6.4 s. */
 #define WDT_SERVICE_INTERVAL	(HZ / 10)
 #define TEST_DEADLINE_SECONDS	90
 
@@ -66,6 +82,16 @@ static void led_on(u16 led)
 
 	__raw_writew(direction | led, (void __iomem *)GPIO_BANK1_DIR);
 	__raw_writew(led, (void __iomem *)GPIO_BANK1_CLEAR);
+}
+
+static void mailbox_write(const char *text)
+{
+	void __iomem *mailbox = (void __iomem *)CKSEG1ADDR(FUSIV_MAILBOX_PHYS);
+	size_t length = strlen(text);
+	size_t i;
+
+	for (i = 0; i <= length; i++)
+		__raw_writeb(text[i], mailbox + i);
 }
 
 static void ramlog_init(void)
@@ -122,6 +148,7 @@ static void wdt_start(void)
 
 void bringup_init(void)
 {
+	mailbox_write(STATUS_POWERON);
 	ramlog_init();
 	bringup_set_stage(STAGE_PROM_INIT);
 	wdt_start();
@@ -135,6 +162,7 @@ static void wdt_timer_tick(struct timer_list *timer)
 
 	if (!first_tick_seen) {
 		first_tick_seen = true;
+		mailbox_write(STATUS_TIMER);
 		bringup_set_stage(STAGE_TIMER_RUNNING);
 		pr_info("bringup: timer interrupts work\n");
 	}

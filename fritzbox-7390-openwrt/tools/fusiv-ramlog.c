@@ -17,7 +17,7 @@ enum {
     MAX_OUTPUT = 30000,
 };
 
-static const uint32_t LOG_PHYS = 0x06800000 - LOG_SIZE;
+static const uint32_t LOG_PHYS = 0x06240000;
 static const uint32_t LOG_MAGIC = 0x46534c47;
 
 static const char *stage_name(uint32_t stage) {

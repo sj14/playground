@@ -111,6 +111,8 @@ static void __init init_memory(void)
 
 	if (memsize > BME_START + BME_SIZE)
 		memblock_add(BME_START + BME_SIZE, memsize - BME_START - BME_SIZE);
+
+	memblock_reserve(FUSIV_MAILBOX_PHYS, FUSIV_MAILBOX_SIZE);
 }
 
 static void fusiv_restart(char *command)

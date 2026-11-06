@@ -2,6 +2,10 @@
 #ifndef _FUSIV_BRINGUP_H
 #define _FUSIV_BRINGUP_H
 
+/* The AVM reboot status text, which survives a software reset. */
+#define FUSIV_MAILBOX_PHYS	0x00fffe00
+#define FUSIV_MAILBOX_SIZE	512
+
 /* How far the boot got. The value is stored in the RAM log header. */
 enum bringup_stage {
 	STAGE_PROM_INIT = 1,
