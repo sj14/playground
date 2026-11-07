@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and opens a Wi-Fi network on 2.4 GHz that other devices can see (`../hardware/first-access-point-6.18.log`). PCI, read-only flash and `ath9k` work. No client has connected yet, 5 GHz has not been started, and network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs a 2.4 GHz access point. A laptop connected to it and transferred data in both directions (`../hardware/first-client-6.18.log`). PCI, read-only flash and `ath9k` work. 5 GHz has not been started, and encryption, a real shell, network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -15,7 +15,7 @@ Groundwork for milestone 1: a current kernel that boots from RAM to a first user
 | `linux/arch/mips/boot/dts/ikanos/` | device tree |
 | `linux/arch/mips/configs/fusiv_defconfig` | kernel configuration |
 | `patches/` | the few changes to existing kernel files |
-| `initramfs/init.c` | first userspace program: logs system info, ticks every 5 s, restarts after 30 s |
+| `initramfs/init.c` | first userspace program: logs system info, starts the access point and TCP test services on ports 5001 and 5002, restarts after 120 s |
 | `tools/make-eva-image.py` | creates and checks images for the EVA bootloader |
 | `tools/eva-ramboot.py` | loads an image through EVA, restarts the box on failure |
 
@@ -32,6 +32,7 @@ The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross c
 
 - The image tool accepts the kernel partition (`mtd1`) of a real box, including CRC and checksum. That image decompresses to the size in its header.
 - The kernel and the image build without warnings. The device tree and `/init` are in the kernel.
+- On the hardware with a laptop as client, with the test network open and without other clients: 20 of 20 pings at about 2 ms, TCP from the box at 32.8 Mbit/s and to the box at about 55 Mbit/s, at 130 Mbit/s link rate and 65 % signal. The PCI bridge stayed alive. This was one run of 12 s per direction.
 - `init` runs under `qemu-mips`, with host `/proc` content, including the restart attempt at the end.
 - On the hardware: `tools/eva-ramboot.py` loaded the image over Wi-Fi from a machine in the same network, and `fusiv-ramlog` read the log under Freetz. The log shows the timer (about 250 interrupts per second) and UART interrupts through the interrupt controller. `memsize` was back to `0x08000000` after each test.
 - Not tested: Anything on the physical serial line, since no cable was connected. Whether the hardware watchdog resets the box, since no run hung.

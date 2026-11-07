@@ -3,13 +3,19 @@
 // firmware can read the RAM log. Output also goes to /dev/kmsg, because only
 // kernel messages reach the RAM log.
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/reboot.h>
+#include <sys/socket.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -18,7 +24,14 @@
 enum {
     TICK_MS = 5000,
     TEST_DURATION_S = 120,
+    SEND_PORT = 5001,
+    RECEIVE_PORT = 5002,
+    TRANSFER_BUFFER_SIZE = 16384,
 };
+
+static const char AP_INTERFACE[] = "wlan1";
+static const char AP_ADDRESS[] = "192.168.77.1";
+static const char AP_NETMASK[] = "255.255.255.0";
 
 static int kmsg_fd = -1;
 
@@ -118,6 +131,93 @@ static void start_access_point(void) {
     }
 }
 
+// Gives the access point an address, so that a client can reach this box.
+static void configure_address(void) {
+    struct ifreq request;
+    memset(&request, 0, sizeof(request));
+    strncpy(request.ifr_name, AP_INTERFACE, IFNAMSIZ - 1);
+
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        log_line("cannot open a socket for the address\n");
+        return;
+    }
+
+    struct sockaddr_in *address = (struct sockaddr_in *)&request.ifr_addr;
+    address->sin_family = AF_INET;
+    inet_pton(AF_INET, AP_ADDRESS, &address->sin_addr);
+    if (ioctl(fd, SIOCSIFADDR, &request) != 0) {
+        log_line("cannot set the address\n");
+    }
+
+    inet_pton(AF_INET, AP_NETMASK, &address->sin_addr);
+    if (ioctl(fd, SIOCSIFNETMASK, &request) != 0) {
+        log_line("cannot set the netmask\n");
+    }
+    close(fd);
+}
+
+static int listen_on_port(int port) {
+    struct sockaddr_in address;
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
+    address.sin_port = htons(port);
+
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0 || bind(fd, (struct sockaddr *)&address, sizeof(address)) != 0 || listen(fd, 1) != 0) {
+        log_line("cannot listen on a test port\n");
+        _exit(1);
+    }
+    return fd;
+}
+
+// Sends data to each client until it disconnects, to test the box's transmit path.
+static void run_send_service(void) {
+    static char buffer[TRANSFER_BUFFER_SIZE];
+    int server = listen_on_port(SEND_PORT);
+    while (1) {
+        int client = accept(server, NULL, NULL);
+        if (client < 0) {
+            continue;
+        }
+        while (write(client, buffer, sizeof(buffer)) > 0) {
+        }
+        close(client);
+    }
+}
+
+// Discards what each client sends and logs the amount, to test the receive path.
+static void run_receive_service(void) {
+    static char buffer[TRANSFER_BUFFER_SIZE];
+    char line[64];
+    int server = listen_on_port(RECEIVE_PORT);
+    while (1) {
+        int client = accept(server, NULL, NULL);
+        if (client < 0) {
+            continue;
+        }
+        long long total = 0;
+        ssize_t length;
+        while ((length = read(client, buffer, sizeof(buffer))) > 0) {
+            total += length;
+        }
+        snprintf(line, sizeof(line), "received %lld bytes\n", total);
+        log_line(line);
+        close(client);
+    }
+}
+
+static void start_transfer_services(void) {
+    signal(SIGPIPE, SIG_IGN);
+    if (fork() == 0) {
+        run_send_service();
+    }
+    if (fork() == 0) {
+        run_receive_service();
+    }
+}
+
 static void log_exited_children(void) {
     char line[128];
     int status;
@@ -154,6 +254,8 @@ int main(void) {
 
     log_bridge_state();
     start_access_point();
+    configure_address();
+    start_transfer_services();
 
     long long start = uptime_seconds();
     while (uptime_seconds() - start < TEST_DURATION_S) {
