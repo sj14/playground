@@ -118,4 +118,8 @@ What switches the power under the AVM firmware is unknown. These did not help:
 
 No GPIO in AVM's board table is named as USB power, and the EHCI controller reports no per-port power control. The remaining differences to the AVM firmware are the output pins for FPGA programming (11, 12, 14), the DECT reset (6) and the SPI flash write protect (0). Do not drive the flash write protect. The AVM firmware loads a bitstream into an FPGA (`/lib/modules/bitfile.bit`, driver `drivers/char/Piglet_noemif`), and the closed Ikanos modules run too. Either could be involved, but that is untested.
 
+The USB controllers themselves look powered in both systems: `OHCI_RH_PORT2` has port power set (`0x100`), and `OHCI_RH_A` reports no power switching. Under the AVM firmware it is `0x02001202`, under Linux `0x02000a02`, which differs only in the over-current bits. So the switch probably sits outside the controllers, but that is an inference.
+
+Also without effect: GPIOs 6, 11, 12 and 14 as outputs set to high, as under the AVM firmware, in one run with an unconfigured FPGA. Still untested: loading the FPGA bitstream, whose driver is closed (`Piglet.c` is 4 lines in AVM's GPL package), and the closed Ikanos modules. When the keyboard lights up during a boot of the AVM firmware would narrow this down.
+
 The LEDs show boot progress as intended: with Linux running, all four are on, also with the AVM setting that turns them off in normal operation.
