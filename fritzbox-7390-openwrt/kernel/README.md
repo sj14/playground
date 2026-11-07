@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs a 2.4 GHz access point. A laptop connected to it and transferred data in both directions (`../hardware/first-client-6.18.log`). PCI, read-only flash and `ath9k` work. 5 GHz has not been started, and encryption, a real shell, network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both and transferred data in both directions (`../hardware/first-wpa2-both-bands-6.18.log`). PCI, read-only flash and `ath9k` work. A real shell, network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -46,7 +46,7 @@ The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 - **Memory marks:** Right before a restart the kernel marks the RAM every 64 KB. `fusiv-ramlog scan` shows which marks survive under Freetz.
 - **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work.
 - **Watchdog:** It runs from the start, so a hang should restart the box. Whether it really resets the chip is unconfirmed. If the box hangs, unplug it, which also loses the log.
-- **Automatic end:** `/init` restarts the box after 120 s, and the kernel does so after 180 s at the latest.
+- **Automatic end:** `/init` restarts the box after 180 s, and the kernel does so after 240 s at the latest.
 
 Procedure, from a machine with an address in `192.168.178.0/24` that reaches the box:
 

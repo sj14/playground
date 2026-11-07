@@ -23,14 +23,12 @@
 
 enum {
     TICK_MS = 5000,
-    TEST_DURATION_S = 120,
+    TEST_DURATION_S = 180,
     SEND_PORT = 5001,
     RECEIVE_PORT = 5002,
     TRANSFER_BUFFER_SIZE = 16384,
 };
 
-static const char AP_INTERFACE[] = "wlan1";
-static const char AP_ADDRESS[] = "192.168.77.1";
 static const char AP_NETMASK[] = "255.255.255.0";
 
 static int kmsg_fd = -1;
@@ -125,17 +123,17 @@ static void start_access_point(void) {
             dup2(kmsg_fd, STDOUT_FILENO);
             dup2(kmsg_fd, STDERR_FILENO);
         }
-        execl("/usr/sbin/hostapd", "hostapd", "/etc/hostapd.conf", (char *)NULL);
+        execl("/usr/sbin/hostapd", "hostapd", "/etc/hostapd-2ghz.conf", "/etc/hostapd-5ghz.conf", (char *)NULL);
         log_line("cannot start hostapd\n");
         _exit(1);
     }
 }
 
-// Gives the access point an address, so that a client can reach this box.
-static void configure_address(void) {
+// Gives an access point an address, so that a client can reach this box.
+static void configure_address(const char *interface, const char *ip_address) {
     struct ifreq request;
     memset(&request, 0, sizeof(request));
-    strncpy(request.ifr_name, AP_INTERFACE, IFNAMSIZ - 1);
+    strncpy(request.ifr_name, interface, IFNAMSIZ - 1);
 
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
@@ -145,7 +143,7 @@ static void configure_address(void) {
 
     struct sockaddr_in *address = (struct sockaddr_in *)&request.ifr_addr;
     address->sin_family = AF_INET;
-    inet_pton(AF_INET, AP_ADDRESS, &address->sin_addr);
+    inet_pton(AF_INET, ip_address, &address->sin_addr);
     if (ioctl(fd, SIOCSIFADDR, &request) != 0) {
         log_line("cannot set the address\n");
     }
@@ -254,7 +252,8 @@ int main(void) {
 
     log_bridge_state();
     start_access_point();
-    configure_address();
+    configure_address("wlan1", "192.168.77.1");
+    configure_address("wlan0", "192.168.78.1");
     start_transfer_services();
 
     long long start = uptime_seconds();

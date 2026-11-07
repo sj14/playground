@@ -47,7 +47,11 @@ nod /dev/urandom 444 0 0 c 1 9
 dir /proc 755 0 0
 dir /sys 755 0 0
 dir /etc 755 0 0
-file /etc/hostapd.conf $SOURCE_DIR/initramfs/hostapd.conf 644 0 0
+file /etc/hostapd-2ghz.conf $SOURCE_DIR/initramfs/hostapd-2ghz.conf 644 0 0
+file /etc/hostapd-5ghz.conf $SOURCE_DIR/initramfs/hostapd-5ghz.conf 644 0 0
+dir /lib 755 0 0
+dir /lib/firmware 755 0 0
+file /lib/firmware/regulatory.db $REGDB/regulatory.db 644 0 0
 dir /usr 755 0 0
 dir /usr/sbin 755 0 0
 file /usr/sbin/hostapd $HOSTAPD 755 0 0

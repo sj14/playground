@@ -8,7 +8,7 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt, because the Ethernet driver and its firmware are proprietary.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** start 5 GHz and add WPA2, then a real shell. A serial console is helpful but not required.
+- **Next step:** a real shell, then USB Ethernet as uplink, which needs an adapter. A serial console is helpful but not required.
 
 ## The box
 
@@ -86,7 +86,7 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 ## Milestones
 
 1. **Kernel to userspace (reached):** Linux 6.18 boots from RAM and runs `/init`, without a serial cable. The log is in `hardware/first-boot-6.18.log`. A real shell is still missing.
-2. **Flash and Wi-Fi (partly reached):** NOR read-only, PCI and `ath9k` work. A laptop connected to an open 2.4 GHz test network and transferred data in both directions (`hardware/first-client-6.18.log`). WPA2, NAND and 5 GHz are still open.
+2. **Flash and Wi-Fi (mostly reached):** NOR read-only, PCI and `ath9k` work. A laptop connected to WPA2 test networks on 2.4 GHz and 5 GHz and transferred data in both directions (`hardware/first-wpa2-both-bands-6.18.log`). NAND is still open.
 3. **USB Ethernet as uplink:** this makes the box usable as an access point.
 4. **Optional, LAN ports:** reverse engineering as a separate project.
 
