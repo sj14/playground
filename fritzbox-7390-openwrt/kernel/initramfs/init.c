@@ -147,7 +147,7 @@ enum {
     SYSTEM_PAGE = 0x19000000, CHIP_ID_OFFSET = 0x3c, CLOCK_GATE_OFFSET = 0xcc, ETHERNET_CLOCKS = 0x18,
     ETHERNET_PAGE = 0x19110000,
     MDIO_WRITE_DATA = 0x80, MDIO_ADDRESS = 0x84, MDIO_READ_START = 0x88, MDIO_STATUS = 0x8c, MDIO_READ_DATA = 0x90,
-    MDIO_READ_BUSY = 1, MDIO_WRITE_BUSY = 2, MDIO_POLL_LIMIT = 100000,
+    MDIO_READ_BUSY = 1, MDIO_WRITE_BUSY = 2, MDIO_POLL_LIMIT = 100000, MDIO_SETTLE_NS = 500000,
     MDIO_REGISTER_BITS = 5, MDIO_FIELD_MASK = 0x1f,
     SWITCH_PAGE_PHY = 0x18, SWITCH_REGISTER_PHY = 0x10,
     SWITCH_ID_REGISTER = 0, SWITCH_PORT_STATUS_BASE = 0x100, SWITCH_PORT_STATUS_STEP = 0x100,
@@ -166,6 +166,13 @@ static unsigned int register_at(volatile char *base, unsigned int offset) {
 
 static void set_register_at(volatile char *base, unsigned int offset, unsigned int value) {
     *(volatile unsigned int *)(base + offset) = value;
+}
+
+// The busy bits only rise some time after a command starts, so a command that
+// polls them right away can overlap with the next one and damage it.
+static void mdio_settle(void) {
+    struct timespec delay = {0, MDIO_SETTLE_NS};
+    nanosleep(&delay, NULL);
 }
 
 static int mdio_wait(unsigned int busy_bits) {
@@ -187,6 +194,7 @@ static int mdio_read(unsigned int phy, unsigned int reg) {
     }
     set_register_at(ethernet_registers, MDIO_ADDRESS, mdio_address(phy, reg));
     register_at(ethernet_registers, MDIO_READ_START);
+    mdio_settle();
     if (mdio_wait(MDIO_READ_BUSY) != 0) {
         return MDIO_FAILED;
     }
@@ -199,6 +207,7 @@ static int mdio_write(unsigned int phy, unsigned int reg, unsigned int value) {
     }
     set_register_at(ethernet_registers, MDIO_ADDRESS, mdio_address(phy, reg));
     set_register_at(ethernet_registers, MDIO_WRITE_DATA, value);
+    mdio_settle();
     return mdio_wait(MDIO_WRITE_BUSY);
 }
 
@@ -255,6 +264,15 @@ static int switch_write(unsigned int address, unsigned int value) {
     return mdio_write(word_phy, word_reg, value & 0xffff);
 }
 
+// Writes a switch register and logs the value that it reads back.
+static void switch_set(unsigned int address, unsigned int value) {
+    char line[80];
+
+    switch_write(address, value);
+    snprintf(line, sizeof(line), "switch: 0x%04x set to 0x%08x, reads 0x%08llx\n", address, value, switch_read(address));
+    log_line(line);
+}
+
 // Sets up the switch's connection to the Ethernet block like AVM's open driver.
 static void configure_switch(void) {
     enum {
@@ -267,22 +285,18 @@ static void configure_switch(void) {
         PORT0_STATUS_VALUE = 0x7e,
             PORT0_VLAN_BITS = (1 << 24) | (1 << 2),
     };
-    char line[64];
 
     if (!ethernet_registers) {
         return;
     }
     long long vlan = switch_read(SWITCH_PORT0_VLAN);
     if (vlan != MDIO_FAILED) {
-        switch_write(SWITCH_PORT0_VLAN, (unsigned int)vlan | PORT0_VLAN_BITS);
+        switch_set(SWITCH_PORT0_VLAN, (unsigned int)vlan | PORT0_VLAN_BITS);
     }
-    switch_write(SWITCH_PORT0_STATUS, PORT0_STATUS_VALUE);
-    switch_write(SWITCH_CPU_PORT, CPU_PORT_VALUE);
-    switch_write(SWITCH_FORWARD_PORTS, FORWARD_PORTS_VALUE);
-    switch_write(SWITCH_STRAP, STRAP_VALUE);
-
-    snprintf(line, sizeof(line), "switch: port 0 status now 0x%08llx\n", switch_read(SWITCH_PORT0_STATUS));
-    log_line(line);
+    switch_set(SWITCH_PORT0_STATUS, PORT0_STATUS_VALUE);
+    switch_set(SWITCH_CPU_PORT, CPU_PORT_VALUE);
+    switch_set(SWITCH_FORWARD_PORTS, FORWARD_PORTS_VALUE);
+    switch_set(SWITCH_STRAP, STRAP_VALUE);
 }
 
 // Logs the switch identity. The Ethernet block stays unmapped if its clocks are
@@ -684,7 +698,7 @@ int main(void) {
     create_bridge();
     start_access_point();
     start_transfer_services();
-    // The packet processors use the same MDIO bus, so the switch comes first.
+    // The packet processors may use the same MDIO bus, so the switch comes first.
     log_switch_identity();
     configure_switch();
     connect_wired_network();
