@@ -115,6 +115,82 @@ static void log_bridge_state(void) {
     close(fd);
 }
 
+// Programs the board's Xilinx FPGA in slave serial mode, if the image contains
+// a bitstream. Under the AVM firmware the USB port gets power around this step.
+static void load_fpga(void) {
+    enum {
+        GPIO_PAGE = 0x19040000, GPIO_DIR = 0x0, GPIO_FLAG = 0x4, GPIO_CLEAR = 0x4, GPIO_SET = 0x6,
+        PIN_CLK = 1 << 11, PIN_DATA = 1 << 12, PIN_PROG = 1 << 14, PIN_DONE = 1 << 8,
+        PROG_LOW_US = 1000, PROG_HIGH_US = 10000, EXTRA_CLOCKS = 64, PAGE_SIZE_BYTES = 4096,
+    };
+    static const unsigned char sync_word[] = {0xff, 0xff, 0xff, 0xff, 0xaa, 0x99, 0x55, 0x66};
+    static unsigned char bitstream[256 * 1024];
+    char line[96];
+
+    FILE *file = fopen("/lib/firmware/fpga.bit", "rb");
+    if (!file) {
+        log_line("no FPGA bitstream in this image\n");
+        return;
+    }
+    size_t size = fread(bitstream, 1, sizeof(bitstream), file);
+    fclose(file);
+
+    size_t start = 0;
+    while (start + sizeof(sync_word) < size && memcmp(bitstream + start, sync_word, sizeof(sync_word)) != 0) {
+        start++;
+    }
+    if (start + sizeof(sync_word) >= size) {
+        log_line("FPGA bitstream has no sync word\n");
+        return;
+    }
+
+    int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (fd < 0) {
+        return;
+    }
+    volatile char *gpio = mmap(NULL, PAGE_SIZE_BYTES, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIO_PAGE);
+    if (gpio == MAP_FAILED) {
+        close(fd);
+        return;
+    }
+    volatile unsigned short *direction = (volatile unsigned short *)(gpio + GPIO_DIR);
+    volatile unsigned short *clear_pins = (volatile unsigned short *)(gpio + GPIO_CLEAR);
+    volatile unsigned short *set_pins = (volatile unsigned short *)(gpio + GPIO_SET);
+    volatile unsigned int *flags = (volatile unsigned int *)(gpio + GPIO_FLAG);
+
+    *direction = *direction | PIN_CLK | PIN_DATA | PIN_PROG;
+    *clear_pins = PIN_CLK;
+    *clear_pins = PIN_PROG;
+    usleep(PROG_LOW_US);
+    *set_pins = PIN_PROG;
+    usleep(PROG_HIGH_US);
+
+    unsigned int before = *flags;
+    for (size_t i = start; i < size; i++) {
+        for (int bit = 7; bit >= 0; bit--) {
+            if (bitstream[i] & (1 << bit)) {
+                *set_pins = PIN_DATA;
+            } else {
+                *clear_pins = PIN_DATA;
+            }
+            *set_pins = PIN_CLK;
+            *clear_pins = PIN_CLK;
+        }
+    }
+    for (int i = 0; i < EXTRA_CLOCKS; i++) {
+        *set_pins = PIN_CLK;
+        *clear_pins = PIN_CLK;
+    }
+    unsigned int after = *flags;
+
+    snprintf(line, sizeof(line), "FPGA: sent %u bytes, flags 0x%08x -> 0x%08x, done pin %d\n",
+             (unsigned int)(size - start), before, after, (after & PIN_DONE) != 0);
+    log_line(line);
+
+    munmap((void *)gpio, PAGE_SIZE_BYTES);
+    close(fd);
+}
+
 // Starts hostapd with its output in the kernel log.
 static void start_access_point(void) {
     pid_t pid = fork();
@@ -315,6 +391,7 @@ int main(void) {
         snprintf(line, sizeof(line), "mount /dev/pts: %s\n", strerror(errno));
         log_line(line);
     }
+    load_fpga();
     log_file("/proc/cpuinfo");
     log_file("/proc/iomem");
     log_file("/proc/bus/pci/devices");

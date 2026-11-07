@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet (`../hardware/first-shell-6.18.log`). PCI, read-only flash and `ath9k` work. The USB controllers start, but the port has no power under Linux yet. Network ports are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet. PCI, read-only flash, `ath9k` and USB work, and a USB keyboard was detected (`../hardware/first-usb-device-6.18.log`). USB Ethernet is the next step. Network ports are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -98,28 +98,20 @@ Test runs are not scripted in this repository, because they need the box's passw
    Occasionally a scan from the machine did not show the test networks during a whole run, although the box log showed `AP-ENABLED`. The cause is unknown, and repeating the run helped.
 4. Follow the procedure in "Testing without a console".
 
-## USB: open problem
+## USB power needs the FPGA
 
-The USB port has no power under Linux. A keyboard with backlight stays dark while Linux runs and lights up under the AVM firmware, which also finds it. That explains the register state: EHCI and OHCI both start, each with two ports, but see no device, and interrupt 35 stays at zero.
+The USB port only gets power after the board's Xilinx FPGA (Spartan XC3S250E) is programmed. Without that, EHCI and OHCI start and report port power, but no device is seen and interrupt 35 stays at zero. A keyboard with backlight showed it: it stays dark under Linux without the FPGA, and it lights up about 13 s after the start of the AVM kernel, when the firmware loads the FPGA. With the FPGA loaded by `/init`, Linux finds the keyboard (`../hardware/first-usb-device-6.18.log`).
 
-| Register | AVM firmware, device connected | Linux 6.18 |
-|---|---|---|
-| `USBCMD` | `0x00010019` | `0x00010005` (running) |
-| `PORTSC2` | `0x00001005` (connected, enabled) | `0x00001000` (not connected) |
-| `HCSPARAMS` | `0x00001202` | `0x00001202` |
+`/init` programs the FPGA in slave serial mode through GPIOs (`PROG` 14, `CLK` 11, `DATA` 12, `DONE` 8). The bitstream belongs to AVM and is not in this repository. Copy `/lib/modules/bitfile.bit` from your own box and pass its path when building:
 
-What switches the power under the AVM firmware is unknown. These did not help:
+```bash
+BITFILE=/path/to/bitfile.bit nix-shell --run ./build.sh
+```
 
-- running the OHCI controller as well, which is what AVM's `rc.usbhost` starts, and nothing more
-- the PHY reset sequence twice like AVM, with a 5 ms wait, before or after the EHCI driver starts
-- GPIO 5 as an output set to high, as under the AVM firmware, although AVM's board table lists it as an input
+Without `BITFILE` the image builds and runs as before, but USB has no power.
 
-`usbcore.autosuspend=-1` is needed, because the controller otherwise stops with the root hub suspended.
+`usbcore.autosuspend=-1` is also needed, because the controller otherwise stops with the root hub suspended.
 
-No GPIO in AVM's board table is named as USB power, and the EHCI controller reports no per-port power control. The remaining differences to the AVM firmware are the output pins for FPGA programming (11, 12, 14), the DECT reset (6) and the SPI flash write protect (0). Do not drive the flash write protect. The AVM firmware loads a bitstream into an FPGA (`/lib/modules/bitfile.bit`, driver `drivers/char/Piglet_noemif`), and the closed Ikanos modules run too. Either could be involved, but that is untested.
-
-The USB controllers themselves look powered in both systems: `OHCI_RH_PORT2` has port power set (`0x100`), and `OHCI_RH_A` reports no power switching. Under the AVM firmware it is `0x02001202`, under Linux `0x02000a02`, which differs only in the over-current bits. So the switch probably sits outside the controllers, but that is an inference.
-
-Also without effect: GPIOs 6, 11, 12 and 14 as outputs set to high, as under the AVM firmware, in one run with an unconfigured FPGA. Still untested: loading the FPGA bitstream, whose driver is closed (`Piglet.c` is 4 lines in AVM's GPL package), and the closed Ikanos modules. When the keyboard lights up during a boot of the AVM firmware would narrow this down.
+Only a full-speed device (the keyboard, through OHCI) has been seen so far. Under the AVM firmware the keyboard also goes off for about 3 s after coming on. The cause is unconfirmed. What the FPGA does besides USB power is unknown.
 
 The LEDs show boot progress as intended: with Linux running, all four are on, also with the AVM setting that turns them off in normal operation.

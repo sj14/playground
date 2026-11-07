@@ -87,6 +87,12 @@ file /usr/sbin/hostapd $HOSTAPD 755 0 0
 file /init $BUILD_DIR/init 755 0 0
 LIST
 
+# The FPGA bitstream belongs to AVM and stays out of the repository. Pass its path
+# in BITFILE to include it, for example a copy taken from your own box.
+if [ -n "${BITFILE:-}" ]; then
+    echo "file /lib/firmware/fpga.bit $BITFILE 600 0 0" >> "$TREE/initramfs.list"
+fi
+
 make -C "$TREE" "${MAKE_ARGS[@]}" fusiv_defconfig
 make -C "$TREE" "${MAKE_ARGS[@]}" vmlinux.bin
 
