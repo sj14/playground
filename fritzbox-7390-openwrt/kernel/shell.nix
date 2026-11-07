@@ -24,7 +24,4 @@ pkgs.mkShell {
 
   # cfg80211 needs this database for 5 GHz.
   REGDB = "${pkgs.wireless-regdb}/lib/firmware";
-
-  # A static MIPS build, which goes into the initramfs.
-  BUSYBOX = "${import ./busybox.nix { inherit pkgs; }}/bin/busybox";
 }

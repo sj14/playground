@@ -11,7 +11,6 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -375,23 +374,6 @@ static void start_transfer_services(void) {
     }
 }
 
-// Starts a root shell over telnet, without a password. It only listens on the
-// isolated 5 GHz test network, where WPA2 with a random password protects it,
-// and not on the bridge to the home network.
-static void start_shell_service(void) {
-    pid_t pid = fork();
-    if (pid < 0) {
-        log_line("cannot fork telnetd\n");
-        return;
-    }
-    if (pid == 0) {
-        setenv("PATH", "/bin:/usr/sbin", 1);
-        execl("/bin/telnetd", "telnetd", "-F", "-b", "192.168.78.1", "-l", "/bin/sh", (char *)NULL);
-        log_line("cannot start telnetd\n");
-        _exit(1);
-    }
-}
-
 static void log_exited_children(void) {
     char line[128];
     int status;
@@ -421,10 +403,6 @@ int main(void) {
         snprintf(line, sizeof(line), "mount /sys: %s\n", strerror(errno));
         log_line(line);
     }
-    if (mount("devpts", "/dev/pts", "devpts", 0, NULL) != 0) {
-        snprintf(line, sizeof(line), "mount /dev/pts: %s\n", strerror(errno));
-        log_line(line);
-    }
     load_fpga();
     log_file("/proc/cpuinfo");
     log_file("/proc/iomem");
@@ -434,9 +412,7 @@ int main(void) {
     log_bridge_state();
     create_bridge();
     start_access_point();
-    configure_address("wlan0", "192.168.78.1");
     start_transfer_services();
-    start_shell_service();
     connect_wired_network();
 
     long long start = uptime_seconds();

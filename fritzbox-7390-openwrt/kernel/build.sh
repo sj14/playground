@@ -37,7 +37,7 @@ cp -r "$SOURCE_DIR/linux/." "$TREE/"
 # The first userspace program.
 zig cc -target mips-linux-musleabi -mcpu=mips32r2 -static -Os -s \
     -o "$BUILD_DIR/init" "$SOURCE_DIR/initramfs/init.c"
-# The test networks give access to a root shell, so their password is random
+# The test networks are connected to the home network, so their password is random
 # and stays out of the repository.
 PASSWORD_FILE=$BUILD_DIR/wifi-password
 if [ ! -f "$PASSWORD_FILE" ]; then
@@ -56,23 +56,6 @@ nod /dev/kmsg 600 0 0 c 1 11
 nod /dev/mem 600 0 0 c 1 1
 nod /dev/null 666 0 0 c 1 3
 nod /dev/urandom 444 0 0 c 1 9
-nod /dev/ptmx 666 0 0 c 5 2
-nod /dev/tty 666 0 0 c 5 0
-dir /dev/pts 755 0 0
-dir /bin 755 0 0
-file /bin/busybox $BUSYBOX 755 0 0
-slink /bin/sh busybox 777 0 0
-slink /bin/cat busybox 777 0 0
-slink /bin/dmesg busybox 777 0 0
-slink /bin/free busybox 777 0 0
-slink /bin/ifconfig busybox 777 0 0
-slink /bin/ls busybox 777 0 0
-slink /bin/mount busybox 777 0 0
-slink /bin/ps busybox 777 0 0
-slink /bin/reboot busybox 777 0 0
-slink /bin/telnetd busybox 777 0 0
-slink /bin/uname busybox 777 0 0
-slink /bin/uptime busybox 777 0 0
 dir /proc 755 0 0
 dir /sys 755 0 0
 dir /etc 755 0 0
