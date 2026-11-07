@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet. PCI, read-only flash, `ath9k` and USB work, and a USB keyboard was detected (`../hardware/first-usb-device-6.18.log`). USB Ethernet is the next step. Network ports are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable. It runs WPA2 access points on 2.4 GHz and 5 GHz, with a root shell over telnet on the 2.4 GHz test network, and it reaches the home network through a USB Ethernet adapter (`../hardware/first-usb-ethernet-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The Wi-Fi networks are not connected to the wired network yet, and the network ports are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -33,6 +33,7 @@ The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross c
 - The image tool accepts the kernel partition (`mtd1`) of a real box, including CRC and checksum. That image decompresses to the size in its header.
 - The kernel and the image build without warnings. The device tree and `/init` are in the kernel.
 - On the hardware with a laptop as client, with the test network open and without other clients: 20 of 20 pings at about 2 ms, TCP from the box at 32.8 Mbit/s and to the box at about 55 Mbit/s, at 130 Mbit/s link rate and 65 % signal. The PCI bridge stayed alive. This was one run of 12 s per direction.
+- USB Ethernet on the hardware, from a laptop on Wi-Fi through another access point: an ASIX AX88179 behind a VIA hub at 480 Mbit/s, 20 of 20 pings at about 2.8 ms, 48.6 Mbit/s from the box and about 11 Mbit/s to it, one run of 15 s per direction. The laptop's Wi-Fi may have limited both values. Telnet refused connections on this address, as intended.
 - `init` runs under `qemu-mips`, with host `/proc` content, including the restart attempt at the end.
 - On the hardware: `tools/eva-ramboot.py` loaded the image over Wi-Fi from a machine in the same network, and `fusiv-ramlog` read the log under Freetz. The log shows the timer (about 250 interrupts per second) and UART interrupts through the interrupt controller. `memsize` was back to `0x08000000` after each test.
 - Not tested: Anything on the physical serial line, since no cable was connected. Whether the hardware watchdog resets the box, since no run hung.
@@ -100,7 +101,7 @@ Test runs are not scripted in this repository, because they need the box's passw
 
 ## USB power needs the FPGA
 
-The USB port only gets power after the board's Xilinx FPGA (Spartan XC3S250E) is programmed. Without that, EHCI and OHCI start and report port power, but no device is seen and interrupt 35 stays at zero. A keyboard with backlight showed it: it stays dark under Linux without the FPGA, and it lights up about 13 s after the start of the AVM kernel, when the firmware loads the FPGA. With the FPGA loaded by `/init`, Linux finds the keyboard (`../hardware/first-usb-device-6.18.log`).
+The USB port only gets power after the board's Xilinx FPGA (Spartan XC3S250E) is programmed. Without that, EHCI and OHCI start and report port power, but no device is seen and interrupt 35 stays at zero. A keyboard with backlight showed it: it stays dark under Linux without the FPGA, and it lights up about 13 s after the start of the AVM kernel, when the firmware loads the FPGA. With the FPGA loaded by `/init`, Linux finds the keyboard (see the USB Ethernet log in `../hardware/`).
 
 `/init` programs the FPGA in slave serial mode through GPIOs (`PROG` 14, `CLK` 11, `DATA` 12, `DONE` 8). The bitstream belongs to AVM and is not in this repository. Copy `/lib/modules/bitfile.bit` from your own box and pass its path when building:
 
@@ -112,6 +113,6 @@ Without `BITFILE` the image builds and runs as before, but USB has no power.
 
 `usbcore.autosuspend=-1` is also needed, because the controller otherwise stops with the root hub suspended.
 
-Only a full-speed device (the keyboard, through OHCI) has been seen so far. Under the AVM firmware the keyboard also goes off for about 3 s after coming on. The cause is unconfirmed. What the FPGA does besides USB power is unknown.
+Under the AVM firmware the keyboard also goes off for about 3 s after coming on. The cause is unconfirmed. What the FPGA does besides USB power is unknown.
 
 The LEDs show boot progress as intended: with Linux running, all four are on, also with the AVM setting that turns them off in normal operation.
