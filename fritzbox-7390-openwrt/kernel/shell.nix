@@ -1,9 +1,12 @@
 { pkgs ? import <nixpkgs> { } }:
 
+let
+  mips = pkgs.pkgsCross.mips-linux-gnu;
+in
 pkgs.mkShell {
   packages = [
-    pkgs.pkgsCross.mips-linux-gnu.buildPackages.gcc
-    pkgs.pkgsCross.mips-linux-gnu.buildPackages.binutils
+    mips.pkgsStatic.stdenv.cc
+    mips.pkgsStatic.stdenv.cc.bintools
     pkgs.bc
     pkgs.bison
     pkgs.curl
@@ -15,4 +18,7 @@ pkgs.mkShell {
     pkgs.xz
     pkgs.zig
   ];
+
+  # A static MIPS build, which goes into the initramfs.
+  HOSTAPD = "${import ./hostapd.nix { inherit pkgs; }}/bin/hostapd";
 }

@@ -20,7 +20,7 @@ enum {
     MARK_SPACING = 64 * 1024,
 };
 
-static const uint32_t LOG_PHYS = 0x00c00000;
+static const uint32_t LOG_PHYS = 0x01c00000;
 static const uint32_t LOG_MAGIC = 0x46534c47;
 static const uint32_t MARK_MAGIC = 0x46534d4b;
 

@@ -64,7 +64,7 @@
 
 /* The counter runs at about 10170 Hz, so 0xfffc lasts about 6.4 s. */
 #define WDT_SERVICE_INTERVAL	(HZ / 10)
-#define TEST_DEADLINE_SECONDS	90
+#define TEST_DEADLINE_SECONDS	180
 
 /* The LEDs are GPIOs 16 to 31, active low. */
 #define GPIO_BANK1_DIR		CKSEG1ADDR(0x190b0000)

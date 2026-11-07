@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box to `/init` and restarts cleanly, without a serial cable. PCI, read-only flash and `ath9k` work: both Wi-Fi chips register as `phy0` and `phy1` (`../hardware/first-wifi-driver-6.18.log`). No Wi-Fi network has been opened yet. Network and USB are still missing.
+**Status:** The kernel boots from RAM on a real box and restarts cleanly, without a serial cable. PCI, read-only flash and `ath9k` work, and `hostapd` reports `AP-ENABLED`. The network is not visible yet, because the PCI bridge stops responding and the Wi-Fi interrupt then gets disabled (`../hardware/first-access-point-6.18.log`). Network and USB are still missing.
 
 ## Layout
 
@@ -40,12 +40,12 @@ The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross c
 
 The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 
-- **RAM log:** All kernel messages also go to 256 KB of RAM at `0x00c00000`. `../tools/fusiv-ramlog.c` reads them in the AVM firmware. The location comes from `fusiv-ramlog scan`. Two earlier locations did not work, because the firmware overwrote the log there.
+- **RAM log:** All kernel messages also go to 256 KB of RAM at `0x01c00000`. `../tools/fusiv-ramlog.c` reads them in the AVM firmware. The location comes from `fusiv-ramlog scan`. Two earlier locations did not work, because the firmware overwrote the log there.
 - **Reboot status:** The kernel and `/init` write known texts to AVM's reboot status mailbox at `0x00fffe00`, which has survived resets on this box. Freetz then shows the progress in `/proc/sys/urlader/reboot_status`: `software` means `prom_init` was never reached, `poweron` means it was, and `watchdog` means `/init` ran. After unplugging the box, the value says nothing.
 - **Memory marks:** Right before a restart the kernel marks the RAM every 64 KB. `fusiv-ramlog scan` shows which marks survive under Freetz.
 - **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work.
 - **Watchdog:** It runs from the start, so a hang should restart the box. Whether it really resets the chip is unconfirmed. If the box hangs, unplug it, which also loses the log.
-- **Automatic end:** `/init` restarts the box after 30 s, and the kernel does so after 90 s at the latest.
+- **Automatic end:** `/init` restarts the box after 120 s, and the kernel does so after 180 s at the latest.
 
 Procedure, from a machine with an address in `192.168.178.0/24` that reaches the box:
 
@@ -73,3 +73,7 @@ Requires the serial console. The kernel itself is only loaded into RAM, but `eva
 5. A power cycle returns the box to Freetz.
 
 `eva_ramboot.py` comes from [OpenWrt](https://github.com/openwrt/openwrt/blob/main/scripts/flashing/eva_ramboot.py).
+
+## Image size limit
+
+EVA stopped responding while receiving a 5.9 MB image and needed a power cycle, twice. A 3.2 MB image works. It may overwrite itself when an image reaches too far down from the top of RAM, but that is unconfirmed. Keep the image small or change the load address before going over this size.

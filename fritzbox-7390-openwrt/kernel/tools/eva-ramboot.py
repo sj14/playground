@@ -64,8 +64,12 @@ def load_image(ftp: FTP, image_path: str) -> None:
 
     ftp.set_pasv(True)
     ftp.sock.settimeout(DATA_TIMEOUT_S)
+    # ftplib would otherwise use the short connect timeout for the data connection too.
+    ftp.timeout = DATA_TIMEOUT_S
+    upload_start = time.monotonic()
     with open(image_path, "rb") as image:
         print(ftp.storbinary(f"STOR 0x{start:08x} 0x{end:08x}", image), flush=True)
+    print(f"uploaded {size} bytes in {time.monotonic() - upload_start:.1f} s", flush=True)
 
 
 def main() -> None:

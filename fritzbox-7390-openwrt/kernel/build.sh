@@ -11,7 +11,7 @@ SOURCE_DIR=$(cd "$(dirname "$0")" && pwd)
 BUILD_DIR=${BUILD_DIR:-$SOURCE_DIR/build}
 TARBALL=$BUILD_DIR/linux-$KERNEL_VERSION.tar.xz
 TREE=$BUILD_DIR/linux-$KERNEL_VERSION-fusiv
-MAKE_ARGS=(ARCH=mips "CROSS_COMPILE=${CROSS_COMPILE:-mips-unknown-linux-gnu-}" -j"$(nproc)")
+MAKE_ARGS=(ARCH=mips "CROSS_COMPILE=${CROSS_COMPILE:-mips-unknown-linux-musl-}" -j"$(nproc)")
 
 mkdir -p "$BUILD_DIR"
 
@@ -42,7 +42,15 @@ dir /dev 755 0 0
 nod /dev/console 600 0 0 c 5 1
 nod /dev/kmsg 600 0 0 c 1 11
 nod /dev/mem 600 0 0 c 1 1
+nod /dev/null 666 0 0 c 1 3
+nod /dev/urandom 444 0 0 c 1 9
 dir /proc 755 0 0
+dir /sys 755 0 0
+dir /etc 755 0 0
+file /etc/hostapd.conf $SOURCE_DIR/initramfs/hostapd.conf 644 0 0
+dir /usr 755 0 0
+dir /usr/sbin 755 0 0
+file /usr/sbin/hostapd $HOSTAPD 755 0 0
 file /init $BUILD_DIR/init 755 0 0
 LIST
 
@@ -51,7 +59,7 @@ make -C "$TREE" "${MAKE_ARGS[@]}" vmlinux.bin
 
 # The kernel must end below the RAM log (FUSIV_RAMLOG_PHYS).
 KERNEL_END=$(awk '$3 == "_end" { print $1 }' "$TREE/System.map")
-if [ "$((0x$KERNEL_END))" -ge "$((0x80c00000))" ]; then
+if [ "$((0x$KERNEL_END))" -ge "$((0x81c00000))" ]; then
     echo "The kernel ends at 0x$KERNEL_END, which overlaps the RAM log." >&2
     exit 1
 fi

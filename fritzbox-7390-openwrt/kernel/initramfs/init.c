@@ -1,22 +1,23 @@
 // First userspace program for bring-up. It shows that user mode and the timer
-// work and then restarts the box, so that the AVM firmware can read the RAM log.
-// Output also goes to /dev/kmsg, because only kernel messages reach the RAM log.
+// work, starts a Wi-Fi access point and then restarts the box, so that the AVM
+// firmware can read the RAM log. Output also goes to /dev/kmsg, because only
+// kernel messages reach the RAM log.
 
 #include <errno.h>
 #include <fcntl.h>
-#include <poll.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/reboot.h>
 #include <sys/utsname.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
 enum {
     TICK_MS = 5000,
-    TEST_DURATION_S = 30,
+    TEST_DURATION_S = 120,
 };
 
 static int kmsg_fd = -1;
@@ -80,6 +81,34 @@ static void report_init_ran(void) {
     close(fd);
 }
 
+// Starts hostapd with its output in the kernel log.
+static void start_access_point(void) {
+    pid_t pid = fork();
+    if (pid < 0) {
+        log_line("cannot fork hostapd\n");
+        return;
+    }
+    if (pid == 0) {
+        if (kmsg_fd >= 0) {
+            dup2(kmsg_fd, STDOUT_FILENO);
+            dup2(kmsg_fd, STDERR_FILENO);
+        }
+        execl("/usr/sbin/hostapd", "hostapd", "/etc/hostapd.conf", (char *)NULL);
+        log_line("cannot start hostapd\n");
+        _exit(1);
+    }
+}
+
+static void log_exited_children(void) {
+    char line[128];
+    int status;
+    pid_t pid;
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        snprintf(line, sizeof(line), "process %d ended with status 0x%x\n", (int)pid, status);
+        log_line(line);
+    }
+}
+
 int main(void) {
     char line[128];
     struct utsname name;
@@ -95,29 +124,31 @@ int main(void) {
         snprintf(line, sizeof(line), "mount /proc: %s\n", strerror(errno));
         log_line(line);
     }
+    if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0) {
+        snprintf(line, sizeof(line), "mount /sys: %s\n", strerror(errno));
+        log_line(line);
+    }
     log_file("/proc/cpuinfo");
-    log_file("/proc/interrupts");
     log_file("/proc/iomem");
     log_file("/proc/bus/pci/devices");
     log_file("/proc/mtd");
-    log_file("/proc/net/dev");
+
+    start_access_point();
 
     long long start = uptime_seconds();
-    struct pollfd input = {.fd = STDIN_FILENO, .events = POLLIN};
     while (uptime_seconds() - start < TEST_DURATION_S) {
-        int ready = poll(&input, 1, TICK_MS);
-        if (ready > 0) {
-            char buffer[64];
-            ssize_t length = read(STDIN_FILENO, buffer, sizeof(buffer));
-            if (length > 0) {
-                write(STDOUT_FILENO, buffer, length);
-            }
-        } else if (ready == 0) {
-            snprintf(line, sizeof(line), "tick %lld s\n", uptime_seconds());
-            log_line(line);
+        struct timespec delay = {TICK_MS / 1000, 0};
+        nanosleep(&delay, NULL);
+        log_exited_children();
+        snprintf(line, sizeof(line), "tick %lld s\n", uptime_seconds());
+        log_line(line);
+        if ((uptime_seconds() - start) % 30 < 5) {
+            log_file("/proc/net/dev");
+            log_file("/proc/interrupts");
         }
     }
 
+    log_file("/proc/net/dev");
     log_file("/proc/interrupts");
     log_line("Test finished, restarting\n");
     reboot(RB_AUTOBOOT);
