@@ -1,0 +1,17 @@
+--- a/drivers/net/wireless/ath/ath9k/init.c	2026-11-07 22:33:26.235048173 +0100
++++ b/drivers/net/wireless/ath/ath9k/init.c	2026-11-07 22:33:26.261603359 +0100
+@@ -1061,6 +1061,14 @@
+ 	wiphy_ext_feature_set(hw->wiphy,
+ 			      NL80211_EXT_FEATURE_MULTICAST_REGISTRATIONS);
+ 	wiphy_ext_feature_set(hw->wiphy, NL80211_EXT_FEATURE_CAN_REPLACE_PTK0);
++
++	/*
++	 * mac80211 lets each flow send this many bytes per round. Its default of 300
++	 * bytes takes five rounds for one full packet, which costs noticeable CPU time
++	 * on slow CPUs. One full Ethernet frame per round, as in fq_codel, still
++	 * shares the air fairly between flows.
++	 */
++	hw->wiphy->txq_quantum = ETH_FRAME_LEN;
+ }
+ 
+ int ath9k_init_device(u16 devid, struct ath_softc *sc,

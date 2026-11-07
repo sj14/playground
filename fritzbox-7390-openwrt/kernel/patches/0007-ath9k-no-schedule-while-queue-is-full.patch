@@ -1,0 +1,18 @@
+--- a/drivers/net/wireless/ath/ath9k/xmit.c	2026-11-07 22:26:59.831950721 +0100
++++ b/drivers/net/wireless/ath/ath9k/xmit.c	2026-11-07 22:26:59.858018329 +0100
+@@ -137,6 +137,15 @@
+ 		queue->sta ? queue->sta->addr : queue->vif->addr,
+ 		tid->tidno);
+ 
++	/*
++	 * mac80211 calls this for each packet. While the hardware holds enough
++	 * aggregates, no new one can start, and the completion of the current ones
++	 * schedules this queue anyway. That also delays frames without aggregation
++	 * until then.
++	 */
++	if (READ_ONCE(txq->axq_ampdu_depth) >= ATH_AGGR_MIN_QDEPTH)
++		return;
++
+ 	ath_txq_lock(sc, txq);
+ 	ath_txq_schedule(sc, txq);
+ 	ath_txq_unlock(sc, txq);
