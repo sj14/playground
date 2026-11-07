@@ -127,7 +127,6 @@ struct ap_memory {
 struct fusiv_eth {
 	struct device *dev;
 	struct net_device *netdev;
-	struct kmem_cache *buffers;
 	struct timer_list monitor;
 	void __iomem *bmu;
 	void __iomem *mac;
@@ -193,19 +192,30 @@ static void ap_clear_data(void __iomem *ap, u32 start, u32 end)
 		__raw_writeb(0, ap + AP_DATA_MEMORY + address);
 }
 
+/* These buffers can become socket buffers without a copy, see build_skb(). */
+static void *buffer_alloc(void)
+{
+	return netdev_alloc_frag_align(BUFFER_BYTES, SMP_CACHE_BYTES);
+}
+
+static void bmu_give_buffer(struct fusiv_eth *eth, void *buffer)
+{
+	dma_cache_wback_inv((unsigned long)buffer, BUFFER_BYTES);
+	__raw_writel(virt_to_phys(buffer) & PHYSICAL_ADDRESS_MASK, eth->bmu + BMU_FREE_BUFFER_FIFO);
+}
+
 /* The buffer manager asks for each free buffer it needs. */
-static void bmu_serve_requests(struct fusiv_eth *eth, gfp_t flags)
+static void bmu_serve_requests(struct fusiv_eth *eth)
 {
 	while (__raw_readw(eth->bmu + AP_INTERRUPT_STATUS) & STATUS_BUFFER_REQUEST) {
 		void *buffer;
 
 		if (eth->buffers_given >= BMU_POOL_MAXIMUM)
 			return;
-		buffer = kmem_cache_alloc(eth->buffers, flags);
+		buffer = buffer_alloc();
 		if (!buffer)
 			return;
-		dma_cache_wback_inv((unsigned long)buffer, BUFFER_BYTES);
-		__raw_writel(virt_to_phys(buffer), eth->bmu + BMU_FREE_BUFFER_FIFO);
+		bmu_give_buffer(eth, buffer);
 		eth->buffers_given++;
 		__raw_writew(STATUS_BUFFER_REQUEST, eth->bmu + AP_INTERRUPT_STATUS);
 	}
@@ -223,7 +233,7 @@ static int ap_send_config(struct fusiv_eth *eth, const char *name, void __iomem 
 	while (time_before(jiffies, deadline)) {
 		if (!(__raw_readw(ap + AP_CONFIG_EVENT) & CONFIG_EVENT_NEW))
 			return 0;
-		bmu_serve_requests(eth, GFP_KERNEL);
+		bmu_serve_requests(eth);
 		usleep_range(50, 100);
 	}
 	netdev_err(eth->netdev, "%s: no answer to its configuration, %u buffers given\n", name,
@@ -436,7 +446,7 @@ static void buffer_service_tick(struct timer_list *timer)
 {
 	struct fusiv_eth *eth = timer_container_of(eth, timer, buffer_service);
 
-	bmu_serve_requests(eth, GFP_ATOMIC);
+	bmu_serve_requests(eth);
 	/* AVM's interrupt counter stays near zero, so don't depend on the interrupt. */
 	if (eth->receiving)
 		napi_schedule(&eth->napi);
@@ -466,9 +476,10 @@ static void mac_receive_packet(struct fusiv_eth *eth, void *buffer)
 	struct net_device_stats *stats = &netdev->stats;
 	u16 flags2, start, end, length;
 	struct sk_buff *skb;
+	void *replacement;
 
 	/* Discard the lines the CPU may hold, the processor wrote the buffer. */
-	dma_cache_inv((unsigned long)buffer, BUFFER_BYTES);
+	dma_cache_inv((unsigned long)buffer, HEADER_BYTES);
 	flags2 = be16_to_cpup(buffer + BUFFER_FLAGS2_OFFSET);
 	start = be16_to_cpup(buffer + BUFFER_START_OFFSET);
 	end = be16_to_cpup(buffer + BUFFER_END_OFFSET);
@@ -478,25 +489,37 @@ static void mac_receive_packet(struct fusiv_eth *eth, void *buffer)
 	if (flags2 & BUFFER_FLAG_TX)
 		goto give_back;
 
-	if (end <= start || end > BUFFER_BYTES) {
+	if (end <= start || end > BUFFER_BYTES - SKB_DATA_ALIGN(sizeof(struct skb_shared_info))) {
 		stats->rx_errors++;
 		goto give_back;
 	}
 
-	skb = napi_alloc_skb(&eth->napi, length);
-	if (!skb) {
+	replacement = buffer_alloc();
+	if (!replacement) {
 		stats->rx_dropped++;
 		goto give_back;
 	}
-	skb_put_data(skb, buffer + start, length);
+
+	dma_cache_inv((unsigned long)buffer + start, length);
+	skb = build_skb(buffer, BUFFER_BYTES);
+	if (!skb) {
+		skb_free_frag(replacement);
+		stats->rx_dropped++;
+		goto give_back;
+	}
+	bmu_give_buffer(eth, replacement);
+
+	skb_reserve(skb, start);
+	skb_put(skb, length);
 	skb->protocol = eth_type_trans(skb, netdev);
 	stats->rx_packets++;
 	stats->rx_bytes += length;
 	/* No GRO: the box forwards, and Wi-Fi would have to split the packets again. */
 	netif_receive_skb(skb);
+	return;
 
 give_back:
-	__raw_writel(virt_to_phys(buffer) & PHYSICAL_ADDRESS_MASK, eth->bmu + BMU_FREE_BUFFER_FIFO);
+	bmu_give_buffer(eth, buffer);
 }
 
 /*
@@ -680,8 +703,7 @@ static int fusiv_eth_probe(struct platform_device *pdev)
 	eth->mac = ioremap(MAC1_BASE, 0x10000);
 	eth->shared = ioremap(SHARED_MEMORY_BASE, 0x8000);
 	eth->mac_registers = ioremap(MAC_REGISTERS, MAC_REGISTERS_BYTES);
-	eth->buffers = kmem_cache_create("fusiv_eth_buffers", BUFFER_BYTES, 0, SLAB_HWCACHE_ALIGN, NULL);
-	if (!eth->bmu || !eth->mac || !eth->shared || !eth->mac_registers || !eth->buffers)
+	if (!eth->bmu || !eth->mac || !eth->shared || !eth->mac_registers)
 		return -ENOMEM;
 	timer_setup(&eth->monitor, monitor_tick, 0);
 	timer_setup(&eth->buffer_service, buffer_service_tick, 0);
