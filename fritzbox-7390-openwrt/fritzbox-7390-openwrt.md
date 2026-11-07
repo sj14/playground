@@ -8,7 +8,7 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt as it stands, because the Ethernet driver needs proprietary firmware from AVM's modules.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** the last few percent of throughput to the AVM firmware (about 72-78 against 79 Mbit/s), see Throughput. The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash. Before the first flash, check that the original AVM image still boots from RAM through EVA, so that comparison runs stay possible.
+- **Next step:** the Wi-Fi reaches the speed of the AVM firmware (80 Mbit/s, the limit of the connection), see Throughput. Next are the LAN ports at 1 Gbit/s and the other ports. The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash. Before the first flash, check that the original AVM image still boots from RAM through EVA, so that comparison runs stay possible.
 
 ## The box
 
@@ -59,9 +59,9 @@ This is based on AVM's newest GPL package (06.86). The box runs 06.88.
 
 ### Throughput
 
-The goal is the speed of the AVM firmware. A laptop downloading a file from the internet through the box over 2.4 GHz reached 78.6-79.6 Mbit/s under AVM, close to the roughly 80 Mbit/s of the connection. AVM's CPU was about 90% busy doing so, against about 8% without traffic. Linux reaches 72-78 Mbit/s (2.4 GHz, 40 MHz) with the CPU fully busy. The CPU, not the radio, is the limit: the same build reached the same speed with 20 and 40 MHz.
+The goal is the speed of the AVM firmware. A laptop downloading a file from the internet through the box over 2.4 GHz reached 78.6-79.6 Mbit/s under AVM, close to the roughly 80 Mbit/s of the connection. AVM's CPU was about 90% busy doing so, against about 8% without traffic. Linux reaches 80 Mbit/s too (2.4 GHz, 40 MHz), with the CPU about 60% busy.
 
-The CPU time per megabyte is a better measure than the speed of a single download, because the connection varies from run to run. It is the data from the LAN port divided by the softirq time in `/proc/stat`: 7.4 MB per second of softirq time with the bridge skipped, and 10.1 MB after the later changes in the table below, enough for about 81 Mbit/s.
+The CPU time per megabyte is a better measure than the speed of a single download, because the connection varies from run to run. It is the data from the LAN port divided by the softirq time in `/proc/stat`: 7.4 MB per second of softirq time with the bridge skipped, 10.1 MB after the later changes in the table below, and 16.2 MB with the write-back cache, enough for about 130 Mbit/s.
 
 What helped, in order:
 
@@ -73,10 +73,11 @@ What helped, in order:
 | Packets between LAN and Wi-Fi skip the bridge (`fast_forward.c`, patch 0005) | 56-57 Mbit/s |
 | Call the driver directly, flow hash from the IPv4 header | 69-73 Mbit/s |
 | ath9k doesn't schedule while its queue is full, fair queuing quantum of one Ethernet frame (patches 0007, 0008) | 76-78 Mbit/s |
+| Write-back instead of write-through cache (`cca=3`) | 80 Mbit/s with the CPU 60% busy |
 
 Tried without a measurable effect: `-Os` (slower, 50-53 Mbit/s), four OpenWrt patches for MIPS and mac80211 (cache loops, `-mtune=24kc`, `-mno-branch-likely`, airtime quantum, together about 1.5%).
 
-Why so much CPU time: one data packet with its share of TCP acknowledgements takes about 75,000 cycles. The memory is slow (`memcpy` about 60 MB/s, also under AVM), so a cache miss costs a few hundred cycles, and the profile shows mostly loads and stores to memory that is not in the cache.
+**Write-through cache:** EVA leaves the CPU's cache mode for kernel memory (K0 in CP0 `Config`, read as `0x80248480`) at 0, write-through without write-allocate, and Linux keeps the bootloader's setting unless the command line sets `cca=`. So every store went to the slow memory, and the profile showed mostly stores. `cca=3` selects write-back. All code that the hardware reads uses uncached addresses or writes the cache back first, so this is safe. `memcpy` reached about 60 MB/s under Linux and under AVM, so AVM probably runs with write-through too.
 
 **No accelerator for Wi-Fi:** AVM's `avm_pa_fusiv.c` (in AVM's GPL sources) shows what the packet processors do. From LAN to Wi-Fi, the MAC processor looks up the destination address in a flow table and still passes the packet to the CPU, which sends it through the Wi-Fi driver. From Wi-Fi to LAN, AVM turned the hardware off ("no HW acceleration for ingress WLAN"). So the processors only take work off the CPU between LAN and WAN.
 
