@@ -301,6 +301,36 @@ static void configure_switch(void) {
 
 // Logs the switch identity. The Ethernet block stays unmapped if its clocks are
 // off, because reading a block without a clock can hang the bus.
+// Logs the link of each switch PHY as the PHY negotiated it.
+static void log_link_speeds(void) {
+    enum {
+        PHY_SPECIFIC_STATUS = 0x11,
+        STATUS_LINK = 1 << 10,
+        STATUS_RESOLVED = 1 << 11,
+        STATUS_FULL_DUPLEX = 1 << 13,
+        STATUS_SPEED_SHIFT = 14,
+    };
+    static const char *const SPEEDS[] = {"10", "100", "1000", "unknown"};
+    char line[96];
+
+    if (ethernet_registers == NULL) {
+        return;
+    }
+    for (unsigned int phy = 0; phy < SWITCH_PHYS; phy++) {
+        int status = mdio_read(phy, PHY_SPECIFIC_STATUS);
+        if (status == MDIO_FAILED) {
+            snprintf(line, sizeof(line), "link: phy %u cannot be read\n", phy);
+        } else if (!(status & STATUS_LINK) || !(status & STATUS_RESOLVED)) {
+            snprintf(line, sizeof(line), "link: phy %u down (0x%04x)\n", phy, status);
+        } else {
+            snprintf(line, sizeof(line), "link: phy %u %s Mbit/s %s duplex (0x%04x)\n", phy,
+                     SPEEDS[(status >> STATUS_SPEED_SHIFT) & 0x3],
+                     (status & STATUS_FULL_DUPLEX) ? "full" : "half", status);
+        }
+        log_line(line);
+    }
+}
+
 static void log_switch_identity(void) {
     enum { PAGE_SIZE_BYTES = 4096 };
     char line[128];
@@ -714,6 +744,7 @@ int main(void) {
         log_bridge_state();
         log_cpu_usage();
         if ((uptime_seconds() - start) % STATUS_INTERVAL_S < TICK_S) {
+            log_link_speeds();
             log_file("/proc/net/dev");
             log_file("/proc/interrupts");
         }
