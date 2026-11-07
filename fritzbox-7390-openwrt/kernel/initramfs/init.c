@@ -81,6 +81,25 @@ static void report_init_ran(void) {
     close(fd);
 }
 
+// Logs the PCI bridge control register. It reads zero when the bridge hangs.
+static void log_bridge_state(void) {
+    enum { BRIDGE_PAGE = 0x19170000, CONTROL_OFFSET = 0x38, PAGE_SIZE_BYTES = 4096 };
+    char line[64];
+
+    int fd = open("/dev/mem", O_RDONLY | O_SYNC);
+    if (fd < 0) {
+        return;
+    }
+    void *page = mmap(NULL, PAGE_SIZE_BYTES, PROT_READ, MAP_SHARED, fd, BRIDGE_PAGE);
+    if (page != MAP_FAILED) {
+        volatile unsigned int *control = (volatile unsigned int *)((char *)page + CONTROL_OFFSET);
+        snprintf(line, sizeof(line), "pci bridge control 0x%08x\n", *control);
+        log_line(line);
+        munmap(page, PAGE_SIZE_BYTES);
+    }
+    close(fd);
+}
+
 // Starts hostapd with its output in the kernel log.
 static void start_access_point(void) {
     pid_t pid = fork();
@@ -133,6 +152,7 @@ int main(void) {
     log_file("/proc/bus/pci/devices");
     log_file("/proc/mtd");
 
+    log_bridge_state();
     start_access_point();
 
     long long start = uptime_seconds();
@@ -142,6 +162,7 @@ int main(void) {
         log_exited_children();
         snprintf(line, sizeof(line), "tick %lld s\n", uptime_seconds());
         log_line(line);
+        log_bridge_state();
         if ((uptime_seconds() - start) % 30 < 5) {
             log_file("/proc/net/dev");
             log_file("/proc/interrupts");

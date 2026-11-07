@@ -1,0 +1,124 @@
+--- a/drivers/net/wireless/ath/ath9k/ath9k.h
++++ b/drivers/net/wireless/ath/ath9k/ath9k.h
+@@ -994,6 +994,9 @@
+ 	void __iomem *mem;
+ 	int irq;
+ 	spinlock_t sc_serial_rw;
++#ifdef CONFIG_FUSIV
++	u32 fusiv_analog_shadow[64];
++#endif
+ 	spinlock_t sc_pm_lock;
+ 	spinlock_t sc_pcu_lock;
+ 	struct mutex mutex;
+--- a/drivers/net/wireless/ath/ath9k/init.c
++++ b/drivers/net/wireless/ath/ath9k/init.c
+@@ -16,6 +16,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+@@ -169,6 +170,61 @@
+  * as the FIFO on these devices can only accept sanely 2 requests.
+  */
+ 
++#ifdef CONFIG_FUSIV
++/*
++ * Two problems appear with the Ikanos Fusiv PCI bridge. When they happen, the
++ * registers of the bridge itself read as zero until the next reset.
++ *
++ * Reading the analog registers makes the bridge stop responding, also under the
++ * AVM firmware. So reads of these registers are answered from a copy of the last
++ * written values.
++ *
++ * Too many register writes in flight end in a master abort, see the FIFO limit
++ * above. So each write is followed by a read from the chip, which waits for the
++ * write to arrive. Analog registers can't be read and get a pause instead.
++ */
++#define FUSIV_ANALOG_START	0x7800
++#define FUSIV_ANALOG_END	0x7900
++#define FUSIV_ANALOG_DELAY_US	100
++
++static inline bool ath9k_reg_is_analog(u32 reg_offset)
++{
++	return reg_offset >= FUSIV_ANALOG_START && reg_offset < FUSIV_ANALOG_END;
++}
++
++static inline u32 *ath9k_analog_shadow(struct ath_softc *sc, u32 reg_offset)
++{
++	return &sc->fusiv_analog_shadow[(reg_offset - FUSIV_ANALOG_START) / 4];
++}
++
++static inline void ath9k_finish_write(struct ath_softc *sc, u32 reg_offset, u32 val)
++{
++	if (ath9k_reg_is_analog(reg_offset)) {
++		*ath9k_analog_shadow(sc, reg_offset) = val;
++		udelay(FUSIV_ANALOG_DELAY_US);
++	} else {
++		ioread32(sc->mem + AR_SREV(sc->sc_ah));
++	}
++}
++
++static inline u32 ath9k_chip_read(struct ath_softc *sc, u32 reg_offset)
++{
++	if (ath9k_reg_is_analog(reg_offset))
++		return *ath9k_analog_shadow(sc, reg_offset);
++
++	return ioread32(sc->mem + reg_offset);
++}
++#else
++static inline void ath9k_finish_write(struct ath_softc *sc, u32 reg_offset, u32 val)
++{
++}
++
++static inline u32 ath9k_chip_read(struct ath_softc *sc, u32 reg_offset)
++{
++	return ioread32(sc->mem + reg_offset);
++}
++#endif
++
+ static void ath9k_iowrite32(void *hw_priv, u32 val, u32 reg_offset)
+ {
+ 	struct ath_hw *ah = hw_priv;
+@@ -179,9 +235,12 @@
+ 		unsigned long flags;
+ 		spin_lock_irqsave(&sc->sc_serial_rw, flags);
+ 		iowrite32(val, sc->mem + reg_offset);
++		ath9k_finish_write(sc, reg_offset, val);
+ 		spin_unlock_irqrestore(&sc->sc_serial_rw, flags);
+-	} else
++	} else {
+ 		iowrite32(val, sc->mem + reg_offset);
++		ath9k_finish_write(sc, reg_offset, val);
++	}
+ }
+ 
+ static unsigned int ath9k_ioread32(void *hw_priv, u32 reg_offset)
+@@ -194,10 +253,10 @@
+ 	if (NR_CPUS > 1 && ah->config.serialize_regmode == SER_REG_MODE_ON) {
+ 		unsigned long flags;
+ 		spin_lock_irqsave(&sc->sc_serial_rw, flags);
+-		val = ioread32(sc->mem + reg_offset);
++		val = ath9k_chip_read(sc, reg_offset);
+ 		spin_unlock_irqrestore(&sc->sc_serial_rw, flags);
+ 	} else
+-		val = ioread32(sc->mem + reg_offset);
++		val = ath9k_chip_read(sc, reg_offset);
+ 	return val;
+ }
+ 
+@@ -216,10 +275,11 @@
+ {
+ 	u32 val;
+ 
+-	val = ioread32(sc->mem + reg_offset);
++	val = ath9k_chip_read(sc, reg_offset);
+ 	val &= ~clr;
+ 	val |= set;
+ 	iowrite32(val, sc->mem + reg_offset);
++	ath9k_finish_write(sc, reg_offset, val);
+ 
+ 	return val;
+ }

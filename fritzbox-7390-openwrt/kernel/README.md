@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box and restarts cleanly, without a serial cable. PCI, read-only flash and `ath9k` work, and `hostapd` reports `AP-ENABLED`. The network is not visible yet, because the PCI bridge stops responding and the Wi-Fi interrupt then gets disabled (`../hardware/first-access-point-6.18.log`). Network and USB are still missing.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and opens a Wi-Fi network on 2.4 GHz that other devices can see (`../hardware/first-access-point-6.18.log`). PCI, read-only flash and `ath9k` work. No client has connected yet, 5 GHz has not been started, and network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -77,3 +77,21 @@ Requires the serial console. The kernel itself is only loaded into RAM, but `eva
 ## Image size limit
 
 EVA stopped responding while receiving a 5.9 MB image and needed a power cycle, twice. A 3.2 MB image works. It may overwrite itself when an image reaches too far down from the top of RAM, but that is unconfirmed. Keep the image small or change the load address before going over this size.
+
+## PCI bridge problems
+
+Both are handled in `patches/0003-ath9k-work-around-fusiv-pci-bridge.patch`. When they happen, the registers of the bridge itself read as zero, the chips stop answering, and the unserved Wi-Fi interrupt ends in `irq 25: nobody cared`.
+
+- **Reading analog registers (`0x7800` to `0x78ff`) kills the bridge.** Reads of `0x7860` under the AVM firmware and `0x7894` under this kernel both did it, but `0x7810` and `0x7834` did not, so the range is a safe generalization. The patch answers these reads from a copy of the last written values. Do not read this range from tools, because it takes down the Wi-Fi of the running firmware too.
+- **Too many register writes in flight end in a master abort.** The patch reads from the chip after each write, as far as it is allowed, and pauses after analog writes.
+
+The chips get their real PCI ID in the first bus scan (`arch/mips/pci/pci-fusiv.c`), so `ath9k_pci_owl_loader` is not used. With the owl loader, the second chip read ID 0, which is explained by the first problem.
+
+## Running a test
+
+Test runs are not scripted in this repository, because they need the box's password. A run does this:
+
+1. Wait until the box has been up for 90 s, because `/sbin/reboot` is ignored early and sometimes later too, so repeat it until the box goes down.
+2. Run `ifconfig ath0 down` and `ifconfig ath1 down` on the box, so that a machine using the box's Wi-Fi moves to another access point. It can't see EVA through the box.
+3. Make sure that the machine has `192.168.178.2/24`. `nmcli dev modify wlp5s0 +ipv4.addresses 192.168.178.2/24` needs no root.
+4. Follow the procedure in "Testing without a console".

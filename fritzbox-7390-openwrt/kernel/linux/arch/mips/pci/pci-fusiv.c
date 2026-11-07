@@ -9,7 +9,6 @@
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/kernel.h>
-#include <linux/export.h>
 #include <linux/of.h>
 #include <linux/pci.h>
 #include <linux/spinlock.h>
@@ -51,6 +50,11 @@
 
 #define PCI_RESET_CONTROL	CKSEG1ADDR(0x19050700)
 
+/* The arbiter of the memory controller. */
+#define DDR_ARBITER_CONTROL	CKSEG1ADDR(0x19250080)
+#define DDR_ARB_STATIC3_DBUS_BC	(BIT(15) | BIT(14))
+#define DDR_ARB_STATIC2_DBUS_BC	(BIT(7) | BIT(6))
+
 #define PCI_MEM_BASE		0x1a000000
 #define PCI_MEM_END		0x1affffff
 
@@ -79,13 +83,6 @@ static void pci_reg_write(unsigned int offset, u32 value)
 {
 	__raw_writel(value, (void __iomem *)(PCI_REGS + offset));
 }
-
-/* See the ath9k patches for why this read is needed. */
-void fusiv_pci_settle(void)
-{
-	pci_reg_read(PCI_CONTROL);
-}
-EXPORT_SYMBOL_GPL(fusiv_pci_settle);
 
 static int config_transfer(unsigned int cmd, struct pci_bus *bus,
 			   unsigned int devfn, int where, u32 *value)
@@ -212,6 +209,20 @@ static void __init fusiv_pci_reset(void)
 	mdelay(5);
 }
 
+/*
+ * AVM and Ikanos give the buses that PCI traffic uses this priority for the
+ * Wi-Fi performance.
+ */
+static void __init fusiv_pci_set_arbiter(void)
+{
+	void __iomem *arbiter = (void __iomem *)DDR_ARBITER_CONTROL;
+	u32 value = __raw_readl(arbiter);
+
+	value &= ~DDR_ARB_STATIC3_DBUS_BC;
+	value |= DDR_ARB_STATIC2_DBUS_BC;
+	__raw_writel(value, arbiter);
+}
+
 static int __init fusiv_pci_init(void)
 {
 	pr_info("fusiv-pci: starting\n");
@@ -248,6 +259,8 @@ static int __init fusiv_pci_init(void)
 	fusiv_pci_controller.of_node = of_find_compatible_node(NULL, NULL, "ikanos,vx180-pci");
 
 	register_pci_controller(&fusiv_pci_controller);
+
+	fusiv_pci_set_arbiter();
 
 	return 0;
 }

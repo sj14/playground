@@ -1,6 +1,6 @@
 # OpenWrt on the FRITZ!Box 7390 (hobby project)
 
-As of 2026-11-06. A current kernel boots from RAM on the box. The installed firmware is unchanged.
+As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi network. The installed firmware is unchanged.
 
 ## Summary
 
@@ -8,7 +8,7 @@ As of 2026-11-06. A current kernel boots from RAM on the box. The installed firm
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt, because the Ethernet driver and its firmware are proprietary.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** milestone 2, flash and Wi-Fi. A serial console is helpful but not required.
+- **Next step:** connect a client to the test network, then start 5 GHz and add a real shell. A serial console is helpful but not required.
 
 ## The box
 
@@ -80,13 +80,13 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 - Each header is followed by one padding byte, then 4096 bytes of byte-swapped data starting at `0x985` and `0x198a`. Both sizes fit the owl loader limit, and it handles the swapped form.
 - Both blocks pass: magic `0xa55a`, a register list of 12 entries with an end marker, EEPROM version `0xe010`, 2x2 masks, and an XOR checksum of `0xffff` over the declared length `0xcb8`.
 - The MAC addresses in the blocks match the `macwlan` and `macwlan2` environment values and the running interfaces.
-- The register list sets the PCI ID to `168c:0029`, which `ath9k` supports. Whether `ath9k` then finds its EEPROM data this way on this box is untested.
+- The register list sets the PCI ID to `168c:0029`, which `ath9k` supports. `ath9k` reads these calibration blocks through `nvmem`.
 - The partition also holds secrets such as `wlan_key` and `tr069_passphrase` in its environment, so a dump of it must not be published.
 
 ## Milestones
 
 1. **Kernel to userspace (reached):** Linux 6.18 boots from RAM and runs `/init`, without a serial cable. The log is in `hardware/first-boot-6.18.log`. A real shell is still missing.
-2. **Flash and Wi-Fi:** NAND/NOR read-only, plus PCI and `ath9k`, so that Wi-Fi visibly transmits.
+2. **Flash and Wi-Fi (partly reached):** NOR read-only, PCI and `ath9k` work, and a 2.4 GHz test network is visible from another machine. See `hardware/first-access-point-6.18.log`. No client has connected yet, and NAND and 5 GHz are still open.
 3. **USB Ethernet as uplink:** this makes the box usable as an access point.
 4. **Optional, LAN ports:** reverse engineering as a separate project.
 
