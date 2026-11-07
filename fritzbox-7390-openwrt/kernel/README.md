@@ -2,7 +2,16 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and works as an access point: a laptop on the 2.4 GHz and on the 5 GHz WPA2 network got an address from the home router and reached the internet through a bridge to a USB Ethernet adapter (`../hardware/first-bridged-access-point-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The network ports are still missing, and nothing is installed: the kernel only runs from RAM. The AR8316 switch answers over MDIO, but the LAN ports don't pass packets yet.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and works as an access point: a laptop on the 2.4 GHz and on the 5 GHz WPA2 network got an address from the home router and reached the internet through a bridge to a USB Ethernet adapter (`../hardware/first-bridged-access-point-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The network ports are still missing, and nothing is installed: the kernel only runs from RAM. The bridge now reaches the home network through the LAN port instead of the USB adapter.
+
+## Firmware
+
+The image needs two files from your own box, which must not be published:
+
+- `BITFILE`: the FPGA bitstream, which powers the USB port.
+- `AP_FIRMWARE_DIR`: `fusiv-bmu.bin` and `fusiv-eth.bin`, written by `../tools/extract-ap-firmware.py` from `fusivlib_lkm.ko` (prefix `BMUAP`) and `ethdriver_lkm.ko` (prefix `ETHAP`).
+
+Without the second one, `lan0` can't start and the box has no wired network.
 
 ## Layout
 
@@ -12,6 +21,7 @@ Groundwork for milestone 1: a current kernel that boots from RAM to a first user
 | `linux/arch/mips/fusiv/prom.c` | boot arguments, memory, early console, reset, CP0 timer setup |
 | `linux/arch/mips/fusiv/irq.c` | Vx180 interrupt controller |
 | `linux/arch/mips/fusiv/bringup.c` | RAM log, LEDs, watchdog |
+| `linux/arch/mips/fusiv/eth.c` | LAN port through the packet processors |
 | `linux/arch/mips/boot/dts/ikanos/` | device tree |
 | `linux/arch/mips/configs/fusiv_defconfig` | kernel configuration |
 | `patches/` | the few changes to existing kernel files |

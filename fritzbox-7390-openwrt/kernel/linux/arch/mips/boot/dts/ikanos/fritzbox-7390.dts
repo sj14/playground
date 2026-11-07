@@ -47,6 +47,13 @@
 			interrupts = <29>;
 		};
 
+		ethernet@19110000 {
+			compatible = "ikanos,fusiv-eth";
+			reg = <0x19110000 0x1000>;
+			interrupt-parent = <&ipc>;
+			interrupts = <14>;
+		};
+
 		usb@19230000 {
 			compatible = "generic-ehci";
 			reg = <0x19230000 0x5c>;

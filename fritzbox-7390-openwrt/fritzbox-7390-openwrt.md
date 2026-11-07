@@ -6,9 +6,9 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 
 - **Goal:** a current kernel and OpenWrt on my own 7390, as a hobby project.
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
-- **Not realistic:** official inclusion in OpenWrt, because the Ethernet driver and its firmware are proprietary.
+- **Not realistic:** official inclusion in OpenWrt as it stands, because the Ethernet driver needs proprietary firmware from AVM's modules.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** a long test under load, the throughput gap to the AVM firmware (about 31 against 76 Mbit/s), and the LAN ports. Linux only runs from RAM so far, installing it would mean writing to flash.
+- **Next step:** the throughput gap to the AVM firmware (about 34 against 76 Mbit/s). The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash.
 
 ## The box
 
@@ -65,6 +65,10 @@ A kernel profile of the path through the bridge (`hardware/profile-bridge-6.18.l
 
 ### Ethernet
 
+- **LAN port works (2026-11-07):** `kernel/linux/arch/mips/fusiv/eth.c` loads AVM's firmware into two packet processors (APs), and a Wi-Fi client reached the internet through `lan0` at about 34 Mbit/s. See `hardware/first-lan-port-6.18.log`.
+- **How packets move:** The buffer manager at `0x19210000` asks for free buffers one by one with status bit `0x1000`, 4081 in total, and only then answers its configuration. The MAC processor at `0x19260000` writes received buffers to four queues in RAM, whose indexes are in shared memory at `0x191f0040`. To send, the driver takes a buffer from `0x19210810`, fills the header, sets the first egress port to `0x19260510` and writes the address there.
+- **Details that cost time:** AVM forwards received packets to a third processor at `0x19100510`, which doesn't run here, so the configuration sends them to the host. The switch setup has to finish before the MAC processor starts, because they share the MDIO bus: otherwise port 0 ended up as `0x3e` instead of `0x7e`, and no packets arrived.
+- **Open:** The MAC address of `lan0` is random. Only the port in use was tested. Link speeds other than the current one are not handled, and whether a link reaches 1 Gbit/s has not been measured.
 - **Switch reached (2026-11-07):** `/init` releases the switch from reset (GPIO 15, active low) and reads it over MDIO at `0x19110080`. It reports id `0x1001`, and the PHYs report `0x004d 0xd041`. PHY 3 lost its link when the cable to the home network was pulled and got it back when it was plugged in again. Which LAN socket that is, is still unknown. See `hardware/first-switch-6.18.log` and `hardware/first-link-change-6.18.log`.
 
 - `fusiv_src/` contains only headers and Makefiles (the only `.c` file is `fusiv_srcd.c`).

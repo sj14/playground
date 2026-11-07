@@ -79,6 +79,13 @@ if [ -n "${BITFILE:-}" ]; then
     echo "file /lib/firmware/fpga.bit $BITFILE 600 0 0" >> "$TREE/initramfs.list"
 fi
 
+# The firmware of the packet processors belongs to Ikanos and stays out of the
+# repository too. tools/extract-ap-firmware.py writes it from AVM's modules.
+if [ -n "${AP_FIRMWARE_DIR:-}" ]; then
+    echo "file /lib/firmware/fusiv-bmu.bin $AP_FIRMWARE_DIR/fusiv-bmu.bin 600 0 0" >> "$TREE/initramfs.list"
+    echo "file /lib/firmware/fusiv-eth.bin $AP_FIRMWARE_DIR/fusiv-eth.bin 600 0 0" >> "$TREE/initramfs.list"
+fi
+
 make -C "$TREE" "${MAKE_ARGS[@]}" fusiv_defconfig
 make -C "$TREE" "${MAKE_ARGS[@]}" vmlinux.bin
 

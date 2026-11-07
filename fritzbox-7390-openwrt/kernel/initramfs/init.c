@@ -30,7 +30,9 @@ enum {
 };
 
 static const char AP_NETMASK[] = "255.255.255.0";
-static const char WIRED_INTERFACE[] = "eth0";
+// The LAN port replaces the USB adapter in the bridge. Both at once on the same
+// switch would form a loop.
+static const char WIRED_INTERFACE[] = "lan0";
 static const char BRIDGE_INTERFACE[] = "br0";
 static const char BRIDGE_ADDRESS[] = "192.168.0.250";
 
@@ -152,8 +154,8 @@ enum {
     GPIO_FLAGS_OFFSET = 0x4, GPIO_SET_OFFSET = 0x6, SWITCH_RESET_PIN = 1 << 15, SWITCH_RESET_WAIT_NS = 500000000,
     GPIO_REGISTERS = 0x19040000,
     SWITCH_PORTS = 6, SWITCH_PHYS = 5,
-    PHY_STATUS = 1, PHY_ID_HIGH = 2, PHY_ID_LOW = 3, PHY_LINK_UP = 1 << 2,
-    MDIO_FAILED = -1, MDIO_NO_DEVICE = 0xffff,
+    PHY_STATUS = 1, PHY_ID_HIGH = 2, PHY_ID_LOW = 3,
+    MDIO_FAILED = -1,
 };
 
 static volatile char *ethernet_registers;
@@ -239,6 +241,50 @@ static void release_switch_reset(int fd) {
     munmap((void *)gpio, PAGE_SIZE_BYTES);
 }
 
+static int switch_write(unsigned int address, unsigned int value) {
+    unsigned int word_phy = SWITCH_REGISTER_PHY | ((address >> 6) & 0x7);
+    unsigned int word_reg = (address >> 1) & MDIO_FIELD_MASK;
+
+    if (mdio_write(SWITCH_PAGE_PHY, 0, (address >> 9) & 0x3ff) != 0) {
+        return MDIO_FAILED;
+    }
+    // The switch takes over the value when the low half arrives, so it comes last.
+    if (mdio_write(word_phy, word_reg + 1, value >> 16) != 0) {
+        return MDIO_FAILED;
+    }
+    return mdio_write(word_phy, word_reg, value & 0xffff);
+}
+
+// Sets up the switch's connection to the Ethernet block like AVM's open driver.
+static void configure_switch(void) {
+    enum {
+        SWITCH_STRAP = 0x08, SWITCH_FORWARD_PORTS = 0x2c, SWITCH_CPU_PORT = 0x78,
+        SWITCH_PORT0_STATUS = 0x100, SWITCH_PORT0_VLAN = 0x108,
+        STRAP_VALUE = 0x000e1b20 | (1 << 0) | (1 << 4) | (1 << 15) | (1 << 24),
+        FORWARD_PORTS_VALUE = 0x043f3f3f,
+        CPU_PORT_VALUE = 0x1f0,
+        // 1000 Mbit/s, full duplex, flow control, both directions on.
+        PORT0_STATUS_VALUE = 0x7e,
+            PORT0_VLAN_BITS = (1 << 24) | (1 << 2),
+    };
+    char line[64];
+
+    if (!ethernet_registers) {
+        return;
+    }
+    long long vlan = switch_read(SWITCH_PORT0_VLAN);
+    if (vlan != MDIO_FAILED) {
+        switch_write(SWITCH_PORT0_VLAN, (unsigned int)vlan | PORT0_VLAN_BITS);
+    }
+    switch_write(SWITCH_PORT0_STATUS, PORT0_STATUS_VALUE);
+    switch_write(SWITCH_CPU_PORT, CPU_PORT_VALUE);
+    switch_write(SWITCH_FORWARD_PORTS, FORWARD_PORTS_VALUE);
+    switch_write(SWITCH_STRAP, STRAP_VALUE);
+
+    snprintf(line, sizeof(line), "switch: port 0 status now 0x%08llx\n", switch_read(SWITCH_PORT0_STATUS));
+    log_line(line);
+}
+
 // Logs the switch identity. The Ethernet block stays unmapped if its clocks are
 // off, because reading a block without a clock can hang the bus.
 static void log_switch_identity(void) {
@@ -292,27 +338,6 @@ static void log_switch_identity(void) {
         snprintf(line, sizeof(line), "switch: port %u status 0x%08llx\n", port, switch_read(address));
         log_line(line);
     }
-}
-
-// Logs which of the switch's PHYs have a link, one digit each.
-static void log_switch_links(void) {
-    char line[64];
-    char links[SWITCH_PHYS + 1];
-
-    if (!ethernet_registers) {
-        return;
-    }
-    for (unsigned int phy = 0; phy < SWITCH_PHYS; phy++) {
-        int status = mdio_read(phy, PHY_STATUS);
-        if (status == MDIO_FAILED || status == MDIO_NO_DEVICE) {
-            links[phy] = '?';
-        } else {
-            links[phy] = (status & PHY_LINK_UP) ? '1' : '0';
-        }
-    }
-    links[SWITCH_PHYS] = '\0';
-    snprintf(line, sizeof(line), "switch: links %s\n", links);
-    log_line(line);
 }
 
 static long long nanoseconds_now(void) {
@@ -659,8 +684,10 @@ int main(void) {
     create_bridge();
     start_access_point();
     start_transfer_services();
-    connect_wired_network();
+    // The packet processors use the same MDIO bus, so the switch comes first.
     log_switch_identity();
+    configure_switch();
+    connect_wired_network();
     log_access_speed();
 
     long long start = uptime_seconds();
@@ -672,7 +699,6 @@ int main(void) {
         log_line(line);
         log_bridge_state();
         log_cpu_usage();
-        log_switch_links();
         if ((uptime_seconds() - start) % STATUS_INTERVAL_S < TICK_S) {
             log_file("/proc/net/dev");
             log_file("/proc/interrupts");

@@ -1,0 +1,414 @@
+[    0.000000] Linux version 6.18.62 (user@host) (mips-unknown-linux-musl-gcc (GCC) 15.3.0, GNU ld (GNU Binutils) 2.46) #50 Sat Nov  7 16:58:42 CET 2026
+[    0.000000] printk: legacy bootconsole [early0] enabled
+[    0.000000] CPU0 revision is: 0001964c (MIPS 24KEc)
+[    0.000000] MIPS: machine is AVM FRITZ!Box Fon WLAN 7390
+[    0.000000] printk: debug: skip boot console de-registration.
+[    0.000000] Initrd not found or empty - disabling initrd
+[    0.000000] OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+[    0.000000] Primary instruction cache 32kB, VIPT, 4-way, linesize 32 bytes.
+[    0.000000] Primary data cache 32kB, 4-way, VIPT, cache aliases, linesize 32 bytes
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x0000000000000000-0x0000000007cacfff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000000000-0x0000000005ffffff]
+[    0.000000]   node   0: [mem 0x0000000006800000-0x0000000007cacfff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000000000-0x0000000007cacfff]
+[    0.000000] On node 0, zone Normal: 2048 pages in unavailable ranges
+[    0.000000] On node 0, zone Normal: 851 pages in unavailable ranges
+[    0.000000] pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+[    0.000000] pcpu-alloc: [0] 0 
+[    0.000000] Kernel command line: console=ttyS0,115200n8 rdinit=/init keep_bootcon loglevel=8 printk.devkmsg=on usbcore.autosuspend=-1 mtdram1=0x87cad000,0x88000000 memsize=124 flash_start=0x9F000000 flash_size=16 console=ttyS0,115200n8r 
+[    0.000000] Unknown kernel command line parameters "mtdram1=0x87cad000,0x88000000 memsize=124 flash_start=0x9F000000 flash_size=16", will be passed to user space.
+[    0.000000] printk: log buffer data + meta data: 131072 + 409600 = 540672 bytes
+[    0.000000] Dentry cache hash table entries: 16384 (order: 4, 65536 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 8192 (order: 3, 32768 bytes, linear)
+[    0.000000] Writing ErrCtl register=00030df0
+[    0.000000] Readback ErrCtl register=00030df0
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 29869
+[    0.000000] mem auto-init: stack:all(zero), heap alloc:off, heap free:off
+[    0.000000] SLUB: HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] NR_IRQS: 256
+[    0.000000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041785100000 ns
+[    0.000000] clocksource: MIPS: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041786 ns
+[    0.000011] sched_clock: 32 bits at 250MHz, resolution 4ns, wraps every 8589934590ns
+[    0.008287] Console: colour dummy device 80x25
+[    0.012923] Calibrating delay loop... 332.54 BogoMIPS (lpj=665088)
+[    0.051230] pid_max: default: 32768 minimum: 301
+[    0.056615] Mount-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.064042] Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.085025] Memory: 106356K/119476K available (7301K kernel code, 580K rwdata, 1220K rodata, 1896K init, 197K bss, 12648K reserved, 0K cma-reserved)
+[    0.108275] posixtimers hash table entries: 512 (order: 0, 2048 bytes, linear)
+[    0.115668] futex hash table entries: 256 (3072 bytes on 1 NUMA nodes, total 3 KiB, linear).
+[    0.132445] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.157886] fusiv-pci: starting
+[    0.192332] registering PCI controller with io_map_base unset
+[    0.214483] bringup: timer interrupts work
+[    0.222697] usbcore: registered new interface driver usbfs
+[    0.228502] usbcore: registered new interface driver hub
+[    0.234147] usbcore: registered new device driver usb
+[    0.240011] pps_core: LinuxPPS API ver. 1 registered
+[    0.245022] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.254304] PTP clock support registered
+[    0.269699] PCI host bridge to bus 0000:00
+[    0.273890] pci_bus 0000:00: root bus resource [mem 0x1a000000-0x1affffff]
+[    0.280843] pci_bus 0000:00: root bus resource [io  0x0100-0xffff]
+[    0.287093] pci_bus 0000:00: No busn resource found for root bus, will use [bus 00-ff]
+[    0.296514] pci 0000:00:01.0: configured Wi-Fi chip, ID is now 168c:0029
+[    0.303294] pci 0000:00:01.0: [168c:0029] type 00 class 0x028000 conventional PCI endpoint
+[    0.311731] pci 0000:00:01.0: BAR 0 [mem 0x00000000-0x0000ffff]
+[    0.317910] pci 0000:00:01.0: PME# supported from D0 D3hot
+[    0.326490] pci 0000:00:02.0: configured Wi-Fi chip, ID is now 168c:0029
+[    0.333304] pci 0000:00:02.0: [168c:0029] type 00 class 0x028000 conventional PCI endpoint
+[    0.341742] pci 0000:00:02.0: BAR 0 [mem 0x00000000-0x0000ffff]
+[    0.347909] pci 0000:00:02.0: PME# supported from D0 D3hot
+[    0.355718] pci_bus 0000:00: busn_res: [bus 00-ff] end is updated to 00
+[    0.362528] pci 0000:00:01.0: BAR 0 [mem 0x1a000000-0x1a00ffff]: assigned
+[    0.369434] pci 0000:00:02.0: BAR 0 [mem 0x1a010000-0x1a01ffff]: assigned
+[    0.377105] vgaarb: loaded
+[    0.380418] clocksource: Switched to clocksource MIPS
+[    0.426868] NET: Registered PF_INET protocol family
+[    0.433231] IP idents hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.443644] tcp_listen_portaddr_hash hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.452259] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.460154] TCP established hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.467921] TCP bind hash table entries: 1024 (order: 1, 8192 bytes, linear)
+[    0.475219] TCP: Hash tables configured (established 1024 bind 1024)
+[    0.482576] UDP hash table entries: 256 (order: 1, 8192 bytes, linear)
+[    0.489448] UDP-Lite hash table entries: 256 (order: 1, 8192 bytes, linear)
+[    0.497459] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.540862] PCI: CLS 0 bytes, default 32
+[    0.568709] workingset: timestamp_bits=30 max_order=15 bucket_order=0
+[    0.814644] Serial: 8250/16550 driver, 1 ports, IRQ sharing disabled
+[    0.826871] printk: legacy console [ttyS0] disabled
+[    0.835000] 190a0000.serial: ttyS0 at MMIO 0x190a0000 (irq = 29, base_baud = 10416666) is a 16450
+[    0.844111] printk: legacy console [ttyS0] enabled
+[    0.858687] physmap-flash 1f000000.flash: physmap platform flash device: [mem 0x1f000000-0x1fffffff]
+[    0.877249] 1 fixed-partitions partitions found on MTD device 1f000000.flash
+[    0.891478] Creating 1 MTD partitions on "1f000000.flash":
+[    0.902569] 0x000000000000-0x000000020000 : "urlader"
+[    0.921296] ath9k 0000:00:01.0: enabling device (0000 -> 0002)
+[    0.942773] ath: EEPROM regdomain: 0x8114
+[    0.950932] ath: EEPROM indicates we should expect a country code
+[    0.963212] ath: doing EEPROM country->regdmn map search
+[    0.973915] ath: country maps to regdmn code: 0x37
+[    0.983571] ath: Country alpha2 being used: DE
+[    0.992545] ath: Regpair used: 0x37
+[    1.026121] ieee80211 phy0: Selected rate control algorithm 'minstrel_ht'
+[    1.044312] ieee80211 phy0: Atheros AR9280 Rev:2 mem=0x(ptrval), irq=25
+[    1.058360] ath9k 0000:00:02.0: enabling device (0000 -> 0002)
+[    1.079894] ath: EEPROM regdomain: 0x8114
+[    1.088057] ath: EEPROM indicates we should expect a country code
+[    1.100313] ath: doing EEPROM country->regdmn map search
+[    1.111048] ath: country maps to regdmn code: 0x37
+[    1.120751] ath: Country alpha2 being used: DE
+[    1.129713] ath: Regpair used: 0x37
+[    1.159701] ieee80211 phy1: Selected rate control algorithm 'minstrel_ht'
+[    1.177912] ieee80211 phy1: Atheros AR9280 Rev:2 mem=0x(ptrval), irq=25
+[    1.192247] usbcore: registered new interface driver asix
+[    1.203476] usbcore: registered new interface driver ax88179_178a
+[    1.216064] usbcore: registered new interface driver cdc_ether
+[    1.228166] usbcore: registered new interface driver net1080
+[    1.239891] usbcore: registered new interface driver cdc_subset
+[    1.252134] usbcore: registered new interface driver zaurus
+[    1.263733] usbcore: registered new interface driver cdc_ncm
+[    1.275462] usbcore: registered new interface driver r8153_ecm
+[    1.290066] usbcore: registered new interface driver usbhid
+[    1.301366] usbhid: USB HID core driver
+[    1.310743] NET: Registered PF_INET6 protocol family
+[    1.348940] ehci-platform 19230000.usb: EHCI Host Controller
+[    1.360627] ehci-platform 19230000.usb: new USB bus registered, assigned bus number 1
+[    1.377027] ehci-platform 19230000.usb: irq 35, io mem 0x19230000
+[    1.391903] ohci-platform 19240800.usb: Generic Platform OHCI controller
+[    1.405758] ohci-platform 19240800.usb: new USB bus registered, assigned bus number 2
+[    1.421797] ohci-platform 19240800.usb: irq 35, io mem 0x19240800
+[    1.434504] ehci-platform 19230000.usb: USB 2.0 started, EHCI 1.00
+[    1.451823] hub 1-0:1.0: USB hub found
+[    1.459842] hub 1-0:1.0: 2 ports detected
+[    1.474559] Segment Routing with IPv6
+[    1.482699] In-situ OAM (IOAM) with IPv6
+[    1.491084] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+[    1.506947] NET: Registered PF_PACKET protocol family
+[    1.600903] hub 2-0:1.0: USB hub found
+[    1.608919] hub 2-0:1.0: 2 ports detected
+[    1.672990] Freeing unused kernel image (initmem) memory: 1896K
+[    1.684961] This architecture does not have kernel memory protection.
+[    1.697949] Run /init as init process
+[    1.705373]   with arguments:
+[    1.711330]     /init
+[    1.715942]   with environment:
+[    1.722335]     HOME=/
+[    1.727083]     TERM=linux
+[    1.732613]     mtdram1=0x87cad000,0x88000000
+[    1.741398]     memsize=124
+[    1.747024]     flash_start=0x9F000000
+[    1.754603]     flash_size=16
+[    1.766376] Hello from userspace on Linux 6.18.62
+[    1.925386] FPGA: sent 169216 bytes, flags 0x0000467b -> 0x0000477b, done pin 1
+[    1.941245] --- /proc/cpuinfo
+[    1.948363] system type		: Ikanos Fusiv Vx180
+[    1.957813] machine			: AVM FRITZ!Box Fon WLAN 7390
+[    1.968160] processor		: 0
+[    1.974231] cpu model		: MIPS 24KEc V4.12
+[    1.982889] BogoMIPS		: 332.54
+[    1.989637] wait instruction	: yes
+[    1.997114] microsecond timers	: yes
+[    2.004897] tlb_entries		: 64
+[    2.011434] extra interrupt vector	: yes
+[    2.019921] hardware watchpoint	: yes, count: 4, address/irw mask: [0x0ffc, 0x0ffc, 0x0ffb, 0x0ffb]
+[    2.038637] isa			: mips1 mips2 mips32r1 mips32r2
+[    2.048692] ASEs implemented	: mips16 dsp
+[    2.057349] Options implemented	: tlb 4kex 4k_cache 32fpr prefetch mcheck ejtag llsc dc_aliases perf_cntr_intr_bit nan_legacy nan_2008 perf mm_full
+[    2.084324] shadow register sets	: 1
+[    2.092066] kscratch registers	: 0
+[    2.099574] package			: 0
+[    2.105430] core			: 0
+[    2.110762] VCED exceptions		: not available
+[    2.119883] VCEI exceptions		: not available
+[    2.129057] 
+[    2.132980] --- /proc/iomem
+[    2.139628] 00000000-05ffffff : System RAM
+[    2.148477]   00010000-0073188f : Kernel code
+[    2.157742]   00731890-008f519f : Kernel data
+[    2.167016]   00ad0000-00b0149f : Kernel bss
+[    2.176103] 06800000-07cacfff : System RAM
+[    2.184865] 190a0000-190a001f : serial
+[    2.192923] 19230000-1923005b : 19230000.usb usb@19230000
+[    2.204287] 19240800-1924085b : 19240800.usb usb@19240800
+[    2.215739] 1a000000-1affffff : FUSIV PCI MEM
+[    2.225092]   1a000000-1a00ffff : 0000:00:01.0
+[    2.234544]     1a000000-1a00ffff : ath9k
+[    2.243112]   1a010000-1a01ffff : 0000:00:02.0
+[    2.252626]     1a010000-1a01ffff : ath9k
+[    2.261239] 1f000000-1fffffff : 1f000000.flash flash@1f000000
+[    2.273761] --- /proc/bus/pci/devices
+[    2.282505] 0008	168c0029	19	        1a000000	               0	               0	               0	               0	               0	               0	           10000	               0	               0	               0	               0	               0	               0	
+[    2.282774] ath9k
+[    2.334997] 0010	168c0029	19	        1a010000	               0	               0	               0	               0	               0	               0	           10000	               0	               0	               0	               0	               0	               0	
+[    2.335283] ath9k
+[    2.387803] --- /proc/mtd
+[    2.393781] dev:    size   erasesize  name
+[    2.402596] mtd0: 00020000 01000000 "urlader"
+[    2.412344] pci bridge control 0x00000013
+[    2.441702] switch: chip id 0x00006850, clock gate 0x0000ffff
+[    2.466416] switch: gpio flags before release 0x477b
+[    2.989292] switch: gpio flags after release 0xc77b
+[    3.000652] usb 1-2: new high-speed USB device number 2 using ehci-platform
+[    3.025419] switch: mdio status 0x00000000
+[    3.044219] switch: id register 0x00001001
+[    3.062315] switch: phy 0 id 0x004d 0xd041 status 0x7949
+[    3.085198] switch: phy 1 id 0x004d 0xd041 status 0x7949
+[    3.108731] switch: phy 2 id 0x004d 0xd041 status 0x7949
+[    3.131737] switch: phy 3 id 0x004d 0xd041 status 0x7949
+[    3.154698] switch: phy 4 id 0x004d 0xd041 status 0x7949
+[    3.178681] switch: port 0 status 0x00001280
+[    3.200275] hub 1-2:1.0: USB hub found
+[    3.210882] switch: port 1 status 0x00001280
+[    3.226470] hub 1-2:1.0: 4 ports detected
+[    3.238772] switch: port 2 status 0x00001280
+[    3.260208] switch: port 3 status 0x00001280
+[    3.282189] switch: port 4 status 0x00001280
+[    3.301223] switch: port 5 status 0x00001280
+[    3.320547] switch: port 0 status now 0x0000003e
+[    3.341098] br0: port 1(lan0) entered blocking state
+[    3.351259] br0: port 1(lan0) entered disabled state
+[    3.361425] fusiv-eth 19110000.ethernet lan0: entered allmulticast mode
+[    3.376033] fusiv-eth 19110000.ethernet lan0: entered promiscuous mode
+[    3.447925] fusiv-eth 19110000.ethernet lan0: bmu: firmware loaded and started
+[    3.462644] fusiv-eth 19110000.ethernet lan0: bmu: control 0x4000 status 0x0000 mask 0xefff event 0x0000 queue 0x0000
+[    3.484748] random: crng init done
+[    4.064687] usb 1-2.1: new high-speed USB device number 3 using ehci-platform
+[    7.876533] fusiv-eth 19110000.ethernet lan0: bmu: control 0x4000 status 0x1000 mask 0xefff event 0x0000 queue 0x0000
+[    7.898023] fusiv-eth 19110000.ethernet lan0: bmu: gave it 4080 buffers
+[    7.914452] fusiv-eth 19110000.ethernet lan0: mac: firmware loaded and started
+[    7.929195] fusiv-eth 19110000.ethernet lan0: mac: control 0x4000 status 0x0000 mask 0xffff event 0x0000 queue 0x0000
+[    7.952570] fusiv-eth 19110000.ethernet lan0: mac: control 0x4000 status 0x0000 mask 0xffff event 0x0000 queue 0x0000
+[    7.984297] ax88179_178a 1-2.1:1.0 eth0: register 'ax88179_178a' at usb-19230000.usb-2.1, ASIX AX88179 USB 3.0 Gigabit Ethernet, xx:xx:xx:xx:xx:xx
+[    8.013303] br0: port 1(lan0) entered blocking state
+[    8.023422] br0: port 1(lan0) entered forwarding state
+[    8.060929] br0 has 192.168.0.250 and contains lan0
+[    8.189165] rfkill: Cannot open RFKILL control device
+[    8.326937] br0: port 2(wlan1) entered blocking state
+[    8.337380] br0: port 2(wlan1) entered disabled state
+[    8.347752] ath9k 0000:00:02.0 wlan1: entered allmulticast mode
+[    8.361779] ath9k 0000:00:02.0 wlan1: entered promiscuous mode
+[    8.374106] br0: port 2(wlan1) entered blocking state
+[    8.384434] br0: port 2(wlan1) entered forwarding state
+[    8.429089] speed: wifi register read 868 ns, memcpy 25 MB/s
+[    8.441849] wlan1: interface state UNINITIALIZED->COUNTRY_UPDATE
+[    8.522939] rfkill: Cannot open RFKILL control device
+[    8.590378] br0: port 3(wlan0) entered blocking state
+[    8.600759] br0: port 3(wlan0) entered disabled state
+[    8.611157] ath9k 0000:00:01.0 wlan0: entered allmulticast mode
+[    8.624666] ath9k 0000:00:01.0 wlan0: entered promiscuous mode
+[    8.637062] br0: port 3(wlan0) entered blocking state
+[    8.647339] br0: port 3(wlan0) entered forwarding state
+[    8.659326] wlan0: interface state UNINITIALIZED->COUNTRY_UPDATE
+[    9.068673] br0: port 2(wlan1) entered disabled state
+[    9.079580] br0: port 3(wlan0) entered disabled state
+[   10.597453] br0: port 3(wlan0) entered blocking state
+[   10.607782] br0: port 3(wlan0) entered forwarding state
+[   10.640226] wlan0: interface state COUNTRY_UPDATE->ENABLED
+[   10.651746] wlan0: AP-ENABLED 
+[   15.359474] br0: port 2(wlan1) entered blocking state
+[   15.369843] br0: port 2(wlan1) entered forwarding state
+[   15.398200] wlan1: interface state COUNTRY_UPDATE->ENABLED
+[   15.409623] wlan1: AP-ENABLED 
+[   15.965034] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: authenticated
+[   15.979236] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: associated (aid 1)
+[   16.021530] wlan0: AP-STA-CONNECTED xx:xx:xx:xx:xx:xx
+[   16.032368] wlan0: STA xx:xx:xx:xx:xx:xx WPA: pairwise key handshake completed (RSN)
+[   16.051222] wlan0: EAPOL-4WAY-HS-COMPLETED xx:xx:xx:xx:xx:xx
+[   17.996517] fusiv-eth 19110000.ethernet lan0: rx 72 drop 0 tx 110 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[   18.021995] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0xa01 frames 0x37cb32 bytes, tx 0x281 frames 0xe235 bytes
+[   23.457744] tick 23 s
+[   23.511019] pci bridge control 0x00000013
+[   23.644285] cpu  406 0 423 1055 0 0 462 0 0 0
+[   28.243900] fusiv-eth 19110000.ethernet lan0: rx 29352 drop 0 tx 12228 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0002
+[   28.270385] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x72a2 frames 0x27c560a bytes, tx 0x2f56 frames 0xe35f1 bytes
+[   38.480000] fusiv-eth 19110000.ethernet lan0: rx 62337 drop 0 tx 25103 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0002
+[   38.506493] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x80d2 frames 0x2cf66ef bytes, tx 0x324b frames 0xdd1dd bytes
+[   38.905599] tick 38 s
+[   38.953787] pci bridge control 0x00000013
+[   39.014915] cpu  407 0 431 1072 0 0 1978 0 0 0
+[   48.728023] fusiv-eth 19110000.ethernet lan0: rx 96054 drop 0 tx 37401 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0002
+[   48.754485] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x83b6 frames 0x2dff9cf bytes, tx 0x300a frames 0xd35bb bytes
+[   54.128074] tick 54 s
+[   54.249069] pci bridge control 0x00000013
+[   54.379541] cpu  408 0 436 1214 0 0 3359 0 0 0
+[   58.958142] fusiv-eth 19110000.ethernet lan0: rx 114897 drop 0 tx 44263 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[   58.984802] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x494d frames 0x198a14d bytes, tx 0x1ace frames 0x80d79 bytes
+[   69.196533] fusiv-eth 19110000.ethernet lan0: rx 114954 drop 0 tx 44327 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[   69.223142] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x39 frames 0x509e bytes, tx 0x40 frames 0x64d6 bytes
+[   69.413754] tick 69 s
+[   69.438018] pci bridge control 0x00000013
+[   69.473664] cpu  411 0 1141 1219 0 0 4162 0 0 0
+[   79.437579] fusiv-eth 19110000.ethernet lan0: rx 115032 drop 0 tx 44418 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[   79.464214] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x4e frames 0x452f bytes, tx 0x5b frames 0x4520 bytes
+[   84.507331] tick 84 s
+[   84.526991] pci bridge control 0x00000013
+[   84.554446] cpu  412 0 1898 1219 0 0 4913 0 0 0
+[   89.680524] fusiv-eth 19110000.ethernet lan0: rx 115086 drop 0 tx 44522 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[   89.707106] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x36 frames 0x61eb bytes, tx 0x68 frames 0x5485 bytes
+[   99.589282] tick 99 s
+[   99.618144] pci bridge control 0x00000013
+[   99.643113] cpu  414 0 2660 1219 0 0 5658 0 0 0
+[   99.917024] fusiv-eth 19110000.ethernet lan0: rx 115101 drop 0 tx 44614 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[   99.943617] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0xf frames 0x40c bytes, tx 0x5c frames 0x2a2c bytes
+[  110.157350] fusiv-eth 19110000.ethernet lan0: rx 115151 drop 0 tx 44696 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[  110.183992] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x32 frames 0x31d6 bytes, tx 0x52 frames 0x93ae bytes
+[  114.673672] tick 114 s
+[  114.686656] pci bridge control 0x00000013
+[  114.722846] cpu  417 0 3437 1219 0 0 6387 0 0 0
+[  116.026005] wlan0: AP-STA-DISCONNECTED xx:xx:xx:xx:xx:xx
+[  116.041974] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: disassociated
+[  117.062204] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: deauthenticated due to inactivity (timer DEAUTH/REMOVE)
+[  120.396474] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44717 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[  120.422978] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0xf frames 0x1a03 bytes, tx 0x15 frames 0x1a76 bytes
+[  129.744958] tick 129 s
+[  129.750690] pci bridge control 0x00000013
+[  129.761016] cpu  419 0 3506 2581 0 0 6457 0 0 0
+[  129.771989] --- /proc/net/dev
+[  129.779743] Inter-|   Receive                                                |  Transmit
+[  129.796987]  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+[  129.822190]     lo:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  129.847330]   lan0: 163511908  115166    0    0    0     0          0         0  3191611   44717    0    0    0     0       0          0
+[  129.872939]  wlan0: 7984787  117348    0    0    0     0          0         0 397955332  269837    0    0    0     0       0          0
+[  129.898141]  wlan1:       0       0    0    0    0     0          0         0     8908     118    0    1    0     0       0          0
+[  129.923297]   sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  129.948555]    br0: 3781836   72755    0    0    0     0          0         0 226896124  154570    0    0    0     0       0          0
+[  129.973916]   eth0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  129.999455] --- /proc/interrupts
+[  130.007531]            CPU0       
+[  130.015164]   7:      32209     MIPS   7  timer
+[  130.024881]  14:       3675 fusiv-ipc  14  lan0
+[  130.034594]  25:      68878 fusiv-ipc  25  ath9k, ath9k
+[  130.045809]  29:       3481 fusiv-ipc  29  ttyS0
+[  130.055742]  35:        171 fusiv-ipc  35  ehci_hcd:usb1, ohci_hcd:usb2
+[  130.069907] ERR:          0
+[  130.636469] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44717 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[  130.662965] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  140.876475] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44718 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[  140.903011] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x1 frames 0x4a bytes
+[  145.076819] tick 144 s
+[  145.082692] pci bridge control 0x00000013
+[  145.092799] cpu  420 0 3544 4055 0 0 6477 0 0 0
+[  151.116474] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[  151.142975] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x1 frames 0x4a bytes
+[  160.104873] tick 159 s
+[  160.110668] pci bridge control 0x00000013
+[  160.121187] cpu  422 0 3550 5532 0 0 6494 0 0 0
+[  161.356474] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[  161.383010] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  171.596479] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[  171.622980] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  175.132818] tick 175 s
+[  175.138728] pci bridge control 0x00000013
+[  175.148831] cpu  424 0 3558 7015 0 0 6505 0 0 0
+[  181.836474] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[  181.863009] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  190.160886] tick 190 s
+[  190.166645] pci bridge control 0x00000013
+[  190.177004] cpu  425 0 3565 8485 0 0 6530 0 0 0
+[  192.076474] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[  192.102975] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  202.316475] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[  202.342979] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  205.188824] tick 205 s
+[  205.194729] pci bridge control 0x00000013
+[  205.204880] cpu  426 0 3572 9969 0 0 6540 0 0 0
+[  212.556474] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[  212.582974] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  220.216855] tick 220 s
+[  220.222677] pci bridge control 0x00000013
+[  220.233005] cpu  428 0 3580 11439 0 0 6564 0 0 0
+[  222.796474] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[  222.822981] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  233.036479] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x4000 status 0x0000
+[  233.062982] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  235.244798] tick 235 s
+[  235.250713] pci bridge control 0x00000013
+[  235.260749] cpu  428 0 3588 12923 0 0 6574 0 0 0
+[  243.276478] fusiv-eth 19110000.ethernet lan0: rx 115166 drop 0 tx 44719 drop 0, 4081 buffers given, 0 quota requests, control 0x5000 status 0x0000
+[  243.302980] fusiv-eth 19110000.ethernet lan0: mac counters: rx 0x0 frames 0x0 bytes, tx 0x0 frames 0x0 bytes
+[  250.272958] tick 250 s
+[  250.278709] pci bridge control 0x00000013
+[  250.289083] cpu  429 0 3594 14402 0 0 6591 0 0 0
+[  250.299913] --- /proc/net/dev
+[  250.307724] Inter-|   Receive                                                |  Transmit
+[  250.324865]  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+[  250.350195]     lo:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  250.375615]   lan0: 163511908  115166    0    0    0     0          0         0  3191751   44719    0    0    0     0       0          0
+[  250.401340]  wlan0: 7984787  117348    0    0    0     0          0         0 397955508  269839    0    0    0     0       0          0
+[  250.426509]  wlan1:       0       0    0    0    0     0          0         0     9172     121    0    1    0     0       0          0
+[  250.451653]   sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  250.476957]    br0: 3781836   72755    0    0    0     0          0         0 226896194  154571    0    0    0     0       0          0
+[  250.502403]   eth0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  250.527832] --- /proc/interrupts
+[  250.535905]            CPU0       
+[  250.543538]   7:      62218     MIPS   7  timer
+[  250.553262]  14:       3675 fusiv-ipc  14  lan0
+[  250.563004]  25:      87671 fusiv-ipc  25  ath9k, ath9k
+[  250.574295]  29:       5498 fusiv-ipc  29  ttyS0
+[  250.584652]  35:        171 fusiv-ipc  35  ehci_hcd:usb1, ohci_hcd:usb2
+[  250.598756] ERR:          0
+[  250.605513] --- /proc/net/dev
+[  250.613283] Inter-|   Receive                                                |  Transmit
+[  250.630317]  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+[  250.655446]     lo:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  250.680597]   lan0: 163511908  115166    0    0    0     0          0         0  3191751   44719    0    0    0     0       0          0
+[  250.706114]  wlan0: 7984787  117348    0    0    0     0          0         0 397955508  269839    0    0    0     0       0          0
+[  250.732998]  wlan1:       0       0    0    0    0     0          0         0     9172     121    0    1    0     0       0          0
+[  250.758184]   sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  250.783242]    br0: 3781836   72755    0    0    0     0          0         0 226896194  154571    0    0    0     0       0          0
+[  250.808757]   eth0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  250.834192] --- /proc/interrupts
+[  250.842241]            CPU0       
+[  250.849876]   7:      62259     MIPS   7  timer
+[  250.859551]  14:       3675 fusiv-ipc  14  lan0
+[  250.869380]  25:      87696 fusiv-ipc  25  ath9k, ath9k
+[  250.880686]  29:       5722 fusiv-ipc  29  ttyS0
+[  250.890665]  35:        171 fusiv-ipc  35  ehci_hcd:usb1, ohci_hcd:usb2
+[  250.904905] ERR:          0
+[  250.911150] Test finished, restarting
+[  250.925038] reboot: Restarting system
