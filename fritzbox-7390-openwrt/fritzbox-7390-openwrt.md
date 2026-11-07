@@ -145,7 +145,7 @@ Rescue paths after an install:
 |---|---|
 | The kernel hangs or panics | the watchdog restarts the box, EVA answers at every start |
 | Back to the AVM firmware | write the backup with `MEDIA FLSH` and `STOR mtd1`, the settings in `tffs` stay |
-| Logs of the installed kernel | restart, load the AVM firmware into RAM and read the RAM log as in a test |
+| Logs of the installed kernel | over the network (`logread`, `dmesg`). The RAM log doesn't help here: the AVM firmware started from RAM found no log of the previous kernel, so it overwrites that area, unlike when it starts from flash |
 | EVA itself broken | only JTAG, so `mtd2` is never written |
 
 An installed image needs `TEST_DURATION_S=0`, otherwise `/init` restarts the box after each test period.
