@@ -521,14 +521,14 @@ static void mac_receive_packet(struct fusiv_eth *eth, void *buffer)
 		goto give_back;
 	}
 
-	replacement = buffer_alloc();
+	replacement = napi_alloc_frag_align(BUFFER_BYTES, SMP_CACHE_BYTES);
 	if (!replacement) {
 		stats->rx_dropped++;
 		goto give_back;
 	}
 
 	dma_cache_inv((unsigned long)buffer + start, length);
-	skb = build_skb(buffer, BUFFER_BYTES);
+	skb = napi_build_skb(buffer, BUFFER_BYTES);
 	if (!skb) {
 		skb_free_frag(replacement);
 		stats->rx_dropped++;
@@ -583,16 +583,20 @@ static int mac_poll(struct napi_struct *napi, int budget)
 	for (queue = 0; queue < QUEUE_COUNT; queue++) {
 		u16 __iomem *indexes = eth->shared + MAC_QUEUE_INDEXES + queue * 4;
 		u16 next_read = __raw_readw(indexes + 1);
+		u16 next_write = __raw_readw(indexes);
 
-		while (done < budget && next_read != __raw_readw(indexes)) {
+		/* Register accesses are slow, so these indexes change once per batch. */
+		if (next_read == next_write)
+			continue;
+		while (done < budget && next_read != next_write) {
 			u32 entry = READ_ONCE(eth->mac_queues[queue][next_read]);
 
 			next_read = (next_read + 1) % QUEUE_ENTRIES;
-			__raw_writew(next_read, indexes + 1);
 			if (entry)
 				mac_receive_packet(eth, phys_to_virt(entry & PHYSICAL_ADDRESS_MASK));
 			done++;
 		}
+		__raw_writew(next_read, indexes + 1);
 	}
 
 	if (done < budget && napi_complete_done(napi, done))

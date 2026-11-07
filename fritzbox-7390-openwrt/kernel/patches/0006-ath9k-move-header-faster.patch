@@ -1,0 +1,58 @@
+--- a/drivers/net/wireless/ath/ath9k/xmit.c	2026-11-07 22:00:44.190422818 +0100
++++ b/drivers/net/wireless/ath/ath9k/xmit.c	2026-11-07 22:00:44.218167729 +0100
+@@ -2284,6 +2284,37 @@
+ 	hdr->seq_ctrl |= cpu_to_le16(avp->seq_no);
+ }
+ 
++#ifdef CONFIG_FUSIV
++/*
++ * Moves the 802.11 header by the size of its padding, twice per sent frame. The
++ * MIPS memmove() copies overlapping areas byte by byte, which took 3% of the CPU
++ * during a download. The header is at an even address, so this copies 16 bits at
++ * a time.
++ */
++static void ath_move_header(void *to, const void *from, int bytes)
++{
++	const u16 *source = from;
++	u16 *destination = to;
++	int count = bytes / 2;
++	int i;
++
++	if (((unsigned long)to | (unsigned long)from | bytes) & 1) {
++		memmove(to, from, bytes);
++		return;
++	}
++
++	if (destination < source) {
++		for (i = 0; i < count; i++)
++			WRITE_ONCE(destination[i], READ_ONCE(source[i]));
++	} else {
++		for (i = count - 1; i >= 0; i--)
++			WRITE_ONCE(destination[i], READ_ONCE(source[i]));
++	}
++}
++#else
++#define ath_move_header memmove
++#endif
++
+ static int ath_tx_prepare(struct ieee80211_hw *hw, struct sk_buff *skb,
+ 			  struct ath_tx_control *txctl)
+ {
+@@ -2313,7 +2344,7 @@
+ 			return -ENOMEM;
+ 
+ 		skb_push(skb, padsize);
+-		memmove(skb->data, skb->data + padsize, padpos);
++		ath_move_header(skb->data, skb->data + padsize, padpos);
+ 	}
+ 
+ 	setup_frame_info(hw, sta, skb, frmlen);
+@@ -2484,7 +2515,7 @@
+ 			 * Remove MAC header padding before giving the frame back to
+ 			 * mac80211.
+ 			 */
+-			memmove(skb->data + padsize, skb->data, padpos);
++			ath_move_header(skb->data + padsize, skb->data, padpos);
+ 			skb_pull(skb, padsize);
+ 		}
+ 	}
