@@ -47,6 +47,13 @@
 			interrupts = <29>;
 		};
 
+		usb@19230000 {
+			compatible = "generic-ehci";
+			reg = <0x19230000 0x5c>;
+			interrupt-parent = <&ipc>;
+			interrupts = <35>;
+		};
+
 		/*
 		 * Mapped as ROM, so that Linux never sends a command to the chip.
 		 * The urlader partition also holds secrets in its environment, so its

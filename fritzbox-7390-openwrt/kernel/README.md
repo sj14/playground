@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet (`../hardware/first-shell-6.18.log`). PCI, read-only flash and `ath9k` work. Network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet (`../hardware/first-shell-6.18.log`). PCI, read-only flash and `ath9k` work. The USB host controller starts, but sees no device yet. Network ports are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -97,3 +97,23 @@ Test runs are not scripted in this repository, because they need the box's passw
 3. Make sure that the machine has `192.168.178.2/24`. `nmcli dev modify wlp5s0 +ipv4.addresses 192.168.178.2/24` needs no root.
    Occasionally a scan from the machine did not show the test networks during a whole run, although the box log showed `AP-ENABLED`. The cause is unknown, and repeating the run helped.
 4. Follow the procedure in "Testing without a console".
+
+## USB: open problem
+
+The generic EHCI driver starts on the controller (`USB 2.0 started, EHCI 1.00`, two ports), but it does not see the connected AX88179 adapter (`0b95:1790`, behind a VIA hub `2109:2812`). The AVM firmware finds the same adapter on port 2.
+
+| Register | AVM firmware | Linux 6.18 |
+|---|---|---|
+| `USBCMD` | `0x00010019` | `0x00010005` (running) |
+| `USBSTS` | `0x00004008` | `0x00000008` |
+| `PORTSC2` | `0x00001005` (connected, enabled) | `0x00001000` (powered, not connected) |
+| `HCSPARAMS` | `0x00001202` | `0x00001202` |
+| `USB2_MISC_CTRL` | `0x00000007` | `0x00000007` |
+| `USB_STAT` | `0x7000812c` | `0x7000002c` |
+
+Interrupt 35 stays at zero. These did not change the result:
+
+- `usbcore.autosuspend=-1`, which is still needed, because the controller otherwise stops with the root hub suspended
+- running the PHY reset sequence twice like AVM, with a 5 ms wait, before or after the EHCI driver starts
+
+No GPIO in AVM's board table is named as USB power, and the controller reports no per-port power control. The pins that differ from the AVM firmware are FPGA programming, DECT, the switch reset and the SPI flash write protect. Do not drive these without a reason. Whether the port has power under Linux is unknown, because no run has checked the adapter's LED. The OHCI companion and the FPGA, which the AVM firmware loads, are not running under Linux, and neither was tested as the cause.

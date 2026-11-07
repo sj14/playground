@@ -28,9 +28,12 @@ enum {
     SEND_PORT = 5001,
     RECEIVE_PORT = 5002,
     TRANSFER_BUFFER_SIZE = 16384,
+    WIRED_WAIT_S = 20,
 };
 
 static const char AP_NETMASK[] = "255.255.255.0";
+static const char WIRED_INTERFACE[] = "eth0";
+static const char WIRED_ADDRESS[] = "192.168.0.250";
 
 static int kmsg_fd = -1;
 
@@ -156,6 +159,51 @@ static void configure_address(const char *interface, const char *ip_address) {
     close(fd);
 }
 
+// Brings up the USB Ethernet adapter, which appears a few seconds after boot.
+static void configure_wired_interface(void) {
+    struct ifreq request;
+    char line[96];
+
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        return;
+    }
+    memset(&request, 0, sizeof(request));
+    strncpy(request.ifr_name, WIRED_INTERFACE, IFNAMSIZ - 1);
+
+    int attempts = WIRED_WAIT_S;
+    while (attempts > 0 && ioctl(fd, SIOCGIFFLAGS, &request) != 0) {
+        struct timespec delay = {1, 0};
+        nanosleep(&delay, NULL);
+        attempts--;
+    }
+    if (attempts == 0) {
+        log_line("no USB Ethernet interface appeared\n");
+        close(fd);
+        return;
+    }
+    close(fd);
+
+    configure_address(WIRED_INTERFACE, WIRED_ADDRESS);
+
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        return;
+    }
+    memset(&request, 0, sizeof(request));
+    strncpy(request.ifr_name, WIRED_INTERFACE, IFNAMSIZ - 1);
+    if (ioctl(fd, SIOCGIFFLAGS, &request) == 0) {
+        request.ifr_flags |= IFF_UP;
+        if (ioctl(fd, SIOCSIFFLAGS, &request) != 0) {
+            snprintf(line, sizeof(line), "cannot bring up %s: %s\n", WIRED_INTERFACE, strerror(errno));
+            log_line(line);
+        }
+    }
+    close(fd);
+    snprintf(line, sizeof(line), "%s configured with %s\n", WIRED_INTERFACE, WIRED_ADDRESS);
+    log_line(line);
+}
+
 static int listen_on_port(int port) {
     struct sockaddr_in address;
     memset(&address, 0, sizeof(address));
@@ -217,8 +265,9 @@ static void start_transfer_services(void) {
     }
 }
 
-// Starts a root shell over telnet, without a password. WPA2 with a random
-// password protects it.
+// Starts a root shell over telnet, without a password. It only listens on the
+// 2.4 GHz test network, where WPA2 with a random password protects it, and not
+// on the wired network.
 static void start_shell_service(void) {
     pid_t pid = fork();
     if (pid < 0) {
@@ -227,7 +276,7 @@ static void start_shell_service(void) {
     }
     if (pid == 0) {
         setenv("PATH", "/bin:/usr/sbin", 1);
-        execl("/bin/telnetd", "telnetd", "-F", "-l", "/bin/sh", (char *)NULL);
+        execl("/bin/telnetd", "telnetd", "-F", "-b", "192.168.77.1", "-l", "/bin/sh", (char *)NULL);
         log_line("cannot start telnetd\n");
         _exit(1);
     }
@@ -277,6 +326,7 @@ int main(void) {
     configure_address("wlan0", "192.168.78.1");
     start_transfer_services();
     start_shell_service();
+    configure_wired_interface();
 
     long long start = uptime_seconds();
     while (uptime_seconds() - start < TEST_DURATION_S) {
