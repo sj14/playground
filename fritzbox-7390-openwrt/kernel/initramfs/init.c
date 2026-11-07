@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -216,6 +217,22 @@ static void start_transfer_services(void) {
     }
 }
 
+// Starts a root shell over telnet, without a password. WPA2 with a random
+// password protects it.
+static void start_shell_service(void) {
+    pid_t pid = fork();
+    if (pid < 0) {
+        log_line("cannot fork telnetd\n");
+        return;
+    }
+    if (pid == 0) {
+        setenv("PATH", "/bin:/usr/sbin", 1);
+        execl("/bin/telnetd", "telnetd", "-F", "-l", "/bin/sh", (char *)NULL);
+        log_line("cannot start telnetd\n");
+        _exit(1);
+    }
+}
+
 static void log_exited_children(void) {
     char line[128];
     int status;
@@ -245,6 +262,10 @@ int main(void) {
         snprintf(line, sizeof(line), "mount /sys: %s\n", strerror(errno));
         log_line(line);
     }
+    if (mount("devpts", "/dev/pts", "devpts", 0, NULL) != 0) {
+        snprintf(line, sizeof(line), "mount /dev/pts: %s\n", strerror(errno));
+        log_line(line);
+    }
     log_file("/proc/cpuinfo");
     log_file("/proc/iomem");
     log_file("/proc/bus/pci/devices");
@@ -255,6 +276,7 @@ int main(void) {
     configure_address("wlan1", "192.168.77.1");
     configure_address("wlan0", "192.168.78.1");
     start_transfer_services();
+    start_shell_service();
 
     long long start = uptime_seconds();
     while (uptime_seconds() - start < TEST_DURATION_S) {

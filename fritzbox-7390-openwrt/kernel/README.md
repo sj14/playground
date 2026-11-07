@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both and transferred data in both directions (`../hardware/first-wpa2-both-bands-6.18.log`). PCI, read-only flash and `ath9k` work. A real shell, network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet (`../hardware/first-shell-6.18.log`). PCI, read-only flash and `ath9k` work. Network ports and USB are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -15,7 +15,7 @@ Groundwork for milestone 1: a current kernel that boots from RAM to a first user
 | `linux/arch/mips/boot/dts/ikanos/` | device tree |
 | `linux/arch/mips/configs/fusiv_defconfig` | kernel configuration |
 | `patches/` | the few changes to existing kernel files |
-| `initramfs/init.c` | first userspace program: logs system info, starts the access point and TCP test services on ports 5001 and 5002, restarts after 120 s |
+| `initramfs/init.c` | first userspace program: logs system info, starts the access points, a telnet shell and TCP test services on ports 5001 and 5002, restarts after 180 s |
 | `tools/make-eva-image.py` | creates and checks images for the EVA bootloader |
 | `tools/eva-ramboot.py` | loads an image through EVA, restarts the box on failure |
 
@@ -26,7 +26,7 @@ cd kernel
 nix-shell --run ./build.sh
 ```
 
-The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross compiler, which can take a long time.
+The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross compiler, which can take a long time. The password of the test networks is in `build/wifi-password`. The build generates it, because these networks give access to a root shell without further login, and that shell can read secrets from the flash. Keep it out of the repository.
 
 ## What was tested
 
@@ -95,4 +95,5 @@ Test runs are not scripted in this repository, because they need the box's passw
 1. Wait until the box has been up for 90 s, because `/sbin/reboot` is ignored early and sometimes later too, so repeat it until the box goes down.
 2. Run `ifconfig ath0 down` and `ifconfig ath1 down` on the box, so that a machine using the box's Wi-Fi moves to another access point. It can't see EVA through the box.
 3. Make sure that the machine has `192.168.178.2/24`. `nmcli dev modify wlp5s0 +ipv4.addresses 192.168.178.2/24` needs no root.
+   Occasionally a scan from the machine did not show the test networks during a whole run, although the box log showed `AP-ENABLED`. The cause is unknown, and repeating the run helped.
 4. Follow the procedure in "Testing without a console".
