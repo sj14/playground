@@ -44,6 +44,7 @@ static const char BRIDGE_ADDRESS[] = "192.168.0.250";
 #define STATUS_INTERVAL_S 120
 #endif
 
+// 0 keeps the box running, for an installed image.
 #ifndef TEST_DURATION_S
 #define TEST_DURATION_S 180
 #endif
@@ -735,7 +736,7 @@ int main(void) {
     log_access_speed();
 
     long long start = uptime_seconds();
-    while (uptime_seconds() - start < TEST_DURATION_S) {
+    while (TEST_DURATION_S == 0 || uptime_seconds() - start < TEST_DURATION_S) {
         struct timespec delay = {TICK_S, 0};
         nanosleep(&delay, NULL);
         log_exited_children();

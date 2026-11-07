@@ -130,6 +130,26 @@ An image can be loaded into RAM through EVA via FTP, the same way as OpenWrt's `
 
 The box is unavailable as an access point during tests, so a second, used 7390 as a test device would be helpful.
 
+### Installing (prepared, not done yet)
+
+EVA boots from the area it calls `mtd1` (`0x9F020000`-`0x9FF00000`, 14.875 MB). The AVM firmware keeps its kernel and its root file system there one after the other; under Freetz they appear as `mtd1` ("kernel", `0x15a500` bytes) and `mtd0` ("rootfs", `0xd85b00` bytes). An EVA image such as `kernel/build/fritzbox-7390.eva` is written there over EVA's FTP with `MEDIA FLSH`, `STOR mtd1` and `REBOOT`, the same way as Freetz's `tools/push_firmware`. The bootloader (`urlader`, `mtd2`) and the settings (`tffs`, `mtd3` and `mtd4`) are never written.
+
+Before the first flash:
+
+1. Back up the area under the current firmware, read only, from `/dev/mtd1ro` and `/dev/mtd0ro` in that order, and compare the MD5 sums with the box. The Freetz shell cuts its output after 64,000 bytes, so the copy goes in 32 KiB pieces. `/dev/mtdblock1` is not suitable, because its size is not a multiple of 512 bytes and the block device drops the last 256 bytes.
+2. Load the backup into RAM through EVA, like a test kernel (`kernel/tools/eva-ramboot.py`). This was done on 2026-11-07: Freetz came up from RAM with `mtdram1=0x87120000,0x88000000`, and `/proc/mtd` showed `kernel_ram` and `rootfs_ram`. So the AVM firmware can still be started for comparison runs after an install, and the backup is known to boot.
+
+Rescue paths after an install:
+
+| Problem | Rescue |
+|---|---|
+| The kernel hangs or panics | the watchdog restarts the box, EVA answers at every start |
+| Back to the AVM firmware | write the backup with `MEDIA FLSH` and `STOR mtd1`, the settings in `tffs` stay |
+| Logs of the installed kernel | restart, load the AVM firmware into RAM and read the RAM log as in a test |
+| EVA itself broken | only JTAG, so `mtd2` is never written |
+
+An installed image needs `TEST_DURATION_S=0`, otherwise `/init` restarts the box after each test period.
+
 ## Serial console
 
 So far there is **no confirmed pinout** and no verified photo for the 7390. The pins have to be measured, because the order differs between models.
