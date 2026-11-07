@@ -8,7 +8,7 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt as it stands, because the Ethernet driver needs proprietary firmware from AVM's modules.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** the throughput gap to the AVM firmware (about 51 against 76 Mbit/s). The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash.
+- **Next step:** the last few percent of throughput to the AVM firmware (about 72-78 against 79 Mbit/s), see Throughput. The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash. Before the first flash, check that the original AVM image still boots from RAM through EVA, so that comparison runs stay possible.
 
 ## The box
 
@@ -59,9 +59,26 @@ This is based on AVM's newest GPL package (06.86). The box runs 06.88.
 
 ### Throughput
 
-The goal is the speed of the AVM firmware. A laptop downloading from the internet through the box reached 76 Mbit/s under AVM (2.4 GHz, 40 MHz, 270 Mbit/s link), close to the 80 Mbit/s of the connection. Linux reaches about 31 Mbit/s (5 GHz, 20 MHz, 130 Mbit/s link) with the CPU fully busy, so the two bands and widths still differ. Sending from the box itself gives about 24 Mbit/s, and receiving about 43 Mbit/s.
+The goal is the speed of the AVM firmware. A laptop downloading a file from the internet through the box over 2.4 GHz reached 78.6-79.6 Mbit/s under AVM, close to the roughly 80 Mbit/s of the connection. AVM's CPU was about 90% busy doing so, against about 8% without traffic. Linux reaches 72-78 Mbit/s (2.4 GHz, 40 MHz) with the CPU fully busy. The CPU, not the radio, is the limit: the same build reached the same speed with 20 and 40 MHz.
 
-A kernel profile of the path through the bridge (`hardware/profile-bridge-6.18.log`) showed alignment exceptions, because `usbnet` and the AX88179 both added bytes before each packet. Patch 0004 removes them, and the speed rose from about 29 to about 31 Mbit/s. The remaining time is spread widely: about 11% in `usbnet_start_xmit` and `rx_submit`, about 9% in memory copies, about 5% in `__bzero`, and the rest across the network stack, `mac80211` and `ath9k`. `memcpy` reaches about 60 MB/s under Linux and also under AVM, so memory is not slower than before. 40 MHz on 5 GHz failed with `AP-STA-POSSIBLE-PSK-MISMATCH` in the one attempt so far, although the password was correct. The cause is unknown.
+The CPU time per megabyte is a better measure than the speed of a single download, because the connection varies from run to run. It is the data from the LAN port divided by the softirq time in `/proc/stat`: 7.4 MB per second of softirq time with the bridge skipped, and 10.1 MB after the later changes in the table below, enough for about 81 Mbit/s.
+
+What helped, in order:
+
+| Change | Effect |
+|---|---|
+| USB adapter keeps the IP header aligned (patch 0004) | 29 to 31 Mbit/s |
+| LAN port instead of the USB adapter, no GRO, no copy of received packets | 34 to 45 Mbit/s |
+| Kernel hardening and debug options off | 51 Mbit/s |
+| Packets between LAN and Wi-Fi skip the bridge (`fast_forward.c`, patch 0005) | 56-57 Mbit/s |
+| Call the driver directly, flow hash from the IPv4 header | 69-73 Mbit/s |
+| ath9k doesn't schedule while its queue is full, fair queuing quantum of one Ethernet frame (patches 0007, 0008) | 76-78 Mbit/s |
+
+Tried without a measurable effect: `-Os` (slower, 50-53 Mbit/s), four OpenWrt patches for MIPS and mac80211 (cache loops, `-mtune=24kc`, `-mno-branch-likely`, airtime quantum, together about 1.5%).
+
+Why so much CPU time: one data packet with its share of TCP acknowledgements takes about 75,000 cycles. The memory is slow (`memcpy` about 60 MB/s, also under AVM), so a cache miss costs a few hundred cycles, and the profile shows mostly loads and stores to memory that is not in the cache.
+
+**No accelerator for Wi-Fi:** AVM's `avm_pa_fusiv.c` (in AVM's GPL sources) shows what the packet processors do. From LAN to Wi-Fi, the MAC processor looks up the destination address in a flow table and still passes the packet to the CPU, which sends it through the Wi-Fi driver. From Wi-Fi to LAN, AVM turned the hardware off ("no HW acceleration for ingress WLAN"). So the processors only take work off the CPU between LAN and WAN.
 
 ### Ethernet
 
