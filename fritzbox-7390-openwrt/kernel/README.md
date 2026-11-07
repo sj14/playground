@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet (`../hardware/first-shell-6.18.log`). PCI, read-only flash and `ath9k` work. The USB host controller starts, but sees no device yet. Network ports are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and runs WPA2 access points on 2.4 GHz and 5 GHz. A laptop connected to both, transferred data in both directions and ran commands in a root shell over telnet (`../hardware/first-shell-6.18.log`). PCI, read-only flash and `ath9k` work. The USB controllers start, but the port has no power under Linux yet. Network ports are still missing. Nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -44,7 +44,7 @@ The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 - **RAM log:** All kernel messages also go to 256 KB of RAM at `0x01c00000`. `../tools/fusiv-ramlog.c` reads them in the AVM firmware. The location comes from `fusiv-ramlog scan`. Two earlier locations did not work, because the firmware overwrote the log there.
 - **Reboot status:** The kernel and `/init` write known texts to AVM's reboot status mailbox at `0x00fffe00`, which has survived resets on this box. Freetz then shows the progress in `/proc/sys/urlader/reboot_status`: `software` means `prom_init` was never reached, `poweron` means it was, and `watchdog` means `/init` ran. After unplugging the box, the value says nothing.
 - **Memory marks:** Right before a restart the kernel marks the RAM every 64 KB. `fusiv-ramlog scan` shows which marks survive under Freetz.
-- **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work.
+- **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work. All four on was confirmed on the hardware.
 - **Watchdog:** It runs from the start, so a hang should restart the box. Whether it really resets the chip is unconfirmed. If the box hangs, unplug it, which also loses the log.
 - **Automatic end:** `/init` restarts the box after 180 s, and the kernel does so after 240 s at the latest.
 
@@ -100,20 +100,22 @@ Test runs are not scripted in this repository, because they need the box's passw
 
 ## USB: open problem
 
-The generic EHCI driver starts on the controller (`USB 2.0 started, EHCI 1.00`, two ports), but it does not see the connected AX88179 adapter (`0b95:1790`, behind a VIA hub `2109:2812`). The AVM firmware finds the same adapter on port 2.
+The USB port has no power under Linux. A keyboard with backlight stays dark while Linux runs and lights up under the AVM firmware, which also finds it. That explains the register state: EHCI and OHCI both start, each with two ports, but see no device, and interrupt 35 stays at zero.
 
-| Register | AVM firmware | Linux 6.18 |
+| Register | AVM firmware, device connected | Linux 6.18 |
 |---|---|---|
 | `USBCMD` | `0x00010019` | `0x00010005` (running) |
-| `USBSTS` | `0x00004008` | `0x00000008` |
-| `PORTSC2` | `0x00001005` (connected, enabled) | `0x00001000` (powered, not connected) |
+| `PORTSC2` | `0x00001005` (connected, enabled) | `0x00001000` (not connected) |
 | `HCSPARAMS` | `0x00001202` | `0x00001202` |
-| `USB2_MISC_CTRL` | `0x00000007` | `0x00000007` |
-| `USB_STAT` | `0x7000812c` | `0x7000002c` |
 
-Interrupt 35 stays at zero. These did not change the result:
+What switches the power under the AVM firmware is unknown. These did not help:
 
-- `usbcore.autosuspend=-1`, which is still needed, because the controller otherwise stops with the root hub suspended
-- running the PHY reset sequence twice like AVM, with a 5 ms wait, before or after the EHCI driver starts
+- running the OHCI controller as well, which is what AVM's `rc.usbhost` starts, and nothing more
+- the PHY reset sequence twice like AVM, with a 5 ms wait, before or after the EHCI driver starts
+- GPIO 5 as an output set to high, as under the AVM firmware, although AVM's board table lists it as an input
 
-No GPIO in AVM's board table is named as USB power, and the controller reports no per-port power control. The pins that differ from the AVM firmware are FPGA programming, DECT, the switch reset and the SPI flash write protect. Do not drive these without a reason. Whether the port has power under Linux is unknown, because no run has checked the adapter's LED. The OHCI companion and the FPGA, which the AVM firmware loads, are not running under Linux, and neither was tested as the cause.
+`usbcore.autosuspend=-1` is needed, because the controller otherwise stops with the root hub suspended.
+
+No GPIO in AVM's board table is named as USB power, and the EHCI controller reports no per-port power control. The remaining differences to the AVM firmware are the output pins for FPGA programming (11, 12, 14), the DECT reset (6) and the SPI flash write protect (0). Do not drive the flash write protect. The AVM firmware loads a bitstream into an FPGA (`/lib/modules/bitfile.bit`, driver `drivers/char/Piglet_noemif`), and the closed Ikanos modules run too. Either could be involved, but that is untested.
+
+The LEDs show boot progress as intended: with Linux running, all four are on, also with the AVM setting that turns them off in normal operation.
