@@ -492,7 +492,8 @@ static void mac_receive_packet(struct fusiv_eth *eth, void *buffer)
 	skb->protocol = eth_type_trans(skb, netdev);
 	stats->rx_packets++;
 	stats->rx_bytes += length;
-	napi_gro_receive(&eth->napi, skb);
+	/* No GRO: the box forwards, and Wi-Fi would have to split the packets again. */
+	netif_receive_skb(skb);
 
 give_back:
 	__raw_writel(virt_to_phys(buffer) & PHYSICAL_ADDRESS_MASK, eth->bmu + BMU_FREE_BUFFER_FIFO);

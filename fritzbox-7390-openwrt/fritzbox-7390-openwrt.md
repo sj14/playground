@@ -8,7 +8,7 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt as it stands, because the Ethernet driver needs proprietary firmware from AVM's modules.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** the throughput gap to the AVM firmware (about 34 against 76 Mbit/s). The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash.
+- **Next step:** the throughput gap to the AVM firmware (about 43 against 76 Mbit/s). The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash.
 
 ## The box
 
@@ -65,7 +65,7 @@ A kernel profile of the path through the bridge (`hardware/profile-bridge-6.18.l
 
 ### Ethernet
 
-- **LAN port works (2026-11-07):** `kernel/linux/arch/mips/fusiv/eth.c` loads AVM's firmware into two packet processors (APs), and a Wi-Fi client reached the internet through `lan0` at about 34 Mbit/s. See `hardware/first-lan-port-6.18.log`.
+- **LAN port works (2026-11-07):** `kernel/linux/arch/mips/fusiv/eth.c` loads AVM's firmware into two packet processors (APs), and a Wi-Fi client reached the internet through `lan0` at about 34 Mbit/s, and at about 43 Mbit/s without GRO. See `hardware/first-lan-port-6.18.log`.
 - **How packets move:** The buffer manager at `0x19210000` asks for free buffers one by one with status bit `0x1000`, 4081 in total, and only then answers its configuration. The MAC processor at `0x19260000` writes received buffers to four queues in RAM, whose indexes are in shared memory at `0x191f0040`. To send, the driver takes a buffer from `0x19210810`, fills the header, sets the first egress port to `0x19260510` and writes the address there.
 - **Details that cost time:** AVM forwards received packets to a third processor at `0x19100510`, which doesn't run here, so the configuration sends them to the host. In 3 of 8 runs no packets arrived, and port 0 read back as `0x3e` or `0x7e` independently of that. So MDIO writes look unreliable when they follow each other too quickly. `/init` now waits 0.5 ms after each MDIO command and logs what it reads back. Whether this cures the failures needs more runs.
 - **Open:** The MAC address of `lan0` is random. Only the port in use was tested. Link speeds other than the current one are not handled, and whether a link reaches 1 Gbit/s has not been measured.
