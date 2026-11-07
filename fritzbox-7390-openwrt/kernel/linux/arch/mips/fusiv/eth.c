@@ -15,15 +15,18 @@
 #include <linux/dma-mapping.h>
 #include <linux/firmware.h>
 #include <linux/fusiv_fast_forward.h>
+#include <linux/hash.h>
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/netdevice.h>
 #include <linux/etherdevice.h>
 #include <linux/interrupt.h>
 #include <linux/of.h>
+#include <linux/ip.h>
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <linux/timer.h>
+#include <net/ip.h>
 
 #define BMU_ID			5
 #define MAC1_ID			1
@@ -471,6 +474,29 @@ static void monitor_tick(struct timer_list *timer)
 	mod_timer(&eth->monitor, jiffies + MONITOR_INTERVAL);
 }
 
+/*
+ * mac80211 sorts packets into flows by this hash and otherwise works it out with
+ * the flow dissector and SipHash, which costs 5% of the CPU during a download.
+ */
+static void set_flow_hash(struct sk_buff *skb)
+{
+	const struct ethhdr *ethernet = (const struct ethhdr *)skb->data;
+	const struct iphdr *ip = (const struct iphdr *)(skb->data + ETH_HLEN);
+	const __be32 *ports = (const __be32 *)(ip + 1);
+
+	if (skb->len < ETH_HLEN + sizeof(*ip) + sizeof(*ports))
+		return;
+	if (ethernet->h_proto != htons(ETH_P_IP) || ip->ihl != 5)
+		return;
+	if (ip->protocol != IPPROTO_TCP && ip->protocol != IPPROTO_UDP)
+		return;
+	if (ip_is_fragment(ip))
+		return;
+
+	skb_set_hash(skb, hash_32((__force u32)(ip->saddr ^ ip->daddr ^ *ports), 32),
+		     PKT_HASH_TYPE_L4);
+}
+
 static void mac_receive_packet(struct fusiv_eth *eth, void *buffer)
 {
 	struct net_device *netdev = eth->netdev;
@@ -514,6 +540,7 @@ static void mac_receive_packet(struct fusiv_eth *eth, void *buffer)
 	skb_put(skb, length);
 	stats->rx_packets++;
 	stats->rx_bytes += length;
+	set_flow_hash(skb);
 	if (fusiv_fast_forward(skb, netdev))
 		return;
 

@@ -84,7 +84,11 @@ bool fusiv_fast_forward(struct sk_buff *skb, struct net_device *from)
 		skb->protocol = header->h_proto;
 		skb_reset_mac_header(skb);
 		skb_set_network_header(skb, ETH_HLEN);
-		dev_queue_xmit(skb);
+		/*
+		 * Neither driver has a queue in front of it or locks that the network
+		 * stack must hold, and mac80211 picks the Wi-Fi queue by itself.
+		 */
+		netdev_start_xmit(skb, to, netdev_get_tx_queue(to, 0), false);
 	}
 	rcu_read_unlock();
 	return to != NULL;
