@@ -10,7 +10,7 @@ CONFIG_BLK_DEV_INITRD=y
 CONFIG_INITRAMFS_SOURCE="initramfs.list"
 CONFIG_INITRAMFS_COMPRESSION_NONE=y
 CONFIG_CMDLINE_BOOL=y
-CONFIG_CMDLINE="console=ttyS0,115200n8 rdinit=/init keep_bootcon loglevel=8 initcall_debug printk.devkmsg=on usbcore.autosuspend=-1"
+CONFIG_CMDLINE="console=ttyS0,115200n8 rdinit=/init keep_bootcon loglevel=8 printk.devkmsg=on usbcore.autosuspend=-1"
 CONFIG_MIPS_CMDLINE_BUILTIN_EXTEND=y
 CONFIG_BINFMT_ELF=y
 CONFIG_DEVMEM=y

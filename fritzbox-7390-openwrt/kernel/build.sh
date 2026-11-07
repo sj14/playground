@@ -37,6 +37,8 @@ cp -r "$SOURCE_DIR/linux/." "$TREE/"
 # The first userspace program.
 zig cc -target mips-linux-musleabi -mcpu=mips32r2 -static -Os -s \
     -DTEST_DURATION_S="${TEST_DURATION_S:-180}" \
+    -DTICK_S="${TICK_S:-15}" \
+    -DSTATUS_INTERVAL_S="${STATUS_INTERVAL_S:-120}" \
     -o "$BUILD_DIR/init" "$SOURCE_DIR/initramfs/init.c"
 # The test networks are connected to the home network, so their password is random
 # and stays out of the repository.

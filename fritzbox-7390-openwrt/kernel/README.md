@@ -48,7 +48,7 @@ The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 - **Memory marks:** Right before a restart the kernel marks the RAM every 64 KB. `fusiv-ramlog scan` shows which marks survive under Freetz.
 - **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work. All four on was confirmed on the hardware.
 - **Watchdog:** It runs from the start, so a hang should restart the box. Whether it really resets the chip is unconfirmed. If the box hangs, unplug it, which also loses the log.
-- **Automatic end:** `/init` restarts the box after `TEST_DURATION_S` seconds, 180 by default, which the build takes from the environment. A panic restarts it after 10 s.
+- **Automatic end:** `/init` restarts the box after `TEST_DURATION_S` seconds, 180 by default. A panic restarts it after 10 s. `TICK_S` and `STATUS_INTERVAL_S` set how often `/init` logs. A long run should raise them, because the RAM log stops when it is full.
 
 Procedure, from a machine with an address in `192.168.178.0/24` that reaches the box:
 

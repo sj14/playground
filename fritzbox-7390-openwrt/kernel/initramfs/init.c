@@ -23,8 +23,6 @@
 #include <unistd.h>
 
 enum {
-    TICK_S = 15,
-    STATUS_INTERVAL_S = 120,
     SEND_PORT = 5001,
     RECEIVE_PORT = 5002,
     TRANSFER_BUFFER_SIZE = 16384,
@@ -35,6 +33,14 @@ static const char AP_NETMASK[] = "255.255.255.0";
 static const char WIRED_INTERFACE[] = "eth0";
 static const char BRIDGE_INTERFACE[] = "br0";
 static const char BRIDGE_ADDRESS[] = "192.168.0.250";
+
+#ifndef TICK_S
+#define TICK_S 15
+#endif
+
+#ifndef STATUS_INTERVAL_S
+#define STATUS_INTERVAL_S 120
+#endif
 
 #ifndef TEST_DURATION_S
 #define TEST_DURATION_S 180

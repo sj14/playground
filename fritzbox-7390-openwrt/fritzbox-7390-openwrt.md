@@ -57,6 +57,10 @@ This is based on AVM's newest GPL package (06.86). The box runs 06.88.
 | Ethernet | **closed** | `ethdriver_lkm.ko`: `license=proprietary`, `author=Ikanos Communications` |
 | VDSL, telephony, DECT | not planned | probably not needed when used as an access point |
 
+### Throughput
+
+The box sends about 24 Mbit/s over Wi-Fi and receives about 43 Mbit/s, with the CPU fully busy (`hardware/profile-download-6.18.log`). The kernel profile has no single hot spot: the largest entries are copies to user space, checksums and `ath9k_iowrite32`, each a few percent of the busy time. `memcpy` reaches about 60 MB/s under Linux and also under the AVM firmware, so memory is not slower than before. The test sends from the box itself, and traffic through the bridge reached 27 to 29 Mbit/s. So this looks like the limit of the CPU when it does all the work in software, not like one bug. That conclusion comes from one profile whose list stops at 30 entries.
+
 ### Ethernet
 
 - **Switch reached (2026-11-07):** `/init` releases the switch from reset (GPIO 15, active low) and reads it over MDIO at `0x19110080`. It reports id `0x1001`, and the PHYs report `0x004d 0xd041`. PHY 3 lost its link when the cable to the home network was pulled and got it back when it was plugged in again. Which LAN socket that is, is still unknown. See `hardware/first-switch-6.18.log` and `hardware/first-link-change-6.18.log`.
