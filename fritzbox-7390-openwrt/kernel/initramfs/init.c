@@ -23,8 +23,8 @@
 #include <unistd.h>
 
 enum {
-    TICK_MS = 5000,
-    TEST_DURATION_S = 180,
+    TICK_S = 15,
+    STATUS_INTERVAL_S = 120,
     SEND_PORT = 5001,
     RECEIVE_PORT = 5002,
     TRANSFER_BUFFER_SIZE = 16384,
@@ -35,6 +35,10 @@ static const char AP_NETMASK[] = "255.255.255.0";
 static const char WIRED_INTERFACE[] = "eth0";
 static const char BRIDGE_INTERFACE[] = "br0";
 static const char BRIDGE_ADDRESS[] = "192.168.0.250";
+
+#ifndef TEST_DURATION_S
+#define TEST_DURATION_S 180
+#endif
 
 static int kmsg_fd = -1;
 
@@ -417,13 +421,13 @@ int main(void) {
 
     long long start = uptime_seconds();
     while (uptime_seconds() - start < TEST_DURATION_S) {
-        struct timespec delay = {TICK_MS / 1000, 0};
+        struct timespec delay = {TICK_S, 0};
         nanosleep(&delay, NULL);
         log_exited_children();
         snprintf(line, sizeof(line), "tick %lld s\n", uptime_seconds());
         log_line(line);
         log_bridge_state();
-        if ((uptime_seconds() - start) % 30 < 5) {
+        if ((uptime_seconds() - start) % STATUS_INTERVAL_S < TICK_S) {
             log_file("/proc/net/dev");
             log_file("/proc/interrupts");
         }

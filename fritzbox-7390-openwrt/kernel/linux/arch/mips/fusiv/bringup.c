@@ -6,8 +6,8 @@
  *   tools/fusiv-ramlog.c reads it after the box is back in the AVM firmware.
  * - The LEDs show how far the boot got.
  * - The hardware watchdog restarts the box if the kernel hangs.
- * - A kernel timer serves the watchdog and restarts the box after a deadline,
- *   so a test run always ends.
+ * - A kernel timer serves the watchdog, so that it only fires when the kernel
+ *   hangs. A test run ends when /init restarts the box.
  *
  * Register usage follows AVM's GPL kernel (ikan_wdt.c, ikan_gpio.c, vx180.h).
  */
@@ -18,7 +18,6 @@
 #include <linux/jiffies.h>
 #include <linux/kernel.h>
 #include <linux/printk.h>
-#include <linux/reboot.h>
 #include <linux/sizes.h>
 #include <linux/string.h>
 #include <linux/timer.h>
@@ -64,7 +63,6 @@
 
 /* The counter runs at about 10170 Hz, so 0xfffc lasts about 6.4 s. */
 #define WDT_SERVICE_INTERVAL	(HZ / 10)
-#define TEST_DEADLINE_SECONDS	240
 
 /* The LEDs are GPIOs 16 to 31, active low. */
 #define GPIO_BANK1_DIR		CKSEG1ADDR(0x190b0000)
@@ -76,7 +74,6 @@
 
 static u32 ramlog_length;
 static struct timer_list wdt_timer;
-static unsigned long test_deadline;
 
 static void led_on(u16 led)
 {
@@ -191,17 +188,11 @@ static void wdt_timer_tick(struct timer_list *timer)
 		pr_info("bringup: timer interrupts work\n");
 	}
 
-	if (time_after(jiffies, test_deadline)) {
-		pr_info("bringup: test deadline reached, restarting\n");
-		machine_restart(NULL);
-	}
-
 	mod_timer(timer, jiffies + WDT_SERVICE_INTERVAL);
 }
 
 static int __init wdt_timer_init(void)
 {
-	test_deadline = jiffies + TEST_DEADLINE_SECONDS * HZ;
 	timer_setup(&wdt_timer, wdt_timer_tick, 0);
 	mod_timer(&wdt_timer, jiffies + WDT_SERVICE_INTERVAL);
 

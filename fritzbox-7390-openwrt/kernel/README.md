@@ -11,7 +11,7 @@ Groundwork for milestone 1: a current kernel that boots from RAM to a first user
 | `linux/` | new files, copied over the kernel tree |
 | `linux/arch/mips/fusiv/prom.c` | boot arguments, memory, early console, reset, CP0 timer setup |
 | `linux/arch/mips/fusiv/irq.c` | Vx180 interrupt controller |
-| `linux/arch/mips/fusiv/bringup.c` | RAM log, LEDs, watchdog, test deadline |
+| `linux/arch/mips/fusiv/bringup.c` | RAM log, LEDs, watchdog |
 | `linux/arch/mips/boot/dts/ikanos/` | device tree |
 | `linux/arch/mips/configs/fusiv_defconfig` | kernel configuration |
 | `patches/` | the few changes to existing kernel files |
@@ -48,7 +48,7 @@ The kernel contains bring-up aids in `linux/arch/mips/fusiv/bringup.c`:
 - **Memory marks:** Right before a restart the kernel marks the RAM every 64 KB. `fusiv-ramlog scan` shows which marks survive under Freetz.
 - **LEDs:** Internet = `prom_init` reached, Festnetz = interrupt setup reached, WLAN = timer setup reached, Info = timer interrupts work. All four on was confirmed on the hardware.
 - **Watchdog:** It runs from the start, so a hang should restart the box. Whether it really resets the chip is unconfirmed. If the box hangs, unplug it, which also loses the log.
-- **Automatic end:** `/init` restarts the box after 180 s, and the kernel does so after 240 s at the latest.
+- **Automatic end:** `/init` restarts the box after `TEST_DURATION_S` seconds, 180 by default, which the build takes from the environment. A panic restarts it after 10 s.
 
 Procedure, from a machine with an address in `192.168.178.0/24` that reaches the box:
 

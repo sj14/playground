@@ -8,7 +8,7 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt, because the Ethernet driver and its firmware are proprietary.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** a long test under load, then decide whether Linux should stay on the box, which means writing to flash. Until then it only runs from RAM.
+- **Next step:** a long test under load, the throughput limit of about 24 Mbit/s, and the LAN ports. Linux only runs from RAM so far, installing it would mean writing to flash.
 
 ## The box
 
