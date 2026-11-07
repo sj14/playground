@@ -1,0 +1,12 @@
+--- a/drivers/net/usb/ax88179_178a.c
++++ b/drivers/net/usb/ax88179_178a.c
+@@ -1293,6 +1293,9 @@
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* The chip already adds two bytes to align the IP header. */
++	set_bit(EVENT_NO_IP_ALIGN, &dev->flags);
++
+ 	ax179_data = kzalloc(sizeof(*ax179_data), GFP_KERNEL);
+ 	if (!ax179_data)
+ 		return -ENOMEM;

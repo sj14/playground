@@ -8,7 +8,7 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt, because the Ethernet driver and its firmware are proprietary.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** a long test under load, the throughput limit of about 24 Mbit/s, and the LAN ports. Linux only runs from RAM so far, installing it would mean writing to flash.
+- **Next step:** a long test under load, the throughput gap to the AVM firmware (about 31 against 76 Mbit/s), and the LAN ports. Linux only runs from RAM so far, installing it would mean writing to flash.
 
 ## The box
 
@@ -59,7 +59,9 @@ This is based on AVM's newest GPL package (06.86). The box runs 06.88.
 
 ### Throughput
 
-The box sends about 24 Mbit/s over Wi-Fi and receives about 43 Mbit/s, with the CPU fully busy (`hardware/profile-download-6.18.log`). The kernel profile has no single hot spot: the largest entries are copies to user space, checksums and `ath9k_iowrite32`, each a few percent of the busy time. `memcpy` reaches about 60 MB/s under Linux and also under the AVM firmware, so memory is not slower than before. The test sends from the box itself, and traffic through the bridge reached 27 to 29 Mbit/s. So this looks like the limit of the CPU when it does all the work in software, not like one bug. That conclusion comes from one profile whose list stops at 30 entries.
+The goal is the speed of the AVM firmware. A laptop downloading from the internet through the box reached 76 Mbit/s under AVM (2.4 GHz, 40 MHz, 270 Mbit/s link), close to the 80 Mbit/s of the connection. Linux reaches about 31 Mbit/s (5 GHz, 20 MHz, 130 Mbit/s link) with the CPU fully busy, so the two bands and widths still differ. Sending from the box itself gives about 24 Mbit/s, and receiving about 43 Mbit/s.
+
+A kernel profile of the path through the bridge (`hardware/profile-bridge-6.18.log`) showed alignment exceptions, because `usbnet` and the AX88179 both added bytes before each packet. Patch 0004 removes them, and the speed rose from about 29 to about 31 Mbit/s. The remaining time is spread widely: about 11% in `usbnet_start_xmit` and `rx_submit`, about 9% in memory copies, about 5% in `__bzero`, and the rest across the network stack, `mac80211` and `ath9k`. `memcpy` reaches about 60 MB/s under Linux and also under AVM, so memory is not slower than before. 40 MHz on 5 GHz failed with `AP-STA-POSSIBLE-PSK-MISMATCH` in the one attempt so far, although the password was correct. The cause is unknown.
 
 ### Ethernet
 

@@ -1,0 +1,1073 @@
+[    0.000000] Linux version 6.18.62 (user@host) (mips-unknown-linux-musl-gcc (GCC) 15.3.0, GNU ld (GNU Binutils) 2.46) #36 Sat Nov  7 15:29:32 CET 2026
+[    0.000000] printk: legacy bootconsole [early0] enabled
+[    0.000000] CPU0 revision is: 0001964c (MIPS 24KEc)
+[    0.000000] MIPS: machine is AVM FRITZ!Box Fon WLAN 7390
+[    0.000000] printk: debug: skip boot console de-registration.
+[    0.000000] Initrd not found or empty - disabling initrd
+[    0.000000] OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+[    0.000000] Primary instruction cache 32kB, VIPT, 4-way, linesize 32 bytes.
+[    0.000000] Primary data cache 32kB, 4-way, VIPT, cache aliases, linesize 32 bytes
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x0000000000000000-0x0000000007c5cfff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000000000-0x0000000005ffffff]
+[    0.000000]   node   0: [mem 0x0000000006800000-0x0000000007c5cfff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000000000-0x0000000007c5cfff]
+[    0.000000] On node 0, zone Normal: 2048 pages in unavailable ranges
+[    0.000000] On node 0, zone Normal: 931 pages in unavailable ranges
+[    0.000000] pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+[    0.000000] pcpu-alloc: [0] 0 
+[    0.000000] Kernel command line: console=ttyS0,115200n8 rdinit=/init keep_bootcon loglevel=8 printk.devkmsg=on usbcore.autosuspend=-1 profile=5 mtdram1=0x87c5d000,0x88000000 memsize=124 flash_start=0x9F000000 flash_size=16 console=ttyS0,115200n8r 
+[    0.000000] kernel profiling enabled (shift: 5)
+[    0.000000] Unknown kernel command line parameters "mtdram1=0x87c5d000,0x88000000 memsize=124 flash_start=0x9F000000 flash_size=16", will be passed to user space.
+[    0.000000] printk: log buffer data + meta data: 131072 + 409600 = 540672 bytes
+[    0.000000] Dentry cache hash table entries: 16384 (order: 4, 65536 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 8192 (order: 3, 32768 bytes, linear)
+[    0.000000] Writing ErrCtl register=00030df0
+[    0.000000] Readback ErrCtl register=00030df0
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 29789
+[    0.000000] mem auto-init: stack:all(zero), heap alloc:off, heap free:off
+[    0.000000] SLUB: HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] RCU Tasks Trace: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=1.
+[    0.000000] NR_IRQS: 256
+[    0.000000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041785100000 ns
+[    0.000000] clocksource: MIPS: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041786 ns
+[    0.000010] sched_clock: 32 bits at 250MHz, resolution 4ns, wraps every 8589934590ns
+[    0.045339] Console: colour dummy device 80x25
+[    0.050011] Calibrating delay loop... 332.54 BogoMIPS (lpj=665088)
+[    0.088312] pid_max: default: 32768 minimum: 301
+[    0.093776] Mount-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.101238] Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.120502] Performance counters: mips/24K PMU enabled, 2 32-bit counters available to each CPU, irq 0
+[    0.132246] Memory: 101892K/119156K available (8351K kernel code, 967K rwdata, 1428K rodata, 1916K init, 219K bss, 14328K reserved, 0K cma-reserved)
+[    0.156697] posixtimers hash table entries: 512 (order: 0, 2048 bytes, linear)
+[    0.164108] futex hash table entries: 256 (3072 bytes on 1 NUMA nodes, total 3 KiB, linear).
+[    0.181092] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.206833] fusiv-pci: starting
+[    0.241331] registering PCI controller with io_map_base unset
+[    0.263493] bringup: timer interrupts work
+[    0.272974] usbcore: registered new interface driver usbfs
+[    0.278828] usbcore: registered new interface driver hub
+[    0.284522] usbcore: registered new device driver usb
+[    0.290416] pps_core: LinuxPPS API ver. 1 registered
+[    0.295431] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.304714] PTP clock support registered
+[    0.320393] PCI host bridge to bus 0000:00
+[    0.324587] pci_bus 0000:00: root bus resource [mem 0x1a000000-0x1affffff]
+[    0.331544] pci_bus 0000:00: root bus resource [io  0x0100-0xffff]
+[    0.337797] pci_bus 0000:00: No busn resource found for root bus, will use [bus 00-ff]
+[    0.347222] pci 0000:00:01.0: configured Wi-Fi chip, ID is now 168c:0029
+[    0.354005] pci 0000:00:01.0: [168c:0029] type 00 class 0x028000 conventional PCI endpoint
+[    0.362442] pci 0000:00:01.0: BAR 0 [mem 0x00000000-0x0000ffff]
+[    0.368620] pci 0000:00:01.0: PME# supported from D0 D3hot
+[    0.377103] pci 0000:00:02.0: configured Wi-Fi chip, ID is now 168c:0029
+[    0.383922] pci 0000:00:02.0: [168c:0029] type 00 class 0x028000 conventional PCI endpoint
+[    0.392359] pci 0000:00:02.0: BAR 0 [mem 0x00000000-0x0000ffff]
+[    0.398526] pci 0000:00:02.0: PME# supported from D0 D3hot
+[    0.406307] pci_bus 0000:00: busn_res: [bus 00-ff] end is updated to 00
+[    0.413118] pci 0000:00:01.0: BAR 0 [mem 0x1a000000-0x1a00ffff]: assigned
+[    0.420029] pci 0000:00:02.0: BAR 0 [mem 0x1a010000-0x1a01ffff]: assigned
+[    0.427715] vgaarb: loaded
+[    0.431101] clocksource: Switched to clocksource MIPS
+[    0.479683] NET: Registered PF_INET protocol family
+[    0.485937] IP idents hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    0.496539] tcp_listen_portaddr_hash hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.505159] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.513058] TCP established hash table entries: 1024 (order: 0, 4096 bytes, linear)
+[    0.520844] TCP bind hash table entries: 1024 (order: 1, 8192 bytes, linear)
+[    0.528155] TCP: Hash tables configured (established 1024 bind 1024)
+[    0.535573] UDP hash table entries: 256 (order: 1, 8192 bytes, linear)
+[    0.542396] UDP-Lite hash table entries: 256 (order: 1, 8192 bytes, linear)
+[    0.550410] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.898266] PCI: CLS 0 bytes, default 32
+[    0.931422] workingset: timestamp_bits=30 max_order=15 bucket_order=0
+[    1.186361] Serial: 8250/16550 driver, 1 ports, IRQ sharing disabled
+[    1.198723] printk: legacy console [ttyS0] disabled
+[    1.206810] 190a0000.serial: ttyS0 at MMIO 0x190a0000 (irq = 29, base_baud = 10416666) is a 16450
+[    1.215946] printk: legacy console [ttyS0] enabled
+[    1.230672] physmap-flash 1f000000.flash: physmap platform flash device: [mem 0x1f000000-0x1fffffff]
+[    1.249268] 1 fixed-partitions partitions found on MTD device 1f000000.flash
+[    1.263536] Creating 1 MTD partitions on "1f000000.flash":
+[    1.274666] 0x000000000000-0x000000020000 : "urlader"
+[    1.293851] ath9k 0000:00:01.0: enabling device (0000 -> 0002)
+[    1.315617] ath: EEPROM regdomain: 0x8114
+[    1.323775] ath: EEPROM indicates we should expect a country code
+[    1.336080] ath: doing EEPROM country->regdmn map search
+[    1.346776] ath: country maps to regdmn code: 0x37
+[    1.356459] ath: Country alpha2 being used: DE
+[    1.365431] ath: Regpair used: 0x37
+[    1.398741] ieee80211 phy0: Selected rate control algorithm 'minstrel_ht'
+[    1.417110] ieee80211 phy0: Atheros AR9280 Rev:2 mem=0x(ptrval), irq=25
+[    1.431253] ath9k 0000:00:02.0: enabling device (0000 -> 0002)
+[    1.452695] ath: EEPROM regdomain: 0x8114
+[    1.460854] ath: EEPROM indicates we should expect a country code
+[    1.473145] ath: doing EEPROM country->regdmn map search
+[    1.483893] ath: country maps to regdmn code: 0x37
+[    1.493564] ath: Country alpha2 being used: DE
+[    1.502538] ath: Regpair used: 0x37
+[    1.532578] ieee80211 phy1: Selected rate control algorithm 'minstrel_ht'
+[    1.550841] ieee80211 phy1: Atheros AR9280 Rev:2 mem=0x(ptrval), irq=25
+[    1.565236] usbcore: registered new interface driver asix
+[    1.576499] usbcore: registered new interface driver ax88179_178a
+[    1.589157] usbcore: registered new interface driver cdc_ether
+[    1.601259] usbcore: registered new interface driver net1080
+[    1.613038] usbcore: registered new interface driver cdc_subset
+[    1.625338] usbcore: registered new interface driver zaurus
+[    1.637015] usbcore: registered new interface driver cdc_ncm
+[    1.648806] usbcore: registered new interface driver r8153_ecm
+[    1.663678] usbcore: registered new interface driver usbhid
+[    1.674965] usbhid: USB HID core driver
+[    1.684527] NET: Registered PF_INET6 protocol family
+[    1.711061] ehci-platform 19230000.usb: EHCI Host Controller
+[    1.722801] ehci-platform 19230000.usb: new USB bus registered, assigned bus number 1
+[    1.739314] ehci-platform 19230000.usb: irq 35, io mem 0x19230000
+[    1.752870] ohci-platform 19240800.usb: Generic Platform OHCI controller
+[    1.766678] ohci-platform 19240800.usb: new USB bus registered, assigned bus number 2
+[    1.782759] ohci-platform 19240800.usb: irq 35, io mem 0x19240800
+[    1.797236] ehci-platform 19230000.usb: USB 2.0 started, EHCI 1.00
+[    1.815297] hub 1-0:1.0: USB hub found
+[    1.823314] hub 1-0:1.0: 2 ports detected
+[    1.837573] Segment Routing with IPv6
+[    1.845782] In-situ OAM (IOAM) with IPv6
+[    1.854160] sit: IPv6, IPv4 and MPLS over IPv4 tunneling driver
+[    1.870039] NET: Registered PF_PACKET protocol family
+[    1.968813] hub 2-0:1.0: USB hub found
+[    1.976859] hub 2-0:1.0: 2 ports detected
+[    2.042337] Freeing unused kernel image (initmem) memory: 1916K
+[    2.054320] This architecture does not have kernel memory protection.
+[    2.067357] Run /init as init process
+[    2.074728]   with arguments:
+[    2.080784]     /init
+[    2.085358]   with environment:
+[    2.091759]     HOME=/
+[    2.096499]     TERM=linux
+[    2.101965]     mtdram1=0x87c5d000,0x88000000
+[    2.110799]     memsize=124
+[    2.116473]     flash_start=0x9F000000
+[    2.124049]     flash_size=16
+[    2.135773] Hello from userspace on Linux 6.18.62
+[    2.296130] FPGA: sent 169216 bytes, flags 0x0000467b -> 0x0000477b, done pin 1
+[    2.312026] --- /proc/cpuinfo
+[    2.319373] system type		: Ikanos Fusiv Vx180
+[    2.328770] machine			: AVM FRITZ!Box Fon WLAN 7390
+[    2.339249] processor		: 0
+[    2.345240] cpu model		: MIPS 24KEc V4.12
+[    2.353860] BogoMIPS		: 332.54
+[    2.360613] wait instruction	: yes
+[    2.368117] microsecond timers	: yes
+[    2.375883] tlb_entries		: 64
+[    2.382391] extra interrupt vector	: yes
+[    2.390888] hardware watchpoint	: yes, count: 4, address/irw mask: [0x0ffc, 0x0ffc, 0x0ffb, 0x0ffb]
+[    2.409659] isa			: mips1 mips2 mips32r1 mips32r2
+[    2.419729] ASEs implemented	: mips16 dsp
+[    2.428413] Options implemented	: tlb 4kex 4k_cache 32fpr prefetch mcheck ejtag llsc dc_aliases perf_cntr_intr_bit nan_legacy nan_2008 perf mm_full
+[    2.455486] shadow register sets	: 1
+[    2.463245] kscratch registers	: 0
+[    2.470682] package			: 0
+[    2.476602] core			: 0
+[    2.481894] VCED exceptions		: not available
+[    2.491198] VCEI exceptions		: not available
+[    2.500307] 
+[    2.504240] --- /proc/iomem
+[    2.510945] 00000000-05ffffff : System RAM
+[    2.519806]   00010000-0083821f : Kernel code
+[    2.529109]   00838220-00a904a7 : Kernel data
+[    2.538458]   00c70000-00ca6c3f : Kernel bss
+[    2.547629] 06800000-07c5cfff : System RAM
+[    2.556391] 190a0000-190a001f : serial
+[    2.564455] 19230000-1923005b : 19230000.usb usb@19230000
+[    2.575921] 19240800-1924085b : 19240800.usb usb@19240800
+[    2.587391] 1a000000-1affffff : FUSIV PCI MEM
+[    2.596667]   1a000000-1a00ffff : 0000:00:01.0
+[    2.606110]     1a000000-1a00ffff : ath9k
+[    2.614690]   1a010000-1a01ffff : 0000:00:02.0
+[    2.624151]     1a010000-1a01ffff : ath9k
+[    2.632762] 1f000000-1fffffff : 1f000000.flash flash@1f000000
+[    2.645396] --- /proc/bus/pci/devices
+[    2.654133] 0008	168c0029	19	        1a000000	               0	               0	               0	               0	               0	               0	           10000	               0	               0	               0	               0	               0	               0	
+[    2.654425] ath9k
+[    2.706647] 0010	168c0029	19	        1a010000	               0	               0	               0	               0	               0	               0	           10000	               0	               0	               0	               0	               0	               0	
+[    2.706936] ath9k
+[    2.759690] --- /proc/mtd
+[    2.765665] dev:    size   erasesize  name
+[    2.774420] mtd0: 00020000 01000000 "urlader"
+[    2.784298] pci bridge control 0x00000013
+[    3.367289] usb 1-2: new high-speed USB device number 2 using ehci-platform
+[    3.545314] hub 1-2:1.0: USB hub found
+[    3.562838] hub 1-2:1.0: 4 ports detected
+[    3.735383] random: crng init done
+[    3.886817] rfkill: Cannot open RFKILL control device
+[    3.955748] br0: port 1(wlan1) entered blocking state
+[    3.966066] br0: port 1(wlan1) entered disabled state
+[    3.977200] ath9k 0000:00:02.0 wlan1: entered allmulticast mode
+[    3.990512] ath9k 0000:00:02.0 wlan1: entered promiscuous mode
+[    4.004674] wlan1: interface state UNINITIALIZED->COUNTRY_UPDATE
+[    4.091651] rfkill: Cannot open RFKILL control device
+[    4.156058] br0: port 2(wlan0) entered blocking state
+[    4.166362] br0: port 2(wlan0) entered disabled state
+[    4.177551] ath9k 0000:00:01.0 wlan0: entered allmulticast mode
+[    4.190921] ath9k 0000:00:01.0 wlan0: entered promiscuous mode
+[    4.204400] wlan0: interface state UNINITIALIZED->COUNTRY_UPDATE
+[    4.339259] usb 1-2.1: new high-speed USB device number 3 using ehci-platform
+[    5.277464] ax88179_178a 1-2.1:1.0 eth0: register 'ax88179_178a' at usb-19230000.usb-2.1, ASIX AX88179 USB 3.0 Gigabit Ethernet, xx:xx:xx:xx:xx:xx
+[    5.826530] br0: port 3(eth0) entered blocking state
+[    5.836745] br0: port 3(eth0) entered disabled state
+[    5.847021] ax88179_178a 1-2.1:1.0 eth0: entered allmulticast mode
+[    5.860959] ax88179_178a 1-2.1:1.0 eth0: entered promiscuous mode
+[    5.933508] br0 has 192.168.0.250 and contains eth0
+[    5.955781] switch: chip id 0x00006850, clock gate 0x0000ffff
+[    5.979901] switch: gpio flags before release 0x477b
+[    6.195492] br0: port 2(wlan0) entered blocking state
+[    6.205792] br0: port 2(wlan0) entered forwarding state
+[    6.240285] wlan0: interface state COUNTRY_UPDATE->ENABLED
+[    6.252555] wlan0: AP-ENABLED 
+[    6.507896] switch: gpio flags after release 0xc77b
+[    6.518990] switch: mdio status 0x00000000
+[    6.528287] switch: id register 0x00001001
+[    6.537323] switch: phy 0 id 0x004d 0xd041 status 0x7949
+[    6.548795] switch: phy 1 id 0x004d 0xd041 status 0x7949
+[    6.560302] switch: phy 2 id 0x004d 0xd041 status 0x7949
+[    6.571911] switch: phy 3 id 0x004d 0xd041 status 0x7949
+[    6.583447] switch: phy 4 id 0x004d 0xd041 status 0x7949
+[    6.595994] switch: port 0 status 0x00001280
+[    6.605297] switch: port 1 status 0x00001280
+[    6.614667] switch: port 2 status 0x00001280
+[    6.624269] switch: port 3 status 0x00001280
+[    6.633685] switch: port 4 status 0x00001280
+[    6.642939] switch: port 5 status 0x00001280
+[    6.812315] speed: wifi register read 520 ns, memcpy 56 MB/s
+[    8.298108] ax88179_178a 1-2.1:1.0 eth0: ax88179 - Link status is: 1
+[    8.316697] br0: port 3(eth0) entered blocking state
+[    8.327041] br0: port 3(eth0) entered forwarding state
+[   11.226427] br0: port 1(wlan1) entered blocking state
+[   11.237014] br0: port 1(wlan1) entered forwarding state
+[   11.269645] wlan1: interface state COUNTRY_UPDATE->ENABLED
+[   11.281436] wlan1: AP-ENABLED 
+[   24.193430] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: authenticated
+[   24.208475] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: associated (aid 1)
+[   24.255595] wlan0: AP-STA-CONNECTED xx:xx:xx:xx:xx:xx
+[   24.266791] wlan0: STA xx:xx:xx:xx:xx:xx WPA: pairwise key handshake completed (RSN)
+[   24.283603] wlan0: EAPOL-4WAY-HS-COMPLETED xx:xx:xx:xx:xx:xx
+[   36.839812] tick 36 s
+[   36.910187] pci bridge control 0x00000013
+[   37.056616] cpu  423 0 458 1890 0 0 911 0 0 0
+[   37.228211] switch: links 00010
+[   67.284576] tick 67 s
+[   67.379645] pci bridge control 0x00000013
+[   67.522922] cpu  426 0 474 1892 0 0 3938 0 0 0
+[   67.730542] switch: links 00010
+[   97.822604] tick 97 s
+[   97.970108] pci bridge control 0x00000013
+[   98.127858] cpu  429 0 490 1905 0 0 6966 0 0 0
+[   98.315790] switch: links 00010
+[  128.431746] tick 128 s
+[  128.540998] pci bridge control 0x00000013
+[  128.758997] cpu  430 0 500 1924 0 0 9998 0 0 0
+[  128.985596] switch: links 00010
+[  129.161295] --- /proc/net/dev
+[  129.510136] Inter-|   Receive                                                |  Transmit
+[  129.666603]  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+[  129.920192]     lo:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  130.154233]  wlan0: 7704972  108159    0    0    0     0          0         0 419720953  290995    0    0    0     0       0          0
+[  130.499550]  wlan1:       0       0    0    0    0     0          0         0   195568    1919    0    0    0     0       0          0
+[  130.690531]   sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  130.903764]    br0:  151245    2229    0  120    0     0          0       343     1818      29    0    0    0     0       0          0
+[  131.070232]   eth0: 407788266  291141    0    0    0     0          0         0  8572290  108191    0    0    0     0       0          0
+[  131.305342] --- /proc/interrupts
+[  131.482213]            CPU0       
+[  131.679987]   7:      32653     MIPS   7  timer
+[  131.868372]  25:      20890 fusiv-ipc  25  ath9k, ath9k
+[  132.021053]  29:       4060 fusiv-ipc  29  ttyS0
+[  132.167818]  35:     195050 fusiv-ipc  35  ehci_hcd:usb1, ohci_hcd:usb2
+[  132.361933] ERR:          0
+[  149.614461] wlan0: AP-STA-DISCONNECTED xx:xx:xx:xx:xx:xx
+[  149.631505] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: disassociated
+[  150.653137] wlan0: STA xx:xx:xx:xx:xx:xx IEEE 802.11: deauthenticated due to inactivity (timer DEAUTH/REMOVE)
+[  162.471537] tick 162 s
+[  162.477551] pci bridge control 0x00000013
+[  162.487793] cpu  435 0 548 3200 0 0 12048 0 0 0
+[  162.498378] switch: links 00010
+[  192.507533] tick 192 s
+[  192.513463] pci bridge control 0x00000013
+[  192.523802] cpu  438 0 562 6150 0 0 12084 0 0 0
+[  192.534833] switch: links 00010
+[  222.543580] tick 222 s
+[  222.549855] pci bridge control 0x00000013
+[  222.560262] cpu  440 0 578 9096 0 0 12124 0 0 0
+[  222.570850] switch: links 00010
+[  222.578500] --- /proc/net/dev
+[  222.586534] Inter-|   Receive                                                |  Transmit
+[  222.604151]  face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+[  222.630911]     lo:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  222.657588]  wlan0: 9277251  131958    0    0    0     0          0         0 499842851  346644    0    0    0     0       0          0
+[  222.684058]  wlan1:       0       0    0    0    0     0          0         0   265745    2535    0    0    0     0       0          0
+[  222.709220]   sit0:       0       0    0    0    0     0          0         0        0       0    0    0    0     0       0          0
+[  222.734303]    br0:  202462    2859    0  213    0     0          0       514     2828      48    0    0    0     0       0          0
+[  222.760100]   eth0: 485411314  346725    0    0    0     0          0         0 10336201  132010    0    0    0     0       0          0
+[  222.787284] --- /proc/interrupts
+[  222.795411]            CPU0       
+[  222.802883]   7:      55469     MIPS   7  timer
+[  222.812803]  25:      35093 fusiv-ipc  25  ath9k, ath9k
+[  222.824102]  29:       4733 fusiv-ipc  29  ttyS0
+[  222.834113]  35:     230656 fusiv-ipc  35  ehci_hcd:usb1, ohci_hcd:usb2
+[  222.848252] ERR:          0
+[  222.856338] p 1d740 34
+[  222.862138] p 26d40 11
+[  222.867777] p 2bb20 9
+[  222.873351] p 2bb60 13
+[  222.878771] p 2bb80 30
+[  222.884749] p 2bbc0 8
+[  222.889965] p 2bc00 11
+[  222.895547] p 2bc60 54
+[  222.901021] p 2bd40 13
+[  222.906409] p 2bd60 10
+[  222.912026] p 2bd80 11
+[  222.917481] p 2e320 44
+[  222.922993] p 2e340 16
+[  222.928471] p 2e4c0 10
+[  222.933937] p 2e540 9
+[  222.939296] p 2e560 42
+[  222.944641] p 2e5a0 10
+[  222.950318] p 3b240 106
+[  222.955977] p 3b520 14
+[  222.961642] p 3bb60 13
+[  222.967040] p 3bb80 109
+[  222.972874] p 3bba0 102
+[  222.978432] p 3bbc0 44
+[  222.984007] p 3bbe0 97
+[  222.989927] p 57820 190
+[  222.995581] p 57bc0 14
+[  223.001805] p 6fea0 80
+[  223.008223] p a1b00 697
+[  223.014054] p befa0 16
+[  223.019564] p bf380 96
+[  223.025013] p bf3a0 34
+[  223.030341] p bf400 11
+[  223.035919] p bf7e0 10
+[  223.041329] p bf800 69
+[  223.046689] p bf820 23
+[  223.052442] p bf880 10
+[  223.057839] p bf8a0 18
+[  223.063595] p bf8c0 15
+[  223.068946] p bf8e0 26
+[  223.074509] p bf900 44
+[  223.080006] p bfa20 21
+[  223.085414] p bfa40 20
+[  223.091435] p cd740 13
+[  223.096833] p cd760 29
+[  223.102321] p cd780 17
+[  223.107980] p cd7a0 30
+[  223.113452] p cd7c0 16
+[  223.118826] p cd900 20
+[  223.125771] p 115280 8
+[  223.134002] p 1c39c0 10
+[  223.139806] p 1c6b80 47
+[  223.145387] p 1c6d80 93
+[  223.151279] p 1c6e80 15
+[  223.156844] p 1c6ea0 23
+[  223.162392] p 1c77a0 8
+[  223.168152] p 1c77e0 65
+[  223.173672] p 1c7820 24
+[  223.179475] p 1c7840 17
+[  223.185031] p 1c7860 12
+[  223.190663] p 1ca120 8
+[  223.196146] p 1ca2e0 14
+[  223.201803] p 1ca300 10
+[  223.207519] p 1ca340 10
+[  223.213114] p 1ca4e0 110
+[  223.218941] p 1ca520 9
+[  223.224460] p 1ca640 8
+[  223.229995] p 1cb060 10
+[  223.235663] p 1cbb80 13
+[  223.241312] p 1cbba0 16
+[  223.246862] p 1cbbc0 23
+[  223.252778] p 1cbbe0 21
+[  223.258643] p 1cbc00 12
+[  223.264321] p 1cbc40 11
+[  223.270122] p 1cbc60 24
+[  223.275786] p 1cbc80 17
+[  223.281487] p 1cbca0 10
+[  223.287031] p 1cda80 33
+[  223.292744] p 1cdaa0 22
+[  223.298312] p 1cdac0 12
+[  223.304059] p 1cdae0 10
+[  223.310755] p 1cdb00 11
+[  223.316767] p 1cdb20 32
+[  223.322358] p 1cdd60 20
+[  223.328076] p 1d49e0 8
+[  223.333516] p 1d4a00 15
+[  223.339223] p 1d4a80 27
+[  223.346827] p 1d4ba0 49
+[  223.352526] p 1d4c60 30
+[  223.358310] p 1d4c80 10
+[  223.382266] p 1d5320 9
+[  223.387990] p 1d6120 16
+[  223.394089] p 1d61a0 15
+[  223.402143] p 1d61e0 31
+[  223.408153] p 1d6220 13
+[  223.415496] p 1d6380 35
+[  223.421247] p 1d6f80 24
+[  223.426805] p 1d6fa0 29
+[  223.432539] p 1d7000 9
+[  223.437970] p 1d7020 9
+[  223.443460] p 1d70e0 49
+[  223.449095] p 1d7860 8
+[  223.454428] p 1d8220 15
+[  223.460352] p 1d8260 8
+[  223.467335] p 1d8300 14
+[  223.473187] p 1d8380 8
+[  223.478612] p 1d83e0 13
+[  223.484359] p 1d8400 8
+[  223.489881] p 1d9c60 22
+[  223.495584] p 1d9ca0 13
+[  223.501187] p 1dbfe0 27
+[  223.513858] p 39fe80 42
+[  223.520373] p 3c2760 10
+[  223.526085] p 3c4560 10
+[  223.533720] p 3f5fe0 53
+[  223.539715] p 3f6020 18
+[  223.545329] p 3f6060 232
+[  223.551343] p 3fb1c0 13
+[  223.556937] p 3fb1e0 26
+[  223.562694] p 3fb200 15
+[  223.568354] p 3fb360 9
+[  223.573995] p 3fb380 11
+[  223.579659] p 3fb3a0 15
+[  223.585366] p 3fb3c0 43
+[  223.590951] p 3fb3e0 26
+[  223.596699] p 3fc120 11
+[  223.602319] p 3fc140 18
+[  223.607987] p 3fc160 26
+[  223.613631] p 3fc200 12
+[  223.619616] p 3fc240 14
+[  223.625517] p 3fc280 9
+[  223.630902] p 3fc2e0 8
+[  223.636492] p 3fc320 8
+[  223.642151] p 3fc340 9
+[  223.647698] p 3fc380 19
+[  223.653318] p 3fc4e0 18
+[  223.660363] p 3fc540 8
+[  223.666030] p 3fc580 11
+[  223.671712] p 3fc5a0 9
+[  223.677349] p 3fc8c0 9
+[  223.682751] p 3fca20 9
+[  223.688331] p 3fd060 14
+[  223.693922] p 3fd080 19
+[  223.699736] p 3fd0a0 86
+[  223.705320] p 3fd340 36
+[  223.710825] p 3fd360 32
+[  223.716616] p 3fd380 52
+[  223.722235] p 3fd3a0 24
+[  223.727987] p 3fd400 41
+[  223.733593] p 3fd8a0 98
+[  223.739311] p 3fd920 20
+[  223.744829] p 3fd940 120
+[  223.750542] p 3fda20 26
+[  223.756363] p 3fda40 126
+[  223.762087] p 3fdac0 17
+[  223.768301] p 3fdc00 17
+[  223.773952] p 3fdc20 10
+[  223.779853] p 3fdc40 9
+[  223.785310] p 3fdcc0 45
+[  223.790899] p 3fdde0 29
+[  223.796570] p 3fde00 31
+[  223.802230] p 3fde40 86
+[  223.808055] p 3fdec0 22
+[  223.813625] p 3fdee0 18
+[  223.820781] p 3ff060 8
+[  223.826266] p 3ff100 9
+[  223.831961] p 3ff140 115
+[  223.837713] p 3ff380 109
+[  223.843597] p 3ff3a0 35
+[  223.849208] p 3ff3c0 10
+[  223.854794] p 3ff400 54
+[  223.860492] p 3ff500 8
+[  223.865887] p 3ff520 36
+[  223.871814] p 3ff540 9
+[  223.877162] p 3ff680 10
+[  223.882913] p 3ff6a0 46
+[  223.888642] p 3ff6c0 9
+[  223.894361] p 3ff700 18
+[  223.900077] p 3ff760 51
+[  223.906135] p 3ff780 45
+[  223.911816] p 3ff7a0 65
+[  223.917398] p 3ff7c0 79
+[  223.923612] p 3ff800 14
+[  223.929300] p 3ff820 32
+[  223.934981] p 3ff840 47
+[  223.940636] p 3ff920 27
+[  223.946311] p 3ff960 9
+[  223.951805] p 3ffd60 90
+[  223.957459] p 3ffd80 9
+[  223.962857] p 3ffdc0 8
+[  223.968347] p 3ffea0 98
+[  223.974152] p 3ffec0 36
+[  223.980129] p 400240 51
+[  223.985958] p 400260 35
+[  223.991609] p 4002a0 89
+[  223.997266] p 400440 18
+[  224.002814] p 400480 8
+[  224.008915] p 4004a0 30
+[  224.015828] p 400ac0 40
+[  224.021753] p 400ae0 49
+[  224.027452] p 400c80 15
+[  224.033187] p 400ca0 15
+[  224.038748] p 401da0 8
+[  224.044823] p 426640 11
+[  224.050544] p 426660 8
+[  224.056033] p 426680 19
+[  224.061675] p 426720 35
+[  224.067313] p 426740 23
+[  224.073134] p 426760 13
+[  224.078702] p 4267a0 10
+[  224.084617] p 426840 9
+[  224.090037] p 428cc0 37
+[  224.095689] p 428ce0 60
+[  224.101334] p 428d00 22
+[  224.106836] p 428d60 20
+[  224.112617] p 428e60 18
+[  224.118180] p 429200 13
+[  224.124018] p 436340 12
+[  224.131363] p 436380 13
+[  224.137075] p 4363a0 9
+[  224.142420] p 436540 20
+[  224.148084] p 4367a0 18
+[  224.154038] p 4367c0 17
+[  224.159725] p 436840 13
+[  224.165360] p 4369e0 8
+[  224.170718] p 4375a0 13
+[  224.176617] p 437620 22
+[  224.182214] p 437640 8
+[  224.187941] p 437660 9
+[  224.193445] p 43f5e0 9
+[  224.198820] p 43f680 25
+[  224.204613] p 43f6c0 9
+[  224.209996] p 43ff00 8
+[  224.215665] p 43ff40 9
+[  224.221350] p 440000 19
+[  224.226998] p 440040 19
+[  224.232650] p 4400a0 8
+[  224.238132] p 4400e0 28
+[  224.243878] p 444f00 59
+[  224.249429] p 444f60 85
+[  224.255233] p 446220 33
+[  224.260738] p 446720 11
+[  224.266404] p 4467c0 1315
+[  224.272436] p 446b00 35
+[  224.278449] p 4476e0 18
+[  224.284122] p 447860 21
+[  224.289906] p 4478a0 8
+[  224.295409] p 4478c0 10
+[  224.300988] p 4478e0 9
+[  224.306470] p 447900 13
+[  224.312137] p 447940 8
+[  224.317606] p 447960 27
+[  224.323350] p 447a00 10
+[  224.329002] p 447a80 1670
+[  224.334899] p 447ae0 8
+[  224.340639] p 458ae0 8
+[  224.346095] p 458c80 8
+[  224.351598] p 459060 8
+[  224.357061] p 4590a0 21
+[  224.362565] p 4592a0 80
+[  224.368313] p 4592c0 29
+[  224.373945] p 459300 30
+[  224.379885] p 45bde0 12
+[  224.386055] p 45be00 11
+[  224.391972] p 45be20 24
+[  224.397580] p 45be40 22
+[  224.403209] p 45bfc0 9
+[  224.408931] p 45c000 16
+[  224.416867] p 4dc120 11
+[  224.422607] p 4dc3e0 8
+[  224.428224] p 4dc520 9
+[  224.433667] p 4dc540 16
+[  224.439293] p 4dc7c0 48
+[  224.444962] p 4dc7e0 93
+[  224.450504] p 4dc800 91
+[  224.456254] p 4dc820 76
+[  224.461836] p 4dc840 33
+[  224.467460] p 4dc9e0 13
+[  224.473100] p 4dca80 13
+[  224.478608] p 4dd880 14
+[  224.484560] p 4dd8a0 19
+[  224.490139] p 4dd8c0 38
+[  224.496044] p 4ddb60 20
+[  224.501674] p 4ddb80 49
+[  224.507446] p 4ddba0 14
+[  224.513016] p 4ddbc0 15
+[  224.518552] p 4de500 51
+[  224.524343] p 4df540 9
+[  224.529792] p 4df560 35
+[  224.535863] p 4df5a0 10
+[  224.541508] p 4df5e0 19
+[  224.547350] p 4df600 51
+[  224.552950] p 4df640 12
+[  224.558568] p 4df660 205
+[  224.564409] p 4df680 14
+[  224.569972] p 4df6a0 18
+[  224.575764] p 4df700 15
+[  224.581334] p 4df740 13
+[  224.587263] p 4df760 25
+[  224.592842] p 4df780 17
+[  224.598622] p 4df980 14
+[  224.604527] p 4e0140 49
+[  224.610169] p 4e0460 57
+[  224.615832] p 4e0480 79
+[  224.621413] p 4e0de0 68
+[  224.627331] p 4f4c20 28
+[  224.632965] p 4f4c40 65
+[  224.638685] p 4f4c60 32
+[  224.644726] p 4f4e00 19
+[  224.650468] p 4f4e20 22
+[  224.656127] p 4f5000 8
+[  224.661875] p 4f58a0 34
+[  224.667560] p 4f5ea0 60
+[  224.673233] p 4f5ec0 22
+[  224.680100] p 4f5ee0 80
+[  224.686141] p 4f6120 32
+[  224.691832] p 4f6140 57
+[  224.697428] p 4f6f80 45
+[  224.703336] p 4f9be0 39
+[  224.708851] p 4f9c20 15
+[  224.714541] p 4ff3a0 11
+[  224.720181] p 4ff440 182
+[  224.726010] p 4ff780 9
+[  224.731480] p 4ff7a0 10
+[  224.737556] p 502fa0 14
+[  224.743302] p 502fc0 11
+[  224.748890] p 503260 8
+[  224.754397] p 503320 15
+[  224.760065] p 503340 12
+[  224.765708] p 503360 13
+[  224.771324] p 503680 19
+[  224.776968] p 5036a0 27
+[  224.782523] p 5037a0 97
+[  224.788187] p 5037c0 19
+[  224.794325] p 503880 8
+[  224.799838] p 5038a0 34
+[  224.805678] p 503ae0 8
+[  224.811216] p 503b20 11
+[  224.816853] p 503dc0 36
+[  224.822393] p 503de0 74
+[  224.828142] p 503e20 11
+[  224.833725] p 503e40 13
+[  224.839415] p 503e60 13
+[  224.845155] p 503e80 22
+[  224.850720] p 503ea0 56
+[  224.856577] p 503ec0 20
+[  224.862128] p 503ee0 34
+[  224.867897] p 503f00 26
+[  224.874579] p 503fc0 10
+[  224.880574] p 504040 8
+[  224.886027] p 504060 10
+[  224.891921] p 504080 11
+[  224.897577] p 504100 15
+[  224.903270] p 504120 12
+[  224.909079] p 504140 163
+[  224.914824] p 504160 8
+[  224.920685] p 504200 41
+[  224.926296] p 504220 40
+[  224.932461] p 504260 40
+[  224.938006] p 504280 9
+[  224.943612] p 5042a0 22
+[  224.949215] p 5042c0 29
+[  224.954880] p 504320 8
+[  224.960418] p 504340 10
+[  224.965977] p 504360 17
+[  224.971765] p 5044a0 63
+[  224.977335] p 504520 9
+[  224.982786] p 504580 9
+[  224.988280] p 5045a0 9
+[  224.993928] p 505740 78
+[  224.999604] p 505760 39
+[  225.005162] p 505780 79
+[  225.010910] p 5057a0 54
+[  225.016645] p 5057c0 99
+[  225.022322] p 5057e0 8
+[  225.029237] p 505800 13
+[  225.034880] p 505820 24
+[  225.040563] p 5058a0 26
+[  225.046462] p 5058c0 14
+[  225.052297] p 5058e0 8
+[  225.057749] p 505920 81
+[  225.063432] p 505940 17
+[  225.069011] p 505aa0 42
+[  225.074668] p 505b40 9
+[  225.080162] p 505d40 9
+[  225.085632] p 505d60 32
+[  225.091258] p 505e00 13
+[  225.097062] p 5063e0 20
+[  225.102659] p 506400 22
+[  225.108600] p 506420 22
+[  225.114163] p 5064a0 19
+[  225.119824] p 5065a0 8
+[  225.125296] p 506880 28
+[  225.130797] p 506a00 10
+[  225.136545] p 506a20 23
+[  225.142116] p 506a60 41
+[  225.147865] p 506a80 13
+[  225.153527] p 506aa0 8
+[  225.160611] p 563540 9
+[  225.166087] p 563560 56
+[  225.171752] p 563580 220
+[  225.177867] p 5635a0 31
+[  225.183550] p 5635c0 15
+[  225.189192] p 5635e0 12
+[  225.194696] p 563600 14
+[  225.200613] p 565d60 17
+[  225.206219] p 565d80 15
+[  225.212121] p 565da0 15
+[  225.217754] p 565dc0 8
+[  225.223224] p 565de0 12
+[  225.228779] p 565e00 11
+[  225.234319] p 565e20 8
+[  225.239937] p 565e60 9
+[  225.245336] p 565e80 23
+[  225.250950] p 565fc0 9
+[  225.259482] p 62e7e0 12
+[  225.266676] p 69ca00 60
+[  225.272341] p 69ca20 60
+[  225.278043] p 69ca40 59
+[  225.283711] p 69ca80 15
+[  225.289369] p 69cb40 9
+[  225.294744] p 69dfe0 29
+[  225.300662] p 69e040 21
+[  225.306526] p 69e060 12
+[  225.312242] p 69f3e0 11
+[  225.318033] p 69f400 14
+[  225.323690] p 69f600 34
+[  225.329332] p 69f640 11
+[  225.334834] p 69f660 17
+[  225.340585] p 69f8a0 85
+[  225.346154] p 69f900 8
+[  225.351745] p 69f940 42
+[  225.357314] p 69f980 8
+[  225.363268] p 6a1a40 10
+[  225.370034] p 6a1a60 9
+[  225.375774] p 6a1a80 9
+[  225.381225] p 6a1aa0 32
+[  225.386785] p 6a1ac0 16
+[  225.392532] p 6a1ae0 22
+[  225.398101] p 6a1b00 29
+[  225.404001] p 6a1b40 8
+[  225.410011] p 6a1ba0 8
+[  225.415775] p 6a1d60 102
+[  225.421572] p 6a1d80 8
+[  225.426980] p 6a1dc0 36
+[  225.433002] p 6a1e00 16
+[  225.438613] p 6a2140 31
+[  225.444778] p 6a2160 26
+[  225.450321] p 6a2180 18
+[  225.456069] p 6a21c0 9
+[  225.461477] p 6a21e0 23
+[  225.467337] p 6a2200 57
+[  225.472998] p 6a2220 13
+[  225.478563] p 6a2240 25
+[  225.484356] p 6a2260 22
+[  225.489932] p 6a22a0 21
+[  225.495720] p 6a22c0 22
+[  225.501293] p 6a22e0 9
+[  225.507619] p 6c5620 12
+[  225.513192] p 6c56a0 12
+[  225.519009] p 6c6200 78
+[  225.524657] p 6c62c0 10
+[  225.530216] p 6c6440 28
+[  225.536012] p 6c7980 11
+[  225.541577] p 6c7a40 10
+[  225.547343] p 6c7aa0 12
+[  225.552901] p 6c7ac0 15
+[  225.558782] p 6c7ae0 30
+[  225.564493] p 6c7b00 17
+[  225.570230] p 6c7b20 8
+[  225.575777] p 6c7b80 20
+[  225.581351] p 6c7bc0 11
+[  225.587001] p 6c7c00 32
+[  225.592634] p 6c7c40 22
+[  225.598309] p 6c7c80 8
+[  225.603803] p 6c7ce0 9
+[  225.609446] p 6c7e80 16
+[  225.617000] p 7456e0 37
+[  225.622871] p 745700 14
+[  225.628547] p 7457a0 11
+[  225.634196] p 7457c0 13
+[  225.639865] p 745800 18
+[  225.645443] p 745820 20
+[  225.651243] p 745840 27
+[  225.656760] p 7459c0 17
+[  225.662445] p 749260 10
+[  225.668637] p 749300 9
+[  225.674230] p 749320 10
+[  225.679960] p 74c3e0 8
+[  225.685425] p 74c400 11
+[  225.691408] p 74c420 31
+[  225.696929] p 74c4a0 30
+[  225.702639] p 74c4c0 22
+[  225.708300] p 74c500 18
+[  225.714101] p 74c560 26
+[  225.719761] p 74c580 16
+[  225.725598] p 74c5e0 12
+[  225.731320] p 7515c0 9
+[  225.736737] p 7515e0 26
+[  225.742289] p 751620 9
+[  225.747781] p 751640 8
+[  225.753254] p 751fe0 17
+[  225.758753] p 752020 14
+[  225.764542] p 752060 24
+[  225.770097] p 752140 23
+[  225.775919] p 7521a0 8
+[  225.781412] p 7521e0 16
+[  225.787224] p 752200 10
+[  225.792729] p 752320 9
+[  225.798112] p 752340 8
+[  225.804231] p 76b020 15
+[  225.809857] p 76b080 13
+[  225.817587] p 76b400 99
+[  225.823300] p 76b440 8
+[  225.829058] p 778cc0 12
+[  225.834601] p 778ee0 21
+[  225.840352] p 779380 14
+[  225.845933] p 7793a0 9
+[  225.851512] p 7793c0 10
+[  225.857089] p 7793e0 19
+[  225.862629] p 7796e0 9
+[  225.868246] p 779740 15
+[  225.873817] p 779760 16
+[  225.879661] p 779780 10
+[  225.885312] p 7797c0 17
+[  225.890956] p 7798a0 29
+[  225.897751] p 7798e0 8
+[  225.903630] p 7799a0 12
+[  225.909292] p 77b880 22
+[  225.915251] p 77b8c0 17
+[  225.921095] p 77b8e0 13
+[  225.927800] p 77b900 12
+[  225.934459] p 77bcc0 9
+[  225.939934] p 77bdc0 13
+[  225.947876] p 77be20 8
+[  225.953859] p 77be40 9
+[  225.959391] p 77c1a0 14
+[  225.964980] p 77c1c0 12
+[  225.970636] p 77c1e0 14
+[  225.976300] p 77c200 27
+[  225.981998] p 77c220 16
+[  225.987858] p 77c240 12
+[  225.993526] p 77c260 10
+[  225.999216] p 77c2e0 10
+[  226.004802] p 77c300 12
+[  226.010367] p 77c320 8
+[  226.015856] p 77c3a0 8
+[  226.021516] p 77c400 10
+[  226.027213] p 77c4a0 12
+[  226.033005] p 77c4e0 11
+[  226.038605] p 77c520 8
+[  226.044180] p 77c560 11
+[  226.049762] p 77c5a0 9
+[  226.055247] p 77c840 11
+[  226.060863] p 77ca80 11
+[  226.066397] p 77d320 10
+[  226.072450] p 77d360 21
+[  226.078034] p 77d680 11
+[  226.083804] p 77d6a0 11
+[  226.090917] p 77f5c0 12
+[  226.096626] p 77f5e0 10
+[  226.102238] p 77f600 18
+[  226.107982] p 77f640 12
+[  226.113568] p 77f6a0 13
+[  226.119241] p 77f6c0 12
+[  226.125024] p 77f6e0 25
+[  226.130599] p 77f740 11
+[  226.136526] p 77f760 15
+[  226.142057] p 77f7a0 9
+[  226.147635] p 77f860 11
+[  226.153241] p 77f8e0 13
+[  226.158833] p 77fa20 8
+[  226.164336] p 77fa60 10
+[  226.169924] p 77fc00 9
+[  226.175541] p 77fc20 13
+[  226.181116] p 77fd80 8
+[  226.186594] p 77fda0 9
+[  226.192162] p 77fdc0 16
+[  226.198037] p 77fde0 22
+[  226.203757] p 77fe00 21
+[  226.209478] p 77ffc0 18
+[  226.215477] p 77ffe0 9
+[  226.220928] p 780060 8
+[  226.227764] p 780080 8
+[  226.233480] p 780720 8
+[  226.239048] p 780740 9
+[  226.244561] p 780cc0 12
+[  226.250181] p 780d00 8
+[  226.255677] p 780f80 10
+[  226.261336] p 781080 8
+[  226.266711] p 781320 49
+[  226.273806] p 781380 19
+[  226.279449] p 7813e0 8
+[  226.284903] p 781440 19
+[  226.290598] p 781460 18
+[  226.296350] p 781500 16
+[  226.302051] p 7816c0 9
+[  226.307592] p 7817a0 39
+[  226.313243] p 7817e0 9
+[  226.320081] p 781860 11
+[  226.326173] p 781880 10
+[  226.331874] p 7818a0 8
+[  226.337504] p 7818c0 8
+[  226.342884] p 7818e0 14
+[  226.348579] p 781b40 9
+[  226.354077] p 781ba0 10
+[  226.360821] p 781c00 11
+[  226.366748] p 781d20 13
+[  226.372463] p 781d40 23
+[  226.378087] p 781da0 12
+[  226.383750] p 781de0 16
+[  226.389412] p 783420 23
+[  226.394957] p 783500 8
+[  226.400543] p 783520 22
+[  226.409232] p 783ee0 110
+[  226.416775] p 783f00 24
+[  226.422383] p 783f80 8
+[  226.428119] p 784240 45
+[  226.440508] p 784260 38
+[  226.447568] p 7842a0 25
+[  226.453273] p 7842c0 13
+[  226.459239] p 784920 31
+[  226.465078] p 784940 47
+[  226.470748] p 784960 103
+[  226.476582] p 784b00 33
+[  226.482262] p 784b20 25
+[  226.487933] p 784b60 12
+[  226.494958] p 785060 10
+[  226.500649] p 785080 25
+[  226.506376] p 7850a0 9
+[  226.511862] p 7850c0 9
+[  226.517347] p 7850e0 14
+[  226.522938] p 785120 9
+[  226.528455] p 785200 23
+[  226.536058] p 7852a0 19
+[  226.541690] p 785380 89
+[  226.547633] p 7853a0 25
+[  226.553181] p 785dc0 168
+[  226.559009] p 786ec0 56
+[  226.564645] p 786ee0 99
+[  226.570293] p 786f00 38
+[  226.577062] p 786f20 14
+[  226.583317] p 786f40 9
+[  226.588786] p 786f60 26
+[  226.594451] p 786f80 10
+[  226.600116] p 786fa0 18
+[  226.605695] p 786fc0 9
+[  226.611342] p 786fe0 12
+[  226.616911] p 787000 13
+[  226.622570] p 787380 122
+[  226.628473] p 787d80 9
+[  226.634095] p 787e00 53
+[  226.641320] p 787f20 9
+[  226.646974] p 787f80 107
+[  226.652820] p 7884e0 64
+[  226.658466] p 788500 69
+[  226.667204] p 788520 86
+[  226.672889] p 788540 29
+[  226.678461] p 7885a0 8
+[  226.684034] p 7885c0 9
+[  226.691538] p 788640 35
+[  226.697219] p 788660 53
+[  226.702756] p 788680 12
+[  226.711327] p 7887e0 109
+[  226.717166] p 788840 46
+[  226.722818] p 788860 8
+[  226.728356] p 788a60 106
+[  226.734352] p 788a80 73
+[  226.740050] p 789140 107
+[  226.745826] p 78c140 22
+[  226.751776] p 78d740 27
+[  226.757373] p 78d760 75
+[  226.763027] p 78d780 47
+[  226.768683] p 78d7a0 78
+[  226.774302] p 78d820 9
+[  226.779798] p 78d860 30
+[  226.785502] p 78d880 136
+[  226.791360] p 78d920 28
+[  226.799604] p 78d940 23
+[  226.805233] p 78e1e0 8
+[  226.810562] p 78e200 79
+[  226.816839] p 78e220 12
+[  226.823837] p 78e240 64
+[  226.829482] p 78e260 52
+[  226.835040] p 78e2a0 20
+[  226.841222] p 78e2c0 50
+[  226.846818] p 78e440 21
+[  226.852744] p 78e4a0 54
+[  226.858249] p 78e4c0 31
+[  226.863999] p 78e680 26
+[  226.869632] p 793740 11
+[  226.875426] p 7937a0 11
+[  226.880993] p 7937e0 18
+[  226.886623] p 79fea0 17
+[  226.892409] p 79fec0 18
+[  226.897965] p 79fee0 35
+[  226.903755] p 79ff00 25
+[  226.911250] p 809d60 23
+[  226.916815] p 809e20 13
+[  226.922445] p 809e40 9
+[  226.928042] p 809e60 10
+[  226.933700] p 809e80 16
+[  226.939622] p 809ea0 65
+[  226.945544] p 809ec0 30
+[  226.951230] p 809ee0 32
+[  226.957015] p 809f00 27
+[  226.962589] p 809f20 11
+[  226.968636] p 809f40 10
+[  226.974211] p 809f60 8
+[  226.980293] p 809fa0 14
+[  226.985875] p 809fc0 8
+[  226.991407] p 80a140 27
+[  226.996989] p 80a200 18
+[  227.002525] p 80a240 13
+[  227.008313] p 80a260 13
+[  227.013935] p 80a2a0 20
+[  227.019729] p 80a2c0 24
+[  227.025355] p 80a440 14
+[  227.031033] p 80a4a0 12
+[  227.036739] p 80a4c0 11
+[  227.042563] p 80b440 12
+[  227.048253] p 80b740 140
+[  227.054260] p 80b760 32
+[  227.059945] p 80b780 24
+[  227.065643] p 8198e0 117
+[  227.071538] p 819960 19
+[  227.077112] p 819980 17
+[  227.082790] p 8199a0 32
+[  227.088459] p 8199c0 28
+[  227.096218] p 8199e0 37
+[  227.101867] p 819a00 49
+[  227.109180] p 819a20 1030
+[  227.116546] p 819a40 1018
+[  227.122606] p 819a60 21
+[  227.128351] p 819a80 14
+[  227.133967] p 819aa0 119
+[  227.139843] p 819ac0 8
+[  227.145485] p 819ae0 60
+[  227.151059] p 819b00 35
+[  227.156928] p 819b60 37
+[  227.162527] p 819b80 27
+[  227.168187] p 819ba0 27
+[  227.173831] p 819bc0 29
+[  227.179432] p 819c60 14
+[  227.185095] p 819c80 28
+[  227.190660] p 819ca0 88
+[  227.196413] p 819cc0 413
+[  227.202155] p 819ce0 276
+[  227.209552] p 819d00 16
+[  227.215282] p 819d20 235
+[  227.221103] p 819d40 387
+[  227.228381] p 819d60 18
+[  227.234191] p 81b420 22709
+[  227.241542] p 81e020 13
+[  227.247669] p 81e040 12
+[  227.253320] p 81e060 12
+[  227.259295] p 81e940 145
+[  227.265303] profile: step 32, 54634 samples
+[  227.274394] Test finished, restarting
+[  227.286918] reboot: Restarting system
