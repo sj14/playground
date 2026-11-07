@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/sockios.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <signal.h>
@@ -33,7 +34,8 @@ enum {
 
 static const char AP_NETMASK[] = "255.255.255.0";
 static const char WIRED_INTERFACE[] = "eth0";
-static const char WIRED_ADDRESS[] = "192.168.0.250";
+static const char BRIDGE_INTERFACE[] = "br0";
+static const char BRIDGE_ADDRESS[] = "192.168.0.250";
 
 static int kmsg_fd = -1;
 
@@ -235,8 +237,38 @@ static void configure_address(const char *interface, const char *ip_address) {
     close(fd);
 }
 
-// Brings up the USB Ethernet adapter, which appears a few seconds after boot.
-static void configure_wired_interface(void) {
+static void set_interface_up(int fd, const char *interface) {
+    struct ifreq request;
+    char line[96];
+    memset(&request, 0, sizeof(request));
+    strncpy(request.ifr_name, interface, IFNAMSIZ - 1);
+    if (ioctl(fd, SIOCGIFFLAGS, &request) != 0) {
+        return;
+    }
+    request.ifr_flags |= IFF_UP;
+    if (ioctl(fd, SIOCSIFFLAGS, &request) != 0) {
+        snprintf(line, sizeof(line), "cannot bring up %s: %s\n", interface, strerror(errno));
+        log_line(line);
+    }
+}
+
+// Creates the bridge between the wired network and the 2.4 GHz network. hostapd
+// adds the Wi-Fi interface itself.
+static void create_bridge(void) {
+    char line[96];
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        return;
+    }
+    if (ioctl(fd, SIOCBRADDBR, BRIDGE_INTERFACE) != 0) {
+        snprintf(line, sizeof(line), "cannot create %s: %s\n", BRIDGE_INTERFACE, strerror(errno));
+        log_line(line);
+    }
+    close(fd);
+}
+
+// Adds the USB Ethernet adapter to the bridge. It appears a few seconds after boot.
+static void connect_wired_network(void) {
     struct ifreq request;
     char line[96];
 
@@ -248,7 +280,7 @@ static void configure_wired_interface(void) {
     strncpy(request.ifr_name, WIRED_INTERFACE, IFNAMSIZ - 1);
 
     int attempts = WIRED_WAIT_S;
-    while (attempts > 0 && ioctl(fd, SIOCGIFFLAGS, &request) != 0) {
+    while (attempts > 0 && ioctl(fd, SIOCGIFINDEX, &request) != 0) {
         struct timespec delay = {1, 0};
         nanosleep(&delay, NULL);
         attempts--;
@@ -258,25 +290,27 @@ static void configure_wired_interface(void) {
         close(fd);
         return;
     }
+
+    int wired_index = request.ifr_ifindex;
+    memset(&request, 0, sizeof(request));
+    strncpy(request.ifr_name, BRIDGE_INTERFACE, IFNAMSIZ - 1);
+    request.ifr_ifindex = wired_index;
+    if (ioctl(fd, SIOCBRADDIF, &request) != 0) {
+        snprintf(line, sizeof(line), "cannot add %s to %s: %s\n", WIRED_INTERFACE, BRIDGE_INTERFACE, strerror(errno));
+        log_line(line);
+    }
+
+    set_interface_up(fd, WIRED_INTERFACE);
     close(fd);
 
-    configure_address(WIRED_INTERFACE, WIRED_ADDRESS);
+    configure_address(BRIDGE_INTERFACE, BRIDGE_ADDRESS);
 
     fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (fd < 0) {
-        return;
+    if (fd >= 0) {
+        set_interface_up(fd, BRIDGE_INTERFACE);
+        close(fd);
     }
-    memset(&request, 0, sizeof(request));
-    strncpy(request.ifr_name, WIRED_INTERFACE, IFNAMSIZ - 1);
-    if (ioctl(fd, SIOCGIFFLAGS, &request) == 0) {
-        request.ifr_flags |= IFF_UP;
-        if (ioctl(fd, SIOCSIFFLAGS, &request) != 0) {
-            snprintf(line, sizeof(line), "cannot bring up %s: %s\n", WIRED_INTERFACE, strerror(errno));
-            log_line(line);
-        }
-    }
-    close(fd);
-    snprintf(line, sizeof(line), "%s configured with %s\n", WIRED_INTERFACE, WIRED_ADDRESS);
+    snprintf(line, sizeof(line), "%s has %s and contains %s\n", BRIDGE_INTERFACE, BRIDGE_ADDRESS, WIRED_INTERFACE);
     log_line(line);
 }
 
@@ -342,8 +376,8 @@ static void start_transfer_services(void) {
 }
 
 // Starts a root shell over telnet, without a password. It only listens on the
-// 2.4 GHz test network, where WPA2 with a random password protects it, and not
-// on the wired network.
+// isolated 5 GHz test network, where WPA2 with a random password protects it,
+// and not on the bridge to the home network.
 static void start_shell_service(void) {
     pid_t pid = fork();
     if (pid < 0) {
@@ -352,7 +386,7 @@ static void start_shell_service(void) {
     }
     if (pid == 0) {
         setenv("PATH", "/bin:/usr/sbin", 1);
-        execl("/bin/telnetd", "telnetd", "-F", "-b", "192.168.77.1", "-l", "/bin/sh", (char *)NULL);
+        execl("/bin/telnetd", "telnetd", "-F", "-b", "192.168.78.1", "-l", "/bin/sh", (char *)NULL);
         log_line("cannot start telnetd\n");
         _exit(1);
     }
@@ -398,12 +432,12 @@ int main(void) {
     log_file("/proc/mtd");
 
     log_bridge_state();
+    create_bridge();
     start_access_point();
-    configure_address("wlan1", "192.168.77.1");
     configure_address("wlan0", "192.168.78.1");
     start_transfer_services();
     start_shell_service();
-    configure_wired_interface();
+    connect_wired_network();
 
     long long start = uptime_seconds();
     while (uptime_seconds() - start < TEST_DURATION_S) {

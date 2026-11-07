@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable. It runs WPA2 access points on 2.4 GHz and 5 GHz, with a root shell over telnet on the 2.4 GHz test network, and it reaches the home network through a USB Ethernet adapter (`../hardware/first-usb-ethernet-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The Wi-Fi networks are not connected to the wired network yet, and the network ports are still missing. Nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and works as an access point: a laptop on the 2.4 GHz WPA2 network got an address from the home router and reached the internet through a bridge to a USB Ethernet adapter (`../hardware/first-bridged-access-point-6.18.log`). The 5 GHz network stays isolated for now and carries the root shell over telnet. PCI, read-only flash, `ath9k` and USB work. The network ports are still missing, and nothing is installed: the kernel only runs from RAM.
 
 ## Layout
 
@@ -15,7 +15,7 @@ Groundwork for milestone 1: a current kernel that boots from RAM to a first user
 | `linux/arch/mips/boot/dts/ikanos/` | device tree |
 | `linux/arch/mips/configs/fusiv_defconfig` | kernel configuration |
 | `patches/` | the few changes to existing kernel files |
-| `initramfs/init.c` | first userspace program: logs system info, starts the access points, a telnet shell and TCP test services on ports 5001 and 5002, restarts after 180 s |
+| `initramfs/init.c` | first userspace program: loads the FPGA, creates the bridge, starts the access points, a telnet shell on the isolated 5 GHz network and TCP test services, restarts after 180 s |
 | `tools/make-eva-image.py` | creates and checks images for the EVA bootloader |
 | `tools/eva-ramboot.py` | loads an image through EVA, restarts the box on failure |
 
@@ -34,6 +34,7 @@ The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross c
 - The kernel and the image build without warnings. The device tree and `/init` are in the kernel.
 - On the hardware with a laptop as client, with the test network open and without other clients: 20 of 20 pings at about 2 ms, TCP from the box at 32.8 Mbit/s and to the box at about 55 Mbit/s, at 130 Mbit/s link rate and 65 % signal. The PCI bridge stayed alive. This was one run of 12 s per direction.
 - USB Ethernet on the hardware, from a laptop on Wi-Fi through another access point: an ASIX AX88179 behind a VIA hub at 480 Mbit/s, 20 of 20 pings at about 2.8 ms, 48.6 Mbit/s from the box and about 11 Mbit/s to it, one run of 15 s per direction. The laptop's Wi-Fi may have limited both values. Telnet refused connections on this address, as intended.
+- Bridged access point on the hardware, with a laptop as the only client on 2.4 GHz: address from the home router by DHCP, 10 of 10 pings each to the router (about 4.9 ms) and to the internet (about 15 ms), and an HTTPS download at 27.9 Mbit/s, at 130 Mbit/s link rate and 69 % signal. One run of 12 s.
 - `init` runs under `qemu-mips`, with host `/proc` content, including the restart attempt at the end.
 - On the hardware: `tools/eva-ramboot.py` loaded the image over Wi-Fi from a machine in the same network, and `fusiv-ramlog` read the log under Freetz. The log shows the timer (about 250 interrupts per second) and UART interrupts through the interrupt controller. `memsize` was back to `0x08000000` after each test.
 - Not tested: Anything on the physical serial line, since no cable was connected. Whether the hardware watchdog resets the box, since no run hung.
