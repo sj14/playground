@@ -14,6 +14,7 @@
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
 #include <linux/firmware.h>
+#include <linux/fusiv_fast_forward.h>
 #include <linux/init.h>
 #include <linux/io.h>
 #include <linux/netdevice.h>
@@ -511,9 +512,12 @@ static void mac_receive_packet(struct fusiv_eth *eth, void *buffer)
 
 	skb_reserve(skb, start);
 	skb_put(skb, length);
-	skb->protocol = eth_type_trans(skb, netdev);
 	stats->rx_packets++;
 	stats->rx_bytes += length;
+	if (fusiv_fast_forward(skb, netdev))
+		return;
+
+	skb->protocol = eth_type_trans(skb, netdev);
 	/* No GRO: the box forwards, and Wi-Fi would have to split the packets again. */
 	netif_receive_skb(skb);
 	return;
@@ -690,6 +694,8 @@ static int fusiv_eth_probe(struct platform_device *pdev)
 	SET_NETDEV_DEV(netdev, &pdev->dev);
 	strscpy(netdev->name, "lan0", sizeof(netdev->name));
 	netdev->netdev_ops = &fusiv_eth_netdev_ops;
+	/* The driver never stops its queue, so a queue in front of it would stay empty. */
+	netdev->priv_flags |= IFF_NO_QUEUE;
 	eth_hw_addr_random(netdev);
 
 	eth = netdev_priv(netdev);

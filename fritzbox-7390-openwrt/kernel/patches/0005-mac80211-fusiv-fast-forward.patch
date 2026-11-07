@@ -1,0 +1,22 @@
+--- a/net/mac80211/rx.c	2026-11-06 19:17:37.000000000 +0100
++++ b/net/mac80211/rx.c	2026-11-07 21:18:32.851696676 +0100
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <linux/jiffies.h>
++#include <linux/fusiv_fast_forward.h>
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+ #include <linux/skbuff.h>
+@@ -2740,6 +2741,11 @@
+ 		}
+ 	}
+ 
++#ifdef CONFIG_FUSIV
++	if (skb && fusiv_fast_forward(skb, dev))
++		skb = NULL;
++#endif
++
+ #ifndef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 	if (skb) {
+ 		/* 'align' will only take the values 0 or 2 here since all
