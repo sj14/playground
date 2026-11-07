@@ -59,6 +59,8 @@ This is based on AVM's newest GPL package (06.86). The box runs 06.88.
 
 ### Ethernet
 
+- **Switch reached (2026-11-07):** `/init` releases the switch from reset (GPIO 15, active low) and reads it over MDIO at `0x19110080`. It reports id `0x1001`, and the PHYs report `0x004d 0xd041`. PHY 3, the one with the cable, has a link. See `hardware/first-switch-6.18.log`.
+
 - `fusiv_src/` contains only headers and Makefiles (the only `.c` file is `fusiv_srcd.c`).
 - Packets pass through a network coprocessor. Its firmware is probably `ETHAP_codeSection` (11,236 bytes) in the module, loaded via `loadAPCode` from `fusivlib_lkm`.
 - Switch access (`fusiv_mdio_read`, `fusiv_mdio_write`) is also in the closed module.

@@ -50,6 +50,19 @@ static void log_line(const char *line) {
     }
 }
 
+/* The first line of /proc/stat: CPU time spent in each state since boot. */
+static void log_cpu_usage(void) {
+    char line[256];
+    FILE *file = fopen("/proc/stat", "r");
+    if (!file) {
+        return;
+    }
+    if (fgets(line, sizeof(line), file)) {
+        log_line(line);
+    }
+    fclose(file);
+}
+
 static void log_file(const char *path) {
     char line[256];
     FILE *file = fopen(path, "r");
@@ -118,6 +131,229 @@ static void log_bridge_state(void) {
         munmap(page, PAGE_SIZE_BYTES);
     }
     close(fd);
+}
+
+// Access to the AR8316 switch through the MDIO registers of the first Ethernet
+// block. EVA has already set up this block to load images over the network.
+enum {
+    SYSTEM_PAGE = 0x19000000, CHIP_ID_OFFSET = 0x3c, CLOCK_GATE_OFFSET = 0xcc, ETHERNET_CLOCKS = 0x18,
+    ETHERNET_PAGE = 0x19110000,
+    MDIO_WRITE_DATA = 0x80, MDIO_ADDRESS = 0x84, MDIO_READ_START = 0x88, MDIO_STATUS = 0x8c, MDIO_READ_DATA = 0x90,
+    MDIO_READ_BUSY = 1, MDIO_WRITE_BUSY = 2, MDIO_POLL_LIMIT = 100000,
+    MDIO_REGISTER_BITS = 5, MDIO_FIELD_MASK = 0x1f,
+    SWITCH_PAGE_PHY = 0x18, SWITCH_REGISTER_PHY = 0x10,
+    SWITCH_ID_REGISTER = 0, SWITCH_PORT_STATUS_BASE = 0x100, SWITCH_PORT_STATUS_STEP = 0x100,
+    GPIO_FLAGS_OFFSET = 0x4, GPIO_SET_OFFSET = 0x6, SWITCH_RESET_PIN = 1 << 15, SWITCH_RESET_WAIT_NS = 500000000,
+    GPIO_REGISTERS = 0x19040000,
+    SWITCH_PORTS = 6, SWITCH_PHYS = 5,
+    PHY_STATUS = 1, PHY_ID_HIGH = 2, PHY_ID_LOW = 3, PHY_LINK_UP = 1 << 2,
+    MDIO_FAILED = -1, MDIO_NO_DEVICE = 0xffff,
+};
+
+static volatile char *ethernet_registers;
+
+static unsigned int register_at(volatile char *base, unsigned int offset) {
+    return *(volatile unsigned int *)(base + offset);
+}
+
+static void set_register_at(volatile char *base, unsigned int offset, unsigned int value) {
+    *(volatile unsigned int *)(base + offset) = value;
+}
+
+static int mdio_wait(unsigned int busy_bits) {
+    for (int attempt = 0; attempt < MDIO_POLL_LIMIT; attempt++) {
+        if ((register_at(ethernet_registers, MDIO_STATUS) & busy_bits) == 0) {
+            return 0;
+        }
+    }
+    return MDIO_FAILED;
+}
+
+static unsigned int mdio_address(unsigned int phy, unsigned int reg) {
+    return ((phy & MDIO_FIELD_MASK) << MDIO_REGISTER_BITS) | (reg & MDIO_FIELD_MASK);
+}
+
+static int mdio_read(unsigned int phy, unsigned int reg) {
+    if (mdio_wait(MDIO_READ_BUSY | MDIO_WRITE_BUSY) != 0) {
+        return MDIO_FAILED;
+    }
+    set_register_at(ethernet_registers, MDIO_ADDRESS, mdio_address(phy, reg));
+    register_at(ethernet_registers, MDIO_READ_START);
+    if (mdio_wait(MDIO_READ_BUSY) != 0) {
+        return MDIO_FAILED;
+    }
+    return register_at(ethernet_registers, MDIO_READ_DATA) & 0xffff;
+}
+
+static int mdio_write(unsigned int phy, unsigned int reg, unsigned int value) {
+    if (mdio_wait(MDIO_READ_BUSY | MDIO_WRITE_BUSY) != 0) {
+        return MDIO_FAILED;
+    }
+    set_register_at(ethernet_registers, MDIO_ADDRESS, mdio_address(phy, reg));
+    set_register_at(ethernet_registers, MDIO_WRITE_DATA, value);
+    return mdio_wait(MDIO_WRITE_BUSY);
+}
+
+// A switch register is reached by selecting its page, then two 16 bit reads.
+static long long switch_read(unsigned int address) {
+    unsigned int word_phy = SWITCH_REGISTER_PHY | ((address >> 6) & 0x7);
+    unsigned int word_reg = (address >> 1) & MDIO_FIELD_MASK;
+
+    if (mdio_write(SWITCH_PAGE_PHY, 0, (address >> 9) & 0x3ff) != 0) {
+        return MDIO_FAILED;
+    }
+    int low = mdio_read(word_phy, word_reg);
+    int high = mdio_read(word_phy, word_reg + 1);
+    if (low == MDIO_FAILED || high == MDIO_FAILED) {
+        return MDIO_FAILED;
+    }
+    return ((long long)high << 16) | low;
+}
+
+// The switch is held in reset when /init starts, and the pin is active low.
+static void release_switch_reset(int fd) {
+    enum { PAGE_SIZE_BYTES = 4096 };
+    char line[64];
+
+    volatile char *gpio = mmap(NULL, PAGE_SIZE_BYTES, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIO_REGISTERS);
+    if (gpio == MAP_FAILED) {
+        log_line("switch: cannot map the GPIO registers\n");
+        return;
+    }
+
+    snprintf(line, sizeof(line), "switch: gpio flags before release 0x%04x\n", *(volatile unsigned short *)(gpio + GPIO_FLAGS_OFFSET));
+    log_line(line);
+    *(volatile unsigned short *)(gpio + GPIO_SET_OFFSET) = SWITCH_RESET_PIN;
+
+    struct timespec delay = {0, SWITCH_RESET_WAIT_NS};
+    nanosleep(&delay, NULL);
+
+    snprintf(line, sizeof(line), "switch: gpio flags after release 0x%04x\n", *(volatile unsigned short *)(gpio + GPIO_FLAGS_OFFSET));
+    log_line(line);
+    munmap((void *)gpio, PAGE_SIZE_BYTES);
+}
+
+// Logs the switch identity. The Ethernet block stays unmapped if its clocks are
+// off, because reading a block without a clock can hang the bus.
+static void log_switch_identity(void) {
+    enum { PAGE_SIZE_BYTES = 4096 };
+    char line[128];
+
+    int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (fd < 0) {
+        log_line("switch: cannot open /dev/mem\n");
+        return;
+    }
+
+    volatile char *system_registers = mmap(NULL, PAGE_SIZE_BYTES, PROT_READ, MAP_SHARED, fd, SYSTEM_PAGE);
+    if (system_registers == MAP_FAILED) {
+        log_line("switch: cannot map the system registers\n");
+        close(fd);
+        return;
+    }
+    unsigned int clock_gate = register_at(system_registers, CLOCK_GATE_OFFSET);
+    snprintf(line, sizeof(line), "switch: chip id 0x%08x, clock gate 0x%08x\n",
+             register_at(system_registers, CHIP_ID_OFFSET), clock_gate);
+    log_line(line);
+    munmap((void *)system_registers, PAGE_SIZE_BYTES);
+    if ((clock_gate & ETHERNET_CLOCKS) != ETHERNET_CLOCKS) {
+        log_line("switch: Ethernet clocks are off, not touching the block\n");
+        close(fd);
+        return;
+    }
+
+    release_switch_reset(fd);
+
+    volatile char *registers = mmap(NULL, PAGE_SIZE_BYTES, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ETHERNET_PAGE);
+    close(fd);
+    if (registers == MAP_FAILED) {
+        log_line("switch: cannot map the Ethernet registers\n");
+        return;
+    }
+    ethernet_registers = registers;
+    snprintf(line, sizeof(line), "switch: mdio status 0x%08x\n", register_at(registers, MDIO_STATUS));
+    log_line(line);
+
+    snprintf(line, sizeof(line), "switch: id register 0x%08llx\n", switch_read(SWITCH_ID_REGISTER));
+    log_line(line);
+    for (unsigned int phy = 0; phy < SWITCH_PHYS; phy++) {
+        snprintf(line, sizeof(line), "switch: phy %u id 0x%04x 0x%04x status 0x%04x\n", phy,
+                 mdio_read(phy, PHY_ID_HIGH), mdio_read(phy, PHY_ID_LOW), mdio_read(phy, PHY_STATUS));
+        log_line(line);
+    }
+    for (unsigned int port = 0; port < SWITCH_PORTS; port++) {
+        unsigned int address = SWITCH_PORT_STATUS_BASE + port * SWITCH_PORT_STATUS_STEP;
+        snprintf(line, sizeof(line), "switch: port %u status 0x%08llx\n", port, switch_read(address));
+        log_line(line);
+    }
+}
+
+// Logs which of the switch's PHYs have a link, one digit each.
+static void log_switch_links(void) {
+    char line[64];
+    char links[SWITCH_PHYS + 1];
+
+    if (!ethernet_registers) {
+        return;
+    }
+    for (unsigned int phy = 0; phy < SWITCH_PHYS; phy++) {
+        int status = mdio_read(phy, PHY_STATUS);
+        if (status == MDIO_FAILED || status == MDIO_NO_DEVICE) {
+            links[phy] = '?';
+        } else {
+            links[phy] = (status & PHY_LINK_UP) ? '1' : '0';
+        }
+    }
+    links[SWITCH_PHYS] = '\0';
+    snprintf(line, sizeof(line), "switch: links %s\n", links);
+    log_line(line);
+}
+
+static long long nanoseconds_now(void) {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return now.tv_sec * 1000000000LL + now.tv_nsec;
+}
+
+// Logs how long the operations on the Wi-Fi data path take, to find out where
+// the CPU time per packet goes. The revision register is safe to read.
+static void log_access_speed(void) {
+    enum {
+        WIFI_PAGE = 0x1a004000, WIFI_REVISION_OFFSET = 0x20, PAGE_SIZE_BYTES = 4096,
+        REGISTER_READS = 20000, COPY_BYTES = 1 << 20, COPY_ROUNDS = 8,
+    };
+    static char copy_source[COPY_BYTES];
+    static char copy_target[COPY_BYTES];
+    char line[128];
+
+    int fd = open("/dev/mem", O_RDONLY | O_SYNC);
+    if (fd < 0) {
+        return;
+    }
+    volatile char *wifi = mmap(NULL, PAGE_SIZE_BYTES, PROT_READ, MAP_SHARED, fd, WIFI_PAGE);
+    close(fd);
+    if (wifi == MAP_FAILED) {
+        return;
+    }
+
+    long long start = nanoseconds_now();
+    for (int read_count = 0; read_count < REGISTER_READS; read_count++) {
+        register_at(wifi, WIFI_REVISION_OFFSET);
+    }
+    long long register_ns = (nanoseconds_now() - start) / REGISTER_READS;
+    munmap((void *)wifi, PAGE_SIZE_BYTES);
+
+    start = nanoseconds_now();
+    for (int round = 0; round < COPY_ROUNDS; round++) {
+        memcpy(copy_target, copy_source, COPY_BYTES);
+        // Without this barrier the compiler removes the unused copy.
+        __asm__("" : : "r"(copy_target), "r"(copy_source) : "memory");
+    }
+    long long copy_ns = nanoseconds_now() - start;
+    long long copy_mb_per_second = (long long)COPY_ROUNDS * COPY_BYTES * 1000 / copy_ns;
+
+    snprintf(line, sizeof(line), "speed: wifi register read %lld ns, memcpy %lld MB/s\n", register_ns, copy_mb_per_second);
+    log_line(line);
 }
 
 // Programs the board's Xilinx FPGA in slave serial mode, if the image contains
@@ -418,6 +654,8 @@ int main(void) {
     start_access_point();
     start_transfer_services();
     connect_wired_network();
+    log_switch_identity();
+    log_access_speed();
 
     long long start = uptime_seconds();
     while (uptime_seconds() - start < TEST_DURATION_S) {
@@ -427,6 +665,8 @@ int main(void) {
         snprintf(line, sizeof(line), "tick %lld s\n", uptime_seconds());
         log_line(line);
         log_bridge_state();
+        log_cpu_usage();
+        log_switch_links();
         if ((uptime_seconds() - start) % STATUS_INTERVAL_S < TICK_S) {
             log_file("/proc/net/dev");
             log_file("/proc/interrupts");

@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and works as an access point: a laptop on the 2.4 GHz and on the 5 GHz WPA2 network got an address from the home router and reached the internet through a bridge to a USB Ethernet adapter (`../hardware/first-bridged-access-point-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The network ports are still missing, and nothing is installed: the kernel only runs from RAM.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and works as an access point: a laptop on the 2.4 GHz and on the 5 GHz WPA2 network got an address from the home router and reached the internet through a bridge to a USB Ethernet adapter (`../hardware/first-bridged-access-point-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The network ports are still missing, and nothing is installed: the kernel only runs from RAM. The AR8316 switch answers over MDIO, but the LAN ports don't pass packets yet.
 
 ## Layout
 
