@@ -1,6 +1,6 @@
 # OpenWrt on the FRITZ!Box 7390 (hobby project)
 
-As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi network. The installed firmware is unchanged.
+As of 2026-11-08. A current kernel with OpenWrt 25.12 boots from RAM on the box and works as an access point at the speed of the AVM firmware. The installed firmware is unchanged.
 
 ## Summary
 
@@ -8,7 +8,7 @@ As of 2026-11-07. A current kernel boots from RAM on the box and opens a Wi-Fi n
 - **Realistic:** a box with Wi-Fi (`ath9k`) and USB Ethernet as the uplink.
 - **Not realistic:** official inclusion in OpenWrt as it stands, because the Ethernet driver needs proprietary firmware from AVM's modules.
 - **Open decision:** Is "Wi-Fi plus USB Ethernet, LAN ports dead for now" acceptable as the goal?
-- **Next step:** the Wi-Fi reaches the speed of the AVM firmware (80 Mbit/s, the limit of the connection), see Throughput. Next are the LAN ports at 1 Gbit/s and the other ports. The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash. Before the first flash, check that the original AVM image still boots from RAM through EVA, so that comparison runs stay possible.
+- **Next step:** install OpenWrt to flash, see Installing. The Wi-Fi reaches the speed of the AVM firmware (80 Mbit/s, the limit of the connection), see Throughput, also under OpenWrt. Open on the LAN side: the other ports and the data rate between them. The LAN port works, see the Ethernet section. Linux only runs from RAM so far, installing it would mean writing to flash. Before the first flash, check that the original AVM image still boots from RAM through EVA, so that comparison runs stay possible.
 
 ## The box
 
@@ -70,7 +70,7 @@ What helped, in order:
 | USB adapter keeps the IP header aligned (patch 0004) | 29 to 31 Mbit/s |
 | LAN port instead of the USB adapter, no GRO, no copy of received packets | 34 to 45 Mbit/s |
 | Kernel hardening and debug options off | 51 Mbit/s |
-| Packets between LAN and Wi-Fi skip the bridge (`fast_forward.c`, patch 0005) | 56-57 Mbit/s |
+| Packets between LAN and Wi-Fi skip the bridge (`net/bridge/br_fast_forward.c`, patches 0005 and 0009) | 56-57 Mbit/s |
 | Call the driver directly, flow hash from the IPv4 header | 69-73 Mbit/s |
 | ath9k doesn't schedule while its queue is full, fair queuing quantum of one Ethernet frame (patches 0007, 0008) | 76-78 Mbit/s |
 | Write-back instead of write-through cache (`cca=3`) | 80 Mbit/s with the CPU 60% busy |
@@ -120,7 +120,8 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 1. **Kernel to userspace (reached):** Linux 6.18 boots from RAM, without a serial cable. A telnet shell worked (`hardware/first-shell-6.18.log`), but was removed again when both Wi-Fi networks got connected to the home network.
 2. **Flash and Wi-Fi (mostly reached):** NOR read-only, PCI and `ath9k` work. A laptop reached the internet over WPA2 on 2.4 GHz and 5 GHz. NAND is still open.
 3. **USB Ethernet as uplink (reached):** The USB port needs the board's FPGA for power, and `/init` loads it. Wi-Fi clients reach the internet through a bridge to an AX88179 adapter (`hardware/first-bridged-access-point-6.18.log`).
-4. **Optional, LAN ports:** reverse engineering as a separate project.
+4. **LAN port (reached):** `lan0` works through the packet processors, see Ethernet.
+5. **OpenWrt (reached from RAM, 2026-11-08):** OpenWrt 25.12 with LuCI from the ImageBuilder for `ath79`, with this kernel, see `kernel/README.md`. From RAM the box came up as an access point at `192.168.0.250` after about 2 minutes, answered over SSH and LuCI, and a laptop on the 2.4 GHz network downloaded at 70-81 Mbit/s. Problems on the way: `wifi-scripts` and `iw` come only with `kmod-ath9k`, OpenWrt 25.12 switches Wi-Fi networks off in `wifi-iface` instead of `wifi-device`, and without `CONFIG_BRIDGE_VLAN_FILTERING` the kernel refuses netifd's bridge settings, so `br-lan` never appeared.
 
 The kernel work is in `kernel/`, including how to test it without a console.
 
