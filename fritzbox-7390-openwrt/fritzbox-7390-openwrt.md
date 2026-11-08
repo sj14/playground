@@ -69,11 +69,12 @@ What helped, in order:
 |---|---|
 | USB adapter keeps the IP header aligned (patch 0004) | 29 to 31 Mbit/s |
 | LAN port instead of the USB adapter, no GRO, no copy of received packets | 34 to 45 Mbit/s |
-| Kernel hardening and debug options off | 51 Mbit/s |
+| Kernel hardening and debug options off (with the write-through cache) | 51 Mbit/s |
 | Packets between LAN and Wi-Fi skip the bridge (`net/bridge/br_fast_forward.c`, patches 0005 and 0009) | 56-57 Mbit/s |
 | Call the driver directly, flow hash from the IPv4 header | 69-73 Mbit/s |
 | ath9k doesn't schedule while its queue is full, fair queuing quantum of one Ethernet frame (patches 0007, 0008) | 76-78 Mbit/s |
 | Write-back instead of write-through cache (`cca=3`) | 80 Mbit/s with the CPU 60% busy |
+| Kernel hardening back on (stack protector, zeroed stack variables, hardened slab freelists) | about 1% more CPU time, no change in speed |
 
 Tried without a measurable effect: `-Os` (slower, 50-53 Mbit/s), four OpenWrt patches for MIPS and mac80211 (cache loops, `-mtune=24kc`, `-mno-branch-likely`, airtime quantum, together about 1.5%).
 
