@@ -100,6 +100,7 @@ else
     chmod 600 "$BUILD_DIR/uci-defaults-test"
     cat >> "$TREE/initramfs.list" <<LIST
 file /etc/uci-defaults/99-fritzbox7390-test $BUILD_DIR/uci-defaults-test 600 0 0
+file /etc/board.d/01_leds $SOURCE_DIR/openwrt/files/etc/board.d/01_leds 755 0 0
 file /etc/board.d/02_network $SOURCE_DIR/openwrt/files/etc/board.d/02_network 755 0 0
 file /usr/sbin/test-diagnostics $SOURCE_DIR/openwrt/test-diagnostics 755 0 0
 LIST

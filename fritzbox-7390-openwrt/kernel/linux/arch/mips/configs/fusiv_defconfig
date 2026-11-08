@@ -39,6 +39,8 @@ CONFIG_CFG80211=y
 CONFIG_CFG80211_CERTIFICATION_ONUS=y
 # CONFIG_CFG80211_REQUIRE_SIGNED_REGDB is not set
 CONFIG_MAC80211=y
+# ath9k would drive a GPIO of the radio chip as LED, and its wiring is unknown.
+# CONFIG_MAC80211_LEDS is not set
 CONFIG_WLAN_VENDOR_ATH=y
 CONFIG_ATH9K=y
 CONFIG_ATH9K_PCI=y
@@ -58,6 +60,16 @@ CONFIG_USB_USBNET=y
 CONFIG_USB_NET_AX88179_178A=y
 CONFIG_USB_OHCI_HCD=y
 CONFIG_USB_OHCI_HCD_PLATFORM=y
+# The LEDs, which OpenWrt switches through /sys/class/leds, and the triggers
+# that LuCI offers for them.
+CONFIG_NEW_LEDS=y
+CONFIG_LEDS_CLASS=y
+CONFIG_LEDS_GPIO=y
+CONFIG_LEDS_TRIGGERS=y
+CONFIG_LEDS_TRIGGER_TIMER=y
+CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
+CONFIG_LEDS_TRIGGER_NETDEV=y
 CONFIG_BRIDGE=y
 # For OpenWrt: /tmp and /dev in RAM, firewall4, netifd's routing rules and
 # bridges. Without VLAN filtering the kernel refuses netifd's bridge settings.

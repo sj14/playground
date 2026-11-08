@@ -117,6 +117,12 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 - The register list sets the PCI ID to `168c:0029`, which `ath9k` supports. `ath9k` reads these calibration blocks through `nvmem`.
 - The partition also holds secrets such as `wlan_key` and `tr069_passphrase` in its environment, so a dump of it must not be published.
 
+### LEDs
+
+- **Switchable under OpenWrt (2026-11-08):** The LEDs are GPIOs 22 to 28, active low, as in AVM's hw156 configuration: info green 22, info red 23, power green 24, power red 25, Festnetz 26, WLAN 27, Internet 28. `kernel/linux/arch/mips/fusiv/gpio.c` drives GPIOs 16 to 31 with Linux's generic MMIO GPIO code, and the device tree lists the LEDs for `gpio-leds`. On the box, power and WLAN lit as expected, and switching both off through `uci` (as in LuCI under System, LED Configuration) left all LEDs dark.
+- **Defaults:** Power shows OpenWrt's boot state through the `led-boot`, `led-running`, `led-failsafe` and `led-upgrade` aliases, WLAN is on while the 2.4 GHz network is up (`kernel/openwrt/files/etc/board.d/01_leds`), and the others stay off.
+- **Not used:** GPIOs 0 to 15 get no driver, because `/init` drives the FPGA and the switch reset there. The buttons (DECT 29, WLAN 31) are not set up yet. `MAC80211_LEDS` is off, because ath9k would drive a GPIO of the radio chip whose wiring is unknown.
+
 ## Milestones
 
 1. **Kernel to userspace (reached):** Linux 6.18 boots from RAM, without a serial cable. A telnet shell worked (`hardware/first-shell-6.18.log`), but was removed again when both Wi-Fi networks got connected to the home network.

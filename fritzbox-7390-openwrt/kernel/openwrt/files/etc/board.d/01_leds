@@ -1,0 +1,11 @@
+# The FRITZ!Box 7390: the WLAN LED is on while the 2.4 GHz network is up, like in
+# the AVM firmware. The power LED follows OpenWrt's boot state through the
+# led-* aliases of the device tree, and the other LEDs stay off. All of them
+# can be changed or switched off under System, LED Configuration in LuCI.
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+ucidef_set_led_netdev "wlan" "WLAN" "green:wlan" "phy1-ap0" "link"
+board_config_flush
+
+exit 0

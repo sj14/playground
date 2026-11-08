@@ -1,0 +1,11 @@
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -458,6 +458,8 @@
+ 	select CEVT_R4K
+ 	select CSRC_R4K
+ 	select DMA_NONCOHERENT
++	select GPIOLIB
++	select GPIO_GENERIC
+ 	select HAVE_PCI
+ 	select IRQ_MIPS_CPU
+ 	select PCI_DRIVERS_LEGACY

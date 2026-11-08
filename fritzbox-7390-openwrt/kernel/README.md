@@ -22,6 +22,7 @@ Without the second one, `lan0` can't start and the box has no network at all, so
 | `linux/arch/mips/fusiv/irq.c` | Vx180 interrupt controller |
 | `linux/arch/mips/fusiv/bringup.c` | RAM log, LEDs, watchdog |
 | `linux/arch/mips/fusiv/eth.c` | LAN port through the packet processors |
+| `linux/arch/mips/fusiv/gpio.c` | GPIOs 16 to 31, for the LEDs |
 | `linux/net/bridge/br_fast_forward.c` | short path for IP packets between the LAN port and the radios, past the rest of the bridge |
 | `linux/arch/mips/boot/dts/ikanos/` | device tree |
 | `linux/arch/mips/configs/fusiv_defconfig` | kernel configuration |

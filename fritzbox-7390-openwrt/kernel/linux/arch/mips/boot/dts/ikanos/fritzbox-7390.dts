@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 /dts-v1/;
 
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
+
 / {
 	#address-cells = <1>;
 	#size-cells = <1>;
@@ -9,10 +12,63 @@
 
 	aliases {
 		serial0 = &uart2;
+		led-boot = &led_power;
+		led-failsafe = &led_power_red;
+		led-running = &led_power;
+		led-upgrade = &led_power_red;
 	};
 
 	chosen {
 		stdout-path = "serial0:115200n8";
+	};
+
+	/* The numbers are those of AVM's hw156 configuration minus 16. */
+	leds {
+		compatible = "gpio-leds";
+
+		led_power: led-0 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
+			default-state = "keep";
+		};
+
+		led_power_red: led-1 {
+			color = <LED_COLOR_ID_RED>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		};
+
+		led-2 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = "internet";
+			gpios = <&gpio1 12 GPIO_ACTIVE_LOW>;
+		};
+
+		/* Labelled "Festnetz" on the box. */
+		led-3 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = "phone";
+			gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;
+		};
+
+		led-4 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_WLAN;
+			gpios = <&gpio1 11 GPIO_ACTIVE_LOW>;
+		};
+
+		led-5 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = "info";
+			gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+		};
+
+		led-6 {
+			color = <LED_COLOR_ID_RED>;
+			function = "info";
+			gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;
+		};
 	};
 
 	cpuintc: interrupt-controller {
@@ -35,6 +91,17 @@
 			interrupt-controller;
 			interrupt-parent = <&cpuintc>;
 			interrupts = <2>;
+		};
+
+		/*
+		 * GPIOs 16 to 31. GPIOs 0 to 15 stay without a driver, because /init
+		 * drives the FPGA and the switch reset there through /dev/mem.
+		 */
+		gpio1: gpio@190b0000 {
+			compatible = "ikanos,vx180-gpio";
+			reg = <0x190b0000 0x8>;
+			gpio-controller;
+			#gpio-cells = <2>;
 		};
 
 		uart2: serial@190a0000 {
