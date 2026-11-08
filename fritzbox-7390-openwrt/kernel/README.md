@@ -33,6 +33,7 @@ Without the second one, `lan0` can't start and the box has no network at all, so
 | `test/` | scripts for test runs from another machine, through Freetz and EVA |
 | `tools/make-eva-image.py` | creates and checks images for the EVA bootloader |
 | `tools/eva-ramboot.py` | loads an image through EVA, restarts the box on failure |
+| `../tools/fusiv-links.c` | shows link changes of the five switch PHYs, to find which socket is which |
 
 ## Build
 
