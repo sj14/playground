@@ -8,11 +8,3 @@ for command in "ifstatus lan" "ubus call network.device status" "ip addr" "ip ro
 done
 echo "== wireless"
 uci show wireless | grep -v '\.key='
-# Whether the kernel accepts what netifd needs for the LAN bridge.
-echo "== ip link set lan0 up"
-ip link set lan0 up; echo "exit $?"
-echo "== ip link add br-test type bridge"
-ip link add br-test type bridge; echo "exit $?"
-ip link set lan0 master br-test; echo "master exit $?"
-ip -br link
-ip link del br-test

@@ -93,6 +93,8 @@ Procedure, from a machine with an address in `192.168.178.0/24` that reaches the
 
 `test/box-test.sh <image> <log>` does all of this. It needs `FREETZ_AUTH` (user:password of the Freetz web interface), `BOX_BSSID_PREFIX` (the start of the box's own BSSIDs, because the machine must not reach the network through them) and `RAMLOG_TOOL` (`../tools/fusiv-ramlog.c` built for the box). `test/cpu-cost.sh <log>` then prints how much data the LAN port received per second of softirq time, which varies less between runs than a single download. `test/flash-backup.sh` copies a flash partition under Freetz, read only.
 
+`test/openwrt-test.sh <image> <SSH key> <prefix>` does the same for an OpenWrt test image: it waits for SSH at `192.168.0.250`, saves the output of `test-diagnostics` and the logs, and restarts the box into Freetz. If SSH never answers, the image restarts by itself after `TEST_DURATION_S`, and the RAM log then holds OpenWrt's log and the state report, readable with `test/read-ramlog.sh`.
+
 ## Testing with a console (not done yet)
 
 Requires the serial console. The kernel itself is only loaded into RAM, but `eva_ramboot.py` also runs `SETENV memsize` and `SETENV kernel_args_tmp`. Whether those values persist in the flash environment is unconfirmed, so compare `memsize` with the backup afterwards (normally `0x08000000`).
