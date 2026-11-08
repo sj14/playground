@@ -122,7 +122,7 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 
 - **Switchable under OpenWrt (2026-11-08):** The LEDs are GPIOs 22 to 28, active low, as in AVM's hw156 configuration: info green 22, info red 23, power green 24, power red 25, Festnetz 26, WLAN 27, Internet 28. `kernel/linux/arch/mips/fusiv/gpio.c` drives GPIOs 16 to 31 with Linux's generic MMIO GPIO code, and the device tree lists the LEDs for `gpio-leds`. On the box, power and WLAN lit as expected, and switching both off through `uci` (as in LuCI under System, LED Configuration) left all LEDs dark.
 - **Defaults:** Power shows OpenWrt's boot state through the `led-boot`, `led-running`, `led-failsafe` and `led-upgrade` aliases, WLAN is on while the 2.4 GHz network is up (`kernel/openwrt/files/etc/board.d/01_leds`), and the others stay off.
-- **Not used:** GPIOs 0 to 15 get no driver, because `/init` drives the FPGA and the switch reset there. The buttons (DECT 29, WLAN 31) are not set up yet. `MAC80211_LEDS` is off, because ath9k would drive a GPIO of the radio chip whose wiring is unknown.
+- **Not used:** GPIOs 0 to 15 get no driver, because `/init` drives the FPGA and the switch reset there. The buttons (DECT 29, WLAN 31) are not set up yet. ath9k selects `MAC80211_LEDS` as soon as `LEDS_CLASS` is on, so it adds `ath9k-phy0` and `ath9k-phy1` and drives GPIO 1 of each radio chip (`ATH_LED_PIN_DEF`) as LED. Its wiring on the 7390 is unknown, and nothing visible changed when it was on.
 
 ## Milestones
 
