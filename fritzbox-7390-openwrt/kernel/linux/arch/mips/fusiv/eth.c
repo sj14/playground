@@ -144,6 +144,7 @@ struct fusiv_eth {
 	bool receiving;
 	struct ap_memory mac_config;
 	unsigned int quota_requests;
+	unsigned long logged_losses;
 	bool started;
 };
 
@@ -457,10 +458,17 @@ static void buffer_service_tick(struct timer_list *timer)
 	mod_timer(&eth->buffer_service, jiffies + BUFFER_SERVICE_INTERVAL);
 }
 
+/* Logs the state of the processors, but only when packets were lost. */
 static void monitor_tick(struct timer_list *timer)
 {
 	struct fusiv_eth *eth = timer_container_of(eth, timer, monitor);
 	struct net_device_stats *stats = &eth->netdev->stats;
+	unsigned long losses = stats->rx_dropped + stats->rx_errors + stats->tx_dropped;
+
+	mod_timer(&eth->monitor, jiffies + MONITOR_INTERVAL);
+	if (losses == eth->logged_losses)
+		return;
+	eth->logged_losses = losses;
 
 	netdev_info(eth->netdev, "rx %lu drop %lu tx %lu drop %lu, %u buffers given, %u quota requests, control 0x%04x status 0x%04x\n",
 		    stats->rx_packets, stats->rx_dropped, stats->tx_packets, stats->tx_dropped,
@@ -471,7 +479,6 @@ static void monitor_tick(struct timer_list *timer)
 		    __raw_readl(eth->mac_registers + MAC_RX_BYTES),
 		    __raw_readl(eth->mac_registers + MAC_TX_FRAMES),
 		    __raw_readl(eth->mac_registers + MAC_TX_BYTES));
-	mod_timer(&eth->monitor, jiffies + MONITOR_INTERVAL);
 }
 
 /*
