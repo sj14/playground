@@ -151,6 +151,12 @@ Rescue paths after an install:
 
 An installed image needs `TEST_DURATION_S=0`, otherwise `/init` restarts the box after each test period.
 
+Planned layout of an installed OpenWrt, not built yet:
+
+1. The EVA image of the kernel without the OpenWrt files at the start of `mtd1`, in a fixed partition of 4 MB, followed by the OpenWrt root file system as squashfs. The kernel needs the block layer, `mtdblock`, squashfs and overlayfs for that.
+2. Linux keeps the flash read only at first (`mtd-rom`), so settings live in RAM and every start begins with the defaults of the image. So the box can't damage its own flash. A writable `rootfs_data` partition with jffs2, and with it saved settings and `sysupgrade`, needs a flash driver that can write (CFI) and comes as a second step.
+3. Before the first flash, the same image can be tested from RAM: EVA passes the uploaded area as `mtdram1=start,end`, and if the kernel registers that area as an MTD device with the same partitions, the complete flash image boots from RAM, the same way the AVM firmware uses `kernel_ram` and `rootfs_ram`.
+
 ## Serial console
 
 So far there is **no confirmed pinout** and no verified photo for the 7390. The pins have to be measured, because the order differs between models.
