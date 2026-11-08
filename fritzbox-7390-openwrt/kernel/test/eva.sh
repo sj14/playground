@@ -18,6 +18,11 @@ eva_load() {
     local work=$2
     local loader attempt second
 
+    if ! command -v python3 > /dev/null; then
+        echo "python3 is missing, run the test scripts inside nix-shell"
+        return 2
+    fi
+
     # Freetz ignores a restart during its first seconds.
     echo 'cut -d. -f1 /proc/uptime' > "$work/uptime.sh"
     until [ "$(freetz_run "$work/uptime.sh" | head -1)" -ge 90 ] 2> /dev/null; do
