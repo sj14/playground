@@ -1,0 +1,15 @@
+# The FRITZ!Box 7390: the LAN port driver (lan0) joins the bridge of the LAN, with
+# the LAN address from the bootloader's environment ("maca" in urlader).
+. /lib/functions/uci-defaults.sh
+. /lib/functions/system.sh
+
+board_config_update
+ucidef_set_interface_lan "lan0"
+
+urlader="/dev/mtd$(find_mtd_index urlader)"
+lan_mac=$(tr '\000' '\n' < "$urlader" | sed -n '/^maca$/{n;p;q}')
+[ -n "$lan_mac" ] && ucidef_set_interface_macaddr "lan" "$(macaddr_canonicalize "$lan_mac")"
+
+board_config_flush
+
+exit 0

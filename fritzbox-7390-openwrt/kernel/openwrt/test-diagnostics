@@ -1,0 +1,18 @@
+#!/bin/sh
+# Prints the state of a test image. /init runs it before the test image restarts
+# and puts the output into the RAM log. Wi-Fi keys are left out.
+for command in "ifstatus lan" "ubus call network.device status" "ip addr" "ip route" \
+    "iw dev" "wifi status" "cat /etc/config/network" "ps w"; do
+    echo "== $command"
+    $command 2>&1 | grep -v -i '"key"\|\.key='
+done
+echo "== wireless"
+uci show wireless | grep -v '\.key='
+# Whether the kernel accepts what netifd needs for the LAN bridge.
+echo "== ip link set lan0 up"
+ip link set lan0 up; echo "exit $?"
+echo "== ip link add br-test type bridge"
+ip link add br-test type bridge; echo "exit $?"
+ip link set lan0 master br-test; echo "master exit $?"
+ip -br link
+ip link del br-test

@@ -1,0 +1,45 @@
+# Settings for the test image, applied once at the first start. The box joins the
+# home network as an access point: a fixed address, no DHCP server of its own.
+# build.sh fills in the passwords, which stay out of the repository.
+
+uci batch <<SETTINGS
+set network.lan.proto='static'
+set network.lan.ipaddr='192.168.0.250'
+set network.lan.netmask='255.255.255.0'
+set network.lan.gateway='192.168.0.1'
+add_list network.lan.dns='192.168.0.1'
+set dhcp.lan.ignore='1'
+set dhcp.lan.dhcpv6='disabled'
+set dhcp.lan.ra='disabled'
+# /init copies this file to the kernel log before the test image restarts.
+set system.@system[0].log_file='/tmp/openwrt.log'
+SETTINGS
+
+for radio in $(uci show wireless | sed -n "s/^wireless\.\([^.]*\)=wifi-device$/\1/p"); do
+    band=$(uci -q get wireless.$radio.band)
+    interface=$(uci show wireless | sed -n "s/^wireless\.\([^.]*\)\.device='$radio'$/\1/p" | head -1)
+    case "$band" in
+        2g) ssid=fritzbox7390-test-2ghz; htmode=HT40 ;;
+        *) ssid=fritzbox7390-test-5ghz; htmode=HT20 ;;
+    esac
+    uci batch <<SETTINGS
+set wireless.$radio.disabled='0'
+set wireless.$radio.country='DE'
+set wireless.$radio.htmode='$htmode'
+set wireless.$interface.disabled='0'
+set wireless.$interface.ssid='$ssid'
+set wireless.$interface.encryption='psk2'
+set wireless.$interface.key='@WIFI_PASSWORD@'
+set wireless.$interface.network='lan'
+SETTINGS
+done
+uci commit
+
+printf '%s\n%s\n' '@ROOT_PASSWORD@' '@ROOT_PASSWORD@' | passwd root > /dev/null
+
+# For the log of a test run. This runs before OpenWrt's log service, so it goes
+# to the kernel log directly.
+{ cat /etc/board.json; uci show network; } | while read -r line; do
+    echo "test image: $line" > /dev/kmsg
+done
+exit 0

@@ -22,10 +22,14 @@ Without the second one, `lan0` can't start and the box has no wired network.
 | `linux/arch/mips/fusiv/irq.c` | Vx180 interrupt controller |
 | `linux/arch/mips/fusiv/bringup.c` | RAM log, LEDs, watchdog |
 | `linux/arch/mips/fusiv/eth.c` | LAN port through the packet processors |
+| `linux/net/bridge/br_fast_forward.c` | short path for IP packets between the LAN port and the radios, past the rest of the bridge |
 | `linux/arch/mips/boot/dts/ikanos/` | device tree |
 | `linux/arch/mips/configs/fusiv_defconfig` | kernel configuration |
 | `patches/` | the few changes to existing kernel files |
-| `initramfs/init.c` | first userspace program: loads the FPGA, creates the bridge, starts the access points and TCP test services, restarts after 180 s |
+| `initramfs/init.c` | first userspace program of a test image: creates the bridge, starts the access points and TCP test services, restarts after 180 s |
+| `initramfs/openwrt-init.c` | first userspace program of an OpenWrt image: prepares the hardware and starts OpenWrt's init |
+| `initramfs/board.c` | shared by both: loads the FPGA, sets up the switch over MDIO, logs to the kernel log |
+| `openwrt/` | settings and files for the OpenWrt image |
 | `tools/make-eva-image.py` | creates and checks images for the EVA bootloader |
 | `tools/eva-ramboot.py` | loads an image through EVA, restarts the box on failure |
 
@@ -37,6 +41,22 @@ nix-shell --run ./build.sh
 ```
 
 The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross compiler, which can take a long time. The password of the test networks is in `build/wifi-password`. The build generates it, because these networks are connected to the home network. Keep it out of the repository.
+
+Nothing marks the cross compiler as in use, so a garbage collection of the Nix store removes it, and the next build compiles it again. Keeping the build inputs as a garbage collection root avoids that:
+
+```bash
+nix-build shell.nix -A inputDerivation -o build/shell-inputs
+```
+
+## OpenWrt image
+
+With `OPENWRT_ROOTFS`, the image contains an OpenWrt root file system instead of the test programs, and `/init` only loads the FPGA and sets up the switch before it starts OpenWrt's init. The root file system comes from the OpenWrt ImageBuilder for `ath79/generic`, whose packages are built for the same CPU (`mips_24kc`, big endian). The kernel stays this one, with everything built in, so OpenWrt's kernel modules are not used.
+
+1. Download the ImageBuilder of an OpenWrt release for `ath79/generic` and check it against the release's `sha256sums`.
+2. Build an image there, for example `make image PROFILE=tplink_tl-wdr4300-v1 PACKAGES="luci wifi-scripts iw iwinfo -procd-ujail -ppp -ppp-mod-pppoe -kmod-ath9k -kmod-gpio-button-hotplug -swconfig -uboot-envtools -kmod-usb2 -kmod-usb-ledtrig-usbport"`. `wifi-scripts` and `iw` are listed on their own, because they come otherwise with `kmod-ath9k`. The profile doesn't matter, only its root directory is used: `build_dir/target-mips_24kc_musl/root-ath79`. Copy it, because the next ImageBuilder run replaces it.
+3. Run `OPENWRT_ROOTFS=<copy> SSH_PUBLIC_KEY=<public key> ./build.sh` with the other variables as for a test image. A key of its own for the test box, without a passphrase, works for unattended tests: `ssh-keygen -t ed25519 -N "" -f build/test-ssh-key`.
+
+`openwrt/uci-defaults-test` sets up the image as an access point in the home network on its first start: the LAN at `192.168.0.250` without a DHCP server of its own, both radios on with the test networks' password. The root password is random as well, in `build/root-password`, and `SSH_PUBLIC_KEY` names a key for SSH. `openwrt/files/etc/board.d/02_network` puts `lan0` into the LAN bridge and takes its address from `maca` in the bootloader environment.
 
 ## What was tested
 
