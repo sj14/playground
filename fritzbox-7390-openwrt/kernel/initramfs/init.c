@@ -218,8 +218,8 @@ static void set_interface_up(int fd, const char *interface) {
     }
 }
 
-// Creates the bridge between the wired network and the 2.4 GHz network. hostapd
-// adds the Wi-Fi interface itself.
+// Creates the bridge between the wired network and both Wi-Fi networks. hostapd
+// adds the Wi-Fi interfaces itself.
 static void create_bridge(void) {
     char line[96];
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -233,7 +233,7 @@ static void create_bridge(void) {
     close(fd);
 }
 
-// Adds the USB Ethernet adapter to the bridge. It appears a few seconds after boot.
+// Adds the LAN port to the bridge, waiting for its interface if it is not there yet.
 static void connect_wired_network(void) {
     struct ifreq request;
     char line[96];
@@ -252,7 +252,7 @@ static void connect_wired_network(void) {
         attempts--;
     }
     if (attempts == 0) {
-        log_line("no USB Ethernet interface appeared\n");
+        log_line("no wired interface appeared\n");
         close(fd);
         return;
     }
