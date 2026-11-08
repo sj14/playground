@@ -28,7 +28,7 @@ set wireless.$radio.country='DE'
 set wireless.$radio.htmode='$htmode'
 set wireless.$interface.disabled='0'
 set wireless.$interface.ssid='$ssid'
-set wireless.$interface.encryption='psk2'
+set wireless.$interface.encryption='sae-mixed'
 set wireless.$interface.key='@WIFI_PASSWORD@'
 set wireless.$interface.network='lan'
 SETTINGS

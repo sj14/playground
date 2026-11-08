@@ -116,6 +116,7 @@ Calibration data, found read-only in the `urlader` partition (`mtd2`):
 - The MAC addresses in the blocks match the `macwlan` and `macwlan2` environment values and the running interfaces.
 - The register list sets the PCI ID to `168c:0029`, which `ath9k` supports. `ath9k` reads these calibration blocks through `nvmem`.
 - The partition also holds secrets such as `wlan_key` and `tr069_passphrase` in its environment, so a dump of it must not be published.
+- **WPA3 (2026-11-08):** Under OpenWrt with `encryption=sae-mixed` (WPA2/WPA3), a laptop connected to both bands once with SAE only and once with PSK only, and reached the home router each time. hostapd logged `auth_alg=sae` and `auth_alg=open`. The image uses `wpad-basic-mbedtls`, and the kernel has the AES-CMAC that the required management frame protection needs. The test image now uses `sae-mixed`.
 
 ### LEDs
 
