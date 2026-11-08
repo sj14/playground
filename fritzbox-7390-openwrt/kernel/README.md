@@ -30,6 +30,7 @@ Without the second one, `lan0` can't start and the box has no wired network.
 | `initramfs/openwrt-init.c` | first userspace program of an OpenWrt image: prepares the hardware and starts OpenWrt's init |
 | `initramfs/board.c` | shared by both: loads the FPGA, sets up the switch over MDIO, logs to the kernel log |
 | `openwrt/` | settings and files for the OpenWrt image |
+| `test/` | scripts for test runs from another machine, through Freetz and EVA |
 | `tools/make-eva-image.py` | creates and checks images for the EVA bootloader |
 | `tools/eva-ramboot.py` | loads an image through EVA, restarts the box on failure |
 
@@ -89,6 +90,8 @@ Procedure, from a machine with an address in `192.168.178.0/24` that reaches the
 5. Compare `memsize` in `/proc/sys/urlader/environment` with `0x08000000`.
 
 `tools/eva-ramboot.py 192.168.178.1 reboot` leaves EVA if the box stays there.
+
+`test/box-test.sh <image> <log>` does all of this. It needs `FREETZ_AUTH` (user:password of the Freetz web interface), `BOX_BSSID_PREFIX` (the start of the box's own BSSIDs, because the machine must not reach the network through them) and `RAMLOG_TOOL` (`../tools/fusiv-ramlog.c` built for the box). `test/cpu-cost.sh <log>` then prints how much data the LAN port received per second of softirq time, which varies less between runs than a single download. `test/flash-backup.sh` copies a flash partition under Freetz, read only.
 
 ## Testing with a console (not done yet)
 

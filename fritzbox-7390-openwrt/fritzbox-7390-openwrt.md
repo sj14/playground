@@ -138,7 +138,7 @@ EVA boots from the area it calls `mtd1` (`0x9F020000`-`0x9FF00000`, 14.875 MB). 
 
 Before the first flash:
 
-1. Back up the area under the current firmware, read only, from `/dev/mtd1ro` and `/dev/mtd0ro` in that order, and compare the MD5 sums with the box. The Freetz shell cuts its output after 64,000 bytes, so the copy goes in 32 KiB pieces. `/dev/mtdblock1` is not suitable, because its size is not a multiple of 512 bytes and the block device drops the last 256 bytes.
+1. Back up the area under the current firmware, read only, from `/dev/mtd1ro` and `/dev/mtd0ro` in that order, and compare the MD5 sums with the box. `kernel/test/flash-backup.sh` does this: the Freetz shell cuts its output after 64,000 bytes, so the copy goes in 32 KiB pieces. `/dev/mtdblock1` is not suitable, because its size is not a multiple of 512 bytes and the block device drops the last 256 bytes.
 2. Load the backup into RAM through EVA, like a test kernel (`kernel/tools/eva-ramboot.py`). This was done on 2026-11-07: Freetz came up from RAM with `mtdram1=0x87120000,0x88000000`, and `/proc/mtd` showed `kernel_ram` and `rootfs_ram`. So the AVM firmware can still be started for comparison runs after an install, and the backup is known to boot.
 
 Rescue paths after an install:
