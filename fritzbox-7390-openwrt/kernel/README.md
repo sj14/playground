@@ -2,7 +2,7 @@
 
 Groundwork for milestone 1: a current kernel that boots from RAM to a first userspace program on the serial console.
 
-**Status:** The kernel boots from RAM on a real box, without a serial cable, and works as an access point: a laptop on the 2.4 GHz and on the 5 GHz WPA2 network got an address from the home router and reached the internet through a bridge to a USB Ethernet adapter (`../hardware/first-bridged-access-point-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The network ports are still missing, and nothing is installed: the kernel only runs from RAM. The bridge now reaches the home network through the LAN port instead of the USB adapter.
+**Status:** The kernel boots from RAM on a real box, without a serial cable, and works as an access point: a laptop on the 2.4 GHz and on the 5 GHz WPA2 network got an address from the home router and reached the internet through a bridge to a USB Ethernet adapter (`../hardware/first-bridged-access-point-6.18.log`). PCI, read-only flash, `ath9k` and USB work. The bridge now reaches the home network through the LAN port instead of the USB adapter, and OpenWrt runs on this kernel. Nothing is installed yet: the kernel only runs from RAM.
 
 ## Firmware
 
@@ -11,7 +11,7 @@ The image needs two files from your own box, which must not be published:
 - `BITFILE`: the FPGA bitstream, which powers the USB port.
 - `AP_FIRMWARE_DIR`: `fusiv-bmu.bin` and `fusiv-eth.bin`, written by `../tools/extract-ap-firmware.py` from `fusivlib_lkm.ko` (prefix `BMUAP`) and `ethdriver_lkm.ko` (prefix `ETHAP`).
 
-Without the second one, `lan0` can't start and the box has no wired network.
+Without the second one, `lan0` can't start and the box has no network at all, so `build.sh` stops without it.
 
 ## Layout
 
@@ -38,7 +38,7 @@ Without the second one, `lan0` can't start and the box has no wired network.
 
 ```bash
 cd kernel
-nix-shell --run ./build.sh
+AP_FIRMWARE_DIR=/path/to/ap-firmware BITFILE=/path/to/bitfile.bit nix-shell --run ./build.sh
 ```
 
 The result is `build/fritzbox-7390.eva`. The first run compiles the MIPS cross compiler, which can take a long time. The password of the test networks is in `build/wifi-password`. The build generates it, because these networks are connected to the home network. Keep it out of the repository.
@@ -142,7 +142,7 @@ The USB port only gets power after the board's Xilinx FPGA (Spartan XC3S250E) is
 `/init` programs the FPGA in slave serial mode through GPIOs (`PROG` 14, `CLK` 11, `DATA` 12, `DONE` 8). The bitstream belongs to AVM and is not in this repository. Copy `/lib/modules/bitfile.bit` from your own box and pass its path when building:
 
 ```bash
-BITFILE=/path/to/bitfile.bit nix-shell --run ./build.sh
+AP_FIRMWARE_DIR=/path/to/ap-firmware BITFILE=/path/to/bitfile.bit nix-shell --run ./build.sh
 ```
 
 Without `BITFILE` the image builds and runs as before, but USB has no power.

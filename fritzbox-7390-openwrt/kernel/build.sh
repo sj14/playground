@@ -12,6 +12,9 @@ BUILD_DIR=${BUILD_DIR:-$SOURCE_DIR/build}
 TARBALL=$BUILD_DIR/linux-$KERNEL_VERSION.tar.xz
 TREE=$BUILD_DIR/linux-$KERNEL_VERSION-fusiv
 MAKE_ARGS=(ARCH=mips "CROSS_COMPILE=${CROSS_COMPILE:-mips-unknown-linux-musl-}" -j"$(nproc)")
+# Without the firmware of the packet processors lan0 can not start, and the box
+# has no network at all. See "Firmware" in the README.
+: "${AP_FIRMWARE_DIR:?set AP_FIRMWARE_DIR to the directory with fusiv-bmu.bin and fusiv-eth.bin}"
 
 mkdir -p "$BUILD_DIR"
 
@@ -113,10 +116,8 @@ fi
 
 # The firmware of the packet processors belongs to Ikanos and stays out of the
 # repository too. tools/extract-ap-firmware.py writes it from AVM's modules.
-if [ -n "${AP_FIRMWARE_DIR:-}" ]; then
-    echo "file /lib/firmware/fusiv-bmu.bin $AP_FIRMWARE_DIR/fusiv-bmu.bin 600 0 0" >> "$TREE/initramfs.list"
-    echo "file /lib/firmware/fusiv-eth.bin $AP_FIRMWARE_DIR/fusiv-eth.bin 600 0 0" >> "$TREE/initramfs.list"
-fi
+echo "file /lib/firmware/fusiv-bmu.bin $AP_FIRMWARE_DIR/fusiv-bmu.bin 600 0 0" >> "$TREE/initramfs.list"
+echo "file /lib/firmware/fusiv-eth.bin $AP_FIRMWARE_DIR/fusiv-eth.bin 600 0 0" >> "$TREE/initramfs.list"
 
 make -C "$TREE" "${MAKE_ARGS[@]}" fusiv_defconfig
 if [ -n "${OPENWRT_ROOTFS:-}" ]; then
