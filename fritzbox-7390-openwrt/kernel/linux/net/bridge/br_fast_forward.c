@@ -11,16 +11,22 @@
  * Everything else takes the normal path through the bridge: packets other than
  * IP, such as ARP and EAPOL, multicast, and addresses that were not seen lately.
  * So an address that moves to another interface or goes away only costs the
- * normal path. Filters on the bridge don't see the packets sent from here.
+ * normal path. Packets only take the short path between two forwarding ports of
+ * the same bridge, so separate bridges such as a guest network, isolated ports
+ * and VLAN filtering keep working. Filters on the bridge don't see the packets
+ * sent from here.
  *
  * The table is only used from softirq context on this single CPU, so it needs no
- * lock.
+ * lock. It lives with the bridge, because it reads the bridge's port state under
+ * RCU like the bridge itself.
  */
 
 #include <linux/etherdevice.h>
 #include <linux/fusiv_fast_forward.h>
 #include <linux/if_ether.h>
 #include <linux/rcupdate.h>
+
+#include "br_private.h"
 
 #define KNOWN_ADDRESS_SLOTS	64
 #define KNOWN_ADDRESS_LIFETIME	(5 * HZ)
@@ -50,6 +56,21 @@ static void learn_address(const u8 *address, const struct net_device *dev)
 	known->last_seen = jiffies;
 }
 
+static bool port_forwards(const struct net_bridge_port *port)
+{
+	return port->state == BR_STATE_FORWARDING && !(port->flags & BR_ISOLATED);
+}
+
+/* The bridge would pass this packet on without looking at more than its address. */
+static bool bridge_would_forward(const struct net_device *from, const struct net_device *to)
+{
+	const struct net_bridge_port *in = br_port_get_check_rcu(from);
+	const struct net_bridge_port *out = br_port_get_check_rcu(to);
+
+	return in && out && in->br == out->br && !br_opt_get(in->br, BROPT_VLAN_ENABLED) &&
+	       port_forwards(in) && port_forwards(out);
+}
+
 static struct net_device *find_destination(const u8 *address, const struct net_device *from)
 {
 	const struct known_address *known = known_address_slot(address);
@@ -60,7 +81,7 @@ static struct net_device *find_destination(const u8 *address, const struct net_d
 		return NULL;
 
 	to = dev_get_by_index_rcu(dev_net(from), known->ifindex);
-	if (!to || !netif_running(to) || !(to->priv_flags & IFF_BRIDGE_PORT))
+	if (!to || !netif_running(to) || !bridge_would_forward(from, to))
 		return NULL;
 	return to;
 }

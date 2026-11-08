@@ -1,0 +1,12 @@
+--- a/net/bridge/Makefile	2026-11-06 19:17:37.000000000 +0100
++++ b/net/bridge/Makefile	2026-11-08 02:38:03.787051746 +0100
+@@ -12,6 +12,9 @@
+ 
+ bridge-$(CONFIG_SYSFS) += br_sysfs_if.o br_sysfs_br.o
+ 
++# The short path of the FRITZ!Box 7390 between its LAN port and the radios.
++bridge-$(CONFIG_FUSIV) += br_fast_forward.o
++
+ bridge-$(subst m,y,$(CONFIG_BRIDGE_NETFILTER)) += br_nf_core.o
+ 
+ br_netfilter-y := br_netfilter_hooks.o
