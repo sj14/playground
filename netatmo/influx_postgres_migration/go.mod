@@ -3,7 +3,8 @@ module migrate
 go 1.25.0
 
 require (
-	github.com/jackc/pgx/v4 v4.18.2
+	github.com/jackc/pgx/v4 v4.12.1-0.20210724153913-640aa07df17c
+	github.com/jackc/pgx/v5 v5.0.0
 	github.com/remeh/sizedwaitgroup v1.0.0
 )
 
